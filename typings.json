@@ -1,0 +1,5 @@
+{
+  "globalDevDependencies": {
+    "mustache": "registry:dt/mustache#0.8.2+20160510002910"
+  }
+}

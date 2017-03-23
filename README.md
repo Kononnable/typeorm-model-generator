@@ -1,2 +1,2 @@
 # typeorm-model-generator
-Generates models for TypeORM from existing database.
+Generates models for TypeORM from existing databases.

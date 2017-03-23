@@ -1,0 +1,31 @@
+{
+  "name": "typeorm-model-generator",
+  "version": "0.0.1",
+  "description": "Generates models for TypeORM from existing databases.",
+  "scripts": {
+    "tsc:w": "tsc -w",
+    "typings-install": "typings install",
+    "setup": "npm install  && npm run typings-install",
+    "start": "tsc && node ./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kononnable/typeorm-model-generator.git"
+  },
+  "author": "Kononnable",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kononnable/typeorm-model-generator/issues"
+  },
+  "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
+  "dependencies": {
+    "@types/node": "^7.0.10",
+    "mssql": "^3.3.0",
+    "mustache": "^2.3.0",
+    "reflect-metadata": "^0.1.10",
+    "typeorm": "0.0.10"
+  },
+  "devDependencies": {
+    "typings": "^2.1.0"
+  }
+}
