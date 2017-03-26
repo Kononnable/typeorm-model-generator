@@ -44,27 +44,27 @@ var argv = Yargs
 
 
 var driver: AbstractDriver;
-var standardPort:string;
+var standardPort: number;
 switch (argv.e) {
     case 'mssql':
         driver = new MssqlDriver();
-        standardPort=''
+        standardPort = 1433;
         break;
-
     default:
-        driver = new MssqlDriver();
-        standardPort=''
-        break;
+        console.error('Database engine not recognized.')
+        process.abort();
+        throw new Error('Database engine not recognized.');
 }
 
 let engine = new Engine(
-    {
-        host:argv.h,
-    port:argv.p || standardPort,
-    databaseName:argv.d,
-    user:argv.u,
-    password:argv.x
-    }, driver);
-// if(Yargs.)
-engine.createModelFromDatabase();
+    driver,{
+        host: argv.h,
+        port: parseInt(argv.p) || standardPort,
+        databaseName: argv.d,
+        user: argv.u,
+        password: argv.x
+    });
 
+engine.createModelFromDatabase().then( ()=>{
+        process.abort();
+})

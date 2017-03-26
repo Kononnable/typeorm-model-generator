@@ -3,6 +3,7 @@
     "mustache": "registry:dt/mustache#0.8.2+20160510002910"
   },
   "dependencies": {
+    "mssql": "registry:dt/mssql#3.3.0+20170311011547",
     "yargs": "registry:npm/yargs#5.0.0+20160907000723"
   }
 }
