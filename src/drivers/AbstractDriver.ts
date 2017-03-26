@@ -1,8 +1,6 @@
 /**
- * abstractDriver
+ * AbstractDriver
  */
-abstract class abstractDriver {
-    constructor(parameters) {
-        
-    }
+export abstract class AbstractDriver {
+    
 }

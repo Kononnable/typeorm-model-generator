@@ -4,3 +4,4 @@ ormconfig.json
 .vscode
 typings/
 **/*.js
+**/*.js.map

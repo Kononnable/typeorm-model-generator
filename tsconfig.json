@@ -5,6 +5,12 @@
         "noImplicitAny": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "sourceMap": false
+        "sourceMap": true,
+        "declaration": false,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "stripInternal": true,
+        "strictNullChecks": true,
+        "moduleResolution": "node"
     }
 }

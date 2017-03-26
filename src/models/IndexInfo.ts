@@ -1,0 +1,6 @@
+/**
+ * IndexInfo
+ */
+interface IndexInfo {
+
+}

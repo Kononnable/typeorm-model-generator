@@ -6,7 +6,7 @@
     "tsc:w": "tsc -w",
     "typings-install": "typings install",
     "setup": "npm install  && npm run typings-install",
-    "start": "tsc && node ./index.js"
+    "start": "tsc && node ./src/index.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,8 @@
     "mssql": "^3.3.0",
     "mustache": "^2.3.0",
     "reflect-metadata": "^0.1.10",
-    "typeorm": "0.0.10"
+    "typeorm": "0.0.10",
+    "yargs": "^7.0.2"
   },
   "devDependencies": {
     "typings": "^2.1.0"

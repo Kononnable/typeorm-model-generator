@@ -1,0 +1,6 @@
+/**
+ * ColumnInfo
+ */
+interface ColumnInfo {
+
+}

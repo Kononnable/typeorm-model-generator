@@ -1,5 +1,8 @@
 {
   "globalDevDependencies": {
     "mustache": "registry:dt/mustache#0.8.2+20160510002910"
+  },
+  "dependencies": {
+    "yargs": "registry:npm/yargs#5.0.0+20160907000723"
   }
 }

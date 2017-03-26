@@ -1,9 +1,10 @@
+import {AbstractDriver} from './abstractDriver'
 /**
- * mssqlDriver
+ * MssqlDriver
  */
-class mssqlDriver extends abstractDriver {
-    constructor(parameters) {
-        super(parameters);
+export class MssqlDriver extends AbstractDriver {
+    constructor() {
+        super();
         
     }
 }
