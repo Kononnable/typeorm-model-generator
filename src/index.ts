@@ -66,5 +66,5 @@ let engine = new Engine(
     });
 
 engine.createModelFromDatabase().then( ()=>{
-        process.abort();
+        // process.abort();
 })

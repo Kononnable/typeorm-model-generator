@@ -5,10 +5,16 @@ import * as MSSQL from 'mssql'
  */
 export class MssqlDriver extends AbstractDriver {
     async GetAllTables(): Promise<EntityInfo[]> {
-        let request =  new MSSQL.Request(this.Connection)
-        let response = await request.query("SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'");
-let x=1;
-        throw new Error('Method not implemented.');
+        let request = new MSSQL.Request(this.Connection)
+        let response: { TABLE_SCHEMA: 'string', TABLE_NAME: 'string' }[]
+            = await request.query("SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'");
+        let ret:EntityInfo[]=<EntityInfo[]>[];
+        response.forEach( (val)=>{
+            let ent:EntityInfo=<EntityInfo>{};
+            ent.EntityName=val.TABLE_NAME;
+            ret.push(ent);
+        })
+        return ret;
     }
     GetCoulmnsFromEntity(entity: EntityInfo[]) {
         throw new Error('Method not implemented.');
@@ -32,19 +38,28 @@ let x=1;
             port: port,
             user: user,
             password: password,
-            // driver: 'msnodesqlv8'
+            options: {
+                encrypt: true, // Use this if you're on Windows Azure
+                appName: 'typeorm-model-generator'
+            }
         }
-        this.Connection = new MSSQL.Connection(config)
-        try {
-            var con:any = this.Connection;
-             let x = await con.connect("mssql://sa:password@localhost/AdventureWorksDW2014")
-            // await this.Connection.connect( (err)=>{console.log(err);console.log('a');})
-        } catch (error) {
-            //TODO: errors on Connection
-            console.error(error);
-            process.abort();
-        }
+
+
+        let promise = new Promise<boolean>(
+            (resolve, reject) => {
+                this.Connection = new MSSQL.Connection(config, (err) => {
+                    if (!err) {
+                        //Connection successfull
+                        resolve(true)
+                    }
+                    else {
+                        //TODO:Report errors
+                        reject(err)
+                    }
+                });
+            }
+        )
+
+        await promise;
     }
-
-
 }

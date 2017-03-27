@@ -16,8 +16,8 @@ export class Engine {
         }
         return true;
     }
-    private getEntitiesInfo(database: string, server: string, port: number, user: string, password: string): EntityInfo[] {
-        this.driver.GetDataFromServer(database, server, port, user, password)
+    private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string): Promise<EntityInfo[]> {
+       await this.driver.GetDataFromServer(database, server, port, user, password)
         return [];
     }
     private createModelFromMetadata(entities: EntityInfo[]) {
