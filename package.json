@@ -4,6 +4,7 @@
   "description": "Generates models for TypeORM from existing databases.",
   "scripts": {
     "tsc:w": "tsc -w",
+    "tsc": "tsc",
     "typings-install": "typings install",
     "setup": "npm install  && npm run typings-install",
     "start": "tsc && node ./src/index.js"
