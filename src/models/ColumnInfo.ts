@@ -6,5 +6,5 @@ interface ColumnInfo {
     default:string,
     is_nullable:boolean,
     data_type:string,
-    char_max_lenght:number
+    char_max_lenght:number,
 }

@@ -90,8 +90,56 @@ ORDER BY
         })
         return entities;
     }
-    GetForeignKeysFromEntity(entities: EntityInfo[]) {
-        throw new Error('Method not implemented.');
+    async GetRelations(): Promise<RelationInfo[]> {
+        let request = new MSSQL.Request(this.Connection)
+        let response: {
+            TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
+            TableReferenced: string, ForeignKeyColumnReferenced: string,
+            onDelete: "RESTRICT" | "CASCADE" | "SET NULL", object_id: number
+        }[]
+            = await request.query(`select 
+    parentTable.name as TableWithForeignKey, 
+    fkc.constraint_column_id as FK_PartNo,
+     parentColumn.name as ForeignKeyColumn,
+     referencedTable.name as TableReferenced, 
+     referencedColumn.name as ForeignKeyColumnReferenced,
+     fk.delete_referential_action_desc as onDelete,
+     fk.object_id
+from 
+    sys.foreign_keys fk 
+inner join 
+    sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
+inner join 
+    sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
+inner join 
+    sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
+inner join 
+    sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
+inner join 
+    sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
+where 
+    fk.is_disabled=0 and fk.is_ms_shipped=0
+order by 
+    TableWithForeignKey, FK_PartNo`);
+        let relations: RelationInfo[] = <RelationInfo[]>[];
+        response.forEach((resp) => {
+            let rels = relations.find((val) => {
+                return val.object_id == resp.object_id;
+            })
+            if (rels == undefined) {
+                rels = <RelationInfo>{};
+                rels.ownerColumnsNames = [];
+                rels.referencedColumnsNames = [];
+                rels.actionOnDelete = resp.onDelete;
+                rels.object_id = resp.object_id;
+                rels.ownerTable = resp.TableWithForeignKey;
+                rels.referencedTableName = resp.TableReferenced;
+                relations.push(rels);
+            }
+            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
+            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
+        })
+        return relations;
     }
     async DisconnectFromServer() {
         if (this.Connection)
