@@ -65,6 +65,8 @@ let engine = new Engine(
         password: argv.x
     });
 
+console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);
 engine.createModelFromDatabase().then( ()=>{
         // process.abort();
+        console.info(`[${new Date().toLocaleTimeString()}] Typeorm model classes created.`)
 })

@@ -1,0 +1,11 @@
+import {Entity, PrimaryColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
+
+@Entity()
+export class {{EntityName}} {
+
+    {{#Columns}}
+
+    @Column()
+    {{name}}:{{data_type}};
+    {{/Columns}}
+}

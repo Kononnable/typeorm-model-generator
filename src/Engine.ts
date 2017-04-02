@@ -1,5 +1,8 @@
 import { MssqlDriver } from './drivers/MssqlDriver'
 import { AbstractDriver } from "./drivers/AbstractDriver";
+import * as Mustache from 'mustache'
+import fs = require('fs');
+import path = require('path')
 /**
  * Engine
  */
@@ -21,7 +24,23 @@ export class Engine {
         
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
-
+        let templatePath = path.resolve(__dirname,'entity.mst')
+        let template = fs.readFileSync(templatePath,'UTF-8');
+        let resultPath = path.resolve(__dirname,'../results')
+        fs.writeFileSync(path.resolve(resultPath,'tsconfig.json'),`{"compilerOptions": {
+        "lib": ["es5", "es6"],
+        "target": "es6",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "sourceMap": true
+    }}`,{encoding:'UTF-8',flag:'w'});
+        databaseModel.entities.forEach(element => {
+             let resultFilePath = path.resolve(resultPath,element.EntityName+'.ts');
+             let rendered = Mustache.render(template, element);
+             fs.writeFileSync(resultFilePath,rendered,{encoding:'UTF-8',flag:'w'})
+        });
     }
 }
 export interface EngineOptions {
