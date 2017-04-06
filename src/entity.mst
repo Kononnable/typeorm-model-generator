@@ -1,11 +1,14 @@
-import {Entity, PrimaryColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
+import {Index,Entity, PrimaryColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
 
 @Entity()
+{{#Indexes}}
+@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
+{{/Indexes}}
 export class {{EntityName}} {
 
     {{#Columns}}
 
-    @Column()
-    {{name}}:{{data_type}};
+    @Column("{{sql_type}}")
+    {{name}}:{{ts_type}};
     {{/Columns}}
 }

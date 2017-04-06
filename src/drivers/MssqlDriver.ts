@@ -30,9 +30,80 @@ export class MssqlDriver extends AbstractDriver {
                 colInfo.name = resp.COLUMN_NAME;
                 colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
                 colInfo.default = resp.COLUMN_DEFAULT;
-                colInfo.data_type = resp.DATA_TYPE;//TODO:Parse to Typeorm types
+                switch (resp.DATA_TYPE) {
+                    case "int":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "int"
+                        break;
+                    case "tinyint":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "smallint"
+                        break;
+                    case "smallint":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "smallint"
+                        break;
+                    case "bit":
+                        colInfo.ts_type = "boolean"
+                        colInfo.sql_type = "boolean"
+                        break;
+                    case "float":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "float"
+                        break;
+                    case "date":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "date"
+                        break;
+                    case "datetime":
+                        colInfo.ts_type = "number";
+                        colInfo.sql_type = "datetime"
+                        break;
+                    case "char":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "nchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "text":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "ntext":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "varchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "string"
+                        break;
+                    case "nvarchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "string"
+                        break;
+                    case "money":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "decimal"
+                        break;
+                    case "real":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "double"
+                        break;
+                    case "decimal":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "decimal"
+                        break;
+                    // case "xml":
+                    //     colInfo.ts_type = "number"
+                    //     break;
+                    default:
+                        console.log("Unknown column type:" + resp.DATA_TYPE);
+                        break;
+                }
                 colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH;
-                ent.Columns.push(colInfo);
+                if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
         return entities;
