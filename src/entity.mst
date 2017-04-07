@@ -1,14 +1,13 @@
-import {Index,Entity, PrimaryColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
+import {Index,Entity, PrimaryColumn,PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
 
 @Entity()
-{{#Indexes}}
-@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
-{{/Indexes}}
-export class {{EntityName}} {
+{{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
+{{/isPrimaryKey}}{{/Indexes}}export class {{EntityName}} {
 
     {{#Columns}}
 
-    @Column("{{sql_type}}")
-    {{name}}:{{ts_type}};
+    {{^isPrimary}}@Column("{{sql_type}}",{ {{#is_nullable}}nullable:true,{{/is_nullable}}{{#char_max_lenght}}length:{{char_max_lenght}},{{/char_max_lenght}}})
+    {{/isPrimary}}{{#isPrimary}}@PrimaryGeneratedColumn("{{sql_type}}")
+    {{/isPrimary}}{{name}}:{{ts_type}};
     {{/Columns}}
 }

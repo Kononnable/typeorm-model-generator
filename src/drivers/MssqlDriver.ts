@@ -4,6 +4,23 @@ import * as MSSQL from 'mssql'
  * MssqlDriver
  */
 export class MssqlDriver extends AbstractDriver {
+    FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
+        dbModel.entities.forEach(entity => {
+            let primaryIndex = entity.Indexes.find(v=>v.isPrimaryKey);
+            if (!primaryIndex){
+                console.error(`Table ${entity.EntityName} has no PK.`)
+                return;
+            }
+            let pIndex=primaryIndex //typescript error? pIndex:IndexInfo; primaryIndex:IndexInfo|undefined
+            let Column = entity.Columns.find(col=>col.name==pIndex.columns[0].name)
+            if(!Column){
+                console.error(`Not found ${entity.EntityName} PK column.`)
+                return;
+            }
+            Column.isPrimary=true;
+        });
+    }
+
     async GetAllTables(): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: { TABLE_SCHEMA: string, TABLE_NAME: string }[]
@@ -99,10 +116,10 @@ export class MssqlDriver extends AbstractDriver {
                     //     colInfo.ts_type = "number"
                     //     break;
                     default:
-                        console.log("Unknown column type:" + resp.DATA_TYPE);
+                        console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH;
+                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH>0?resp.CHARACTER_MAXIMUM_LENGTH:null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
@@ -157,6 +174,7 @@ ORDER BY
                 indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
                 indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                 indexInfo.columns.push(indexColumnInfo);
+
             })
         })
         return entities;

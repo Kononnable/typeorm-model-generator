@@ -10,12 +10,14 @@ export abstract class AbstractDriver {
         await this.GetIndexesFromEntity(dbModel.entities);
         dbModel.relations = await this.GetRelations();
         await this.DisconnectFromServer();
+        this.FindPrimaryColumnsFromIndexes(dbModel)
         return dbModel;
     }
     abstract async ConnectToServer(database:string,server:string,port:number,user:string,password:string);
     abstract async GetAllTables(): Promise<EntityInfo[]>
-    abstract async GetCoulmnsFromEntity(entity: EntityInfo[]);
-    abstract async GetIndexesFromEntity(entity: EntityInfo[]);
+    abstract async GetCoulmnsFromEntity(entities: EntityInfo[]);
+    abstract async GetIndexesFromEntity(entities: EntityInfo[]);
     abstract async GetRelations():Promise<RelationInfo[]>;
+    abstract async FindPrimaryColumnsFromIndexes(dbModel:DatabaseModel);
     abstract async DisconnectFromServer();
 }
