@@ -12,12 +12,9 @@ export class MssqlDriver extends AbstractDriver {
                 return;
             }
             let pIndex=primaryIndex //typescript error? pIndex:IndexInfo; primaryIndex:IndexInfo|undefined
-            let Column = entity.Columns.find(col=>col.name==pIndex.columns[0].name)
-            if(!Column){
-                console.error(`Not found ${entity.EntityName} PK column.`)
-                return;
-            }
-            Column.isPrimary=true;
+            entity.Columns.forEach(col=>{
+                if(pIndex.columns.some( cIndex=> cIndex.name==col.name)) col.isPrimary=true
+            })
         });
     }
 
@@ -37,8 +34,11 @@ export class MssqlDriver extends AbstractDriver {
     }
     async GetCoulmnsFromEntity(entities: EntityInfo[]) {
         let request = new MSSQL.Request(this.Connection)
-        let response: { TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string, IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number }[]
-            = await request.query("SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS");
+        let response: { TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
+             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
+            NUMERIC_PRECISION:number,NUMERIC_SCALE:number }[]
+            = await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+   DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS`);
         entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal.TABLE_NAME == ent.EntityName;
@@ -111,6 +111,8 @@ export class MssqlDriver extends AbstractDriver {
                     case "decimal":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
+                        colInfo.numericPrecision=resp.NUMERIC_PRECISION
+                        colInfo.numericScale=resp.NUMERIC_SCALE
                         break;
                     // case "xml":
                     //     colInfo.ts_type = "number"

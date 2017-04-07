@@ -1,4 +1,4 @@
-import {Index,Entity, PrimaryColumn,PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
+import {Index,Entity, PrimaryColumn, Column, OneToMany, ManyToOne, JoinTable} from "typeorm";
 
 @Entity()
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
@@ -6,8 +6,7 @@ import {Index,Entity, PrimaryColumn,PrimaryGeneratedColumn, Column, OneToMany, M
 
     {{#Columns}}
 
-    {{^isPrimary}}@Column("{{sql_type}}",{ {{#is_nullable}}nullable:true,{{/is_nullable}}{{#char_max_lenght}}length:{{char_max_lenght}},{{/char_max_lenght}}})
-    {{/isPrimary}}{{#isPrimary}}@PrimaryGeneratedColumn("{{sql_type}}")
-    {{/isPrimary}}{{name}}:{{ts_type}};
+    @Column("{{sql_type}}",{ {{#is_nullable}}nullable:true,{{/is_nullable}}{{#char_max_lenght}}length:{{char_max_lenght}},{{/char_max_lenght}}{{#default}}default:{{default}},{{/default}}{{#numericPrecision}}precision:{numericPrecision},{{/numericPrecision}}{{#numericScale}}scale:{{numericScale}},{{/numericScale}}{{#isPrimary}}primary:{{isPrimary}},{{/isPrimary}}})
+    {{name}}:{{ts_type}};
     {{/Columns}}
 }
