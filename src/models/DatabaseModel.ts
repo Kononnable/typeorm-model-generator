@@ -1,4 +1,8 @@
-interface DatabaseModel{
+interface DatabaseModel {
     entities: EntityInfo[],
-    relations: RelationInfo[]
+    config: {
+        cascadeInsert: boolean,
+        cascadeUpdate: boolean,
+        cascadeRemove: boolean,
+    }
 }

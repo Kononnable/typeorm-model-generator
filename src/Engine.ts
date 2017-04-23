@@ -26,7 +26,9 @@ export class Engine {
     private createModelFromMetadata(databaseModel: DatabaseModel) {
         let templatePath = path.resolve(__dirname,'entity.mst')
         let template = fs.readFileSync(templatePath,'UTF-8');
+        //TODO:get results path to argvs, check if dir exists before
         let resultPath = path.resolve(__dirname,'../results')
+        //TODO:Refactor to new method
         fs.writeFileSync(path.resolve(resultPath,'tsconfig.json'),`{"compilerOptions": {
         "lib": ["es5", "es6"],
         "target": "es6",
@@ -36,6 +38,7 @@ export class Engine {
         "experimentalDecorators": true,
         "sourceMap": true
     }}`,{encoding:'UTF-8',flag:'w'});
+    //TODO:Create ormconfig file
         databaseModel.entities.forEach(element => {
              let resultFilePath = path.resolve(resultPath,element.EntityName+'.ts');
              let rendered = Mustache.render(template, element);

@@ -1,8 +1,7 @@
-interface RelationInfo{
-    ownerTable:string,
-    ownerColumnsNames:string[],
-    referencedTableName:string,
-    referencedColumnsNames:string[],
+interface RelationInfo {
+    isOwner: boolean,
+    relationType: "OneToOne", "OneToMany", "ManyToOne"
+    relatedTable: string,
+    relatedColumn: string,
     actionOnDelete:"RESTRICT"|"CASCADE"|"SET NULL",
-    object_id:number
 }

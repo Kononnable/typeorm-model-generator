@@ -11,7 +11,8 @@ interface ColumnInfo {
     char_max_lenght: number|null,
     isPrimary:boolean,
     numericPrecision:number|null,
-    numericScale:number|null
+    numericScale:number|null,
+    relation:RelationInfo
 }
 
 

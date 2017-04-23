@@ -32,7 +32,7 @@ export class MssqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[]) {
+    async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: { TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
              IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
@@ -114,9 +114,10 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.numericPrecision=resp.NUMERIC_PRECISION
                         colInfo.numericScale=resp.NUMERIC_SCALE
                         break;
-                    // case "xml":
-                    //     colInfo.ts_type = "number"
-                    //     break;
+                    case "xml":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
                     default:
                         console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
@@ -127,7 +128,7 @@ export class MssqlDriver extends AbstractDriver {
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[]) {
+    async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
@@ -181,7 +182,7 @@ ORDER BY
         })
         return entities;
     }
-    async GetRelations(): Promise<RelationInfo[]> {
+    async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
@@ -212,25 +213,86 @@ where
     fk.is_disabled=0 and fk.is_ms_shipped=0
 order by 
     TableWithForeignKey, FK_PartNo`);
-        let relations: RelationInfo[] = <RelationInfo[]>[];
+        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
-            let rels = relations.find((val) => {
+            let rels = relationsTemp.find((val) => {
                 return val.object_id == resp.object_id;
             })
             if (rels == undefined) {
-                rels = <RelationInfo>{};
+                rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete = resp.onDelete;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
-                rels.referencedTableName = resp.TableReferenced;
-                relations.push(rels);
+                rels.referencedTable = resp.TableReferenced;
+                relationsTemp.push(rels);
             }
             rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
             rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
         })
-        return relations;
+        relationsTemp.forEach( (relationTmp)=>{
+            let ownerEntity = entities.find((entitity)=>{
+                return entitity.EntityName==relationTmp.ownerTable;
+            })
+            if (!ownerEntity){
+                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
+                return;
+            }
+            let referencedEntity = entities.find((entitity)=>{
+                return entitity.EntityName==relationTmp.referencedTable;
+            })
+            if (!referencedEntity){
+                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
+                return;
+            }
+            let ownerColumn = ownerEntity.Columns.find((column)=>{
+                return column.name==relationTmp.ownerColumnsNames[0];
+            })
+            if(!ownerColumn){
+                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
+                return;
+            }
+            let relatedColumn = referencedEntity.Columns.find((column)=>{
+                return column.name==relationTmp.referencedColumnsNames[0];
+            })
+            if(!relatedColumn){
+                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
+                return;
+            }
+            let ownColumn:ColumnInfo = ownerColumn;
+            let isOneToMany:boolean;
+            isOneToMany=false;
+            let index = ownerEntity.Indexes.find(
+                (index)=>{
+                    return index.isUnique && index.columns.some(col=>{
+                        return col.name==ownColumn.name
+                    })
+                }
+            )
+            if (!index){
+                isOneToMany=true;
+            }else{
+                isOneToMany=false;
+            }
+
+            ownerColumn.relation=<RelationInfo>{
+                actionOnDelete:relationTmp.actionOnDelete,
+                isOwner:true,
+                relatedColumn:relatedColumn.name,
+                relatedTable:relationTmp.referencedTable,
+                relationType:isOneToMany?"OneToMany":"OneToOne"
+            }
+            relatedColumn.relation=<RelationInfo>{
+                actionOnDelete:relationTmp.actionOnDelete,
+                isOwner:false,
+                relatedColumn:ownerColumn.name,
+                relatedTable:relationTmp.ownerTable,
+                relationType:isOneToMany?"ManyToOne":"OneToOne"
+            }
+            
+        })
+        return entities;
     }
     async DisconnectFromServer() {
         if (this.Connection)
