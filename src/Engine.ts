@@ -1,5 +1,6 @@
 import { MssqlDriver } from './drivers/MssqlDriver'
 import { AbstractDriver } from "./drivers/AbstractDriver";
+import {DatabaseModel} from './models/DatabaseModel'
 import * as Mustache from 'mustache'
 import fs = require('fs');
 import path = require('path')

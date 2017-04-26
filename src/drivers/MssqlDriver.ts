@@ -1,5 +1,8 @@
 import { AbstractDriver } from './abstractDriver'
 import * as MSSQL from 'mssql'
+import {ColumnInfo} from './../models/ColumnInfo'
+import {EntityInfo} from './../models/EntityInfo'
+import {DatabaseModel} from './../models/DatabaseModel'
 /**
  * MssqlDriver
  */
@@ -24,7 +27,7 @@ export class MssqlDriver extends AbstractDriver {
             = await request.query("SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'");
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
-            let ent: EntityInfo = <EntityInfo>{};
+            let ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.TABLE_NAME;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
@@ -43,9 +46,8 @@ export class MssqlDriver extends AbstractDriver {
             response.filter((filterVal) => {
                 return filterVal.TABLE_NAME == ent.EntityName;
             }).forEach((resp) => {
-                let colInfo: ColumnInfo = <ColumnInfo>{};
+                let colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.name = resp.COLUMN_NAME;
-                colInfo.relations=[];
                 colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
                 colInfo.default = resp.COLUMN_DEFAULT;
                 switch (resp.DATA_TYPE) {

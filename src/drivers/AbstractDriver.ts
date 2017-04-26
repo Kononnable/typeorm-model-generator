@@ -1,3 +1,5 @@
+import {EntityInfo} from './../models/EntityInfo'
+import {DatabaseModel} from './../models/DatabaseModel'
 /**
  * AbstractDriver
  */

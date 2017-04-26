@@ -1,6 +1,5 @@
 import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, JoinTable} from "typeorm";
-{{#Columns}}{{#relations}}import{ {{relatedTable}} } from "./{{relatedTable}}";
-{{/relations}}{{/Columns}}
+{{{relationImports}}}
 
 @Entity()
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
