@@ -1,6 +1,6 @@
 import { MssqlDriver } from './drivers/MssqlDriver'
 import { AbstractDriver } from "./drivers/AbstractDriver";
-import {DatabaseModel} from './models/DatabaseModel'
+import { DatabaseModel } from './models/DatabaseModel'
 import * as Mustache from 'mustache'
 import fs = require('fs');
 import path = require('path')
@@ -21,16 +21,16 @@ export class Engine {
         return true;
     }
     private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string): Promise<DatabaseModel> {
-       return await this.driver.GetDataFromServer(database, server, port, user, password)
-        
+        return await this.driver.GetDataFromServer(database, server, port, user, password)
+
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
-        let templatePath = path.resolve(__dirname,'entity.mst')
-        let template = fs.readFileSync(templatePath,'UTF-8');
+        let templatePath = path.resolve(__dirname, 'entity.mst')
+        let template = fs.readFileSync(templatePath, 'UTF-8');
         //TODO:get results path to argvs, check if dir exists before
-        let resultPath = path.resolve(__dirname,'../results')
+        let resultPath = path.resolve(__dirname, '../results')
         //TODO:Refactor to new method
-        fs.writeFileSync(path.resolve(resultPath,'tsconfig.json'),`{"compilerOptions": {
+        fs.writeFileSync(path.resolve(resultPath, 'tsconfig.json'), `{"compilerOptions": {
         "lib": ["es5", "es6"],
         "target": "es6",
         "module": "commonjs",
@@ -38,12 +38,15 @@ export class Engine {
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "sourceMap": true
-    }}`,{encoding:'UTF-8',flag:'w'});
-    //TODO:Create ormconfig file
+    }}`, { encoding: 'UTF-8', flag: 'w' });
+        //TODO:Create ormconfig file
+        Mustache.escape = function (value) {
+            return value;
+        };
         databaseModel.entities.forEach(element => {
-             let resultFilePath = path.resolve(resultPath,element.EntityName+'.ts');
-             let rendered = Mustache.render(template, element);
-             fs.writeFileSync(resultFilePath,rendered,{encoding:'UTF-8',flag:'w'})
+            let resultFilePath = path.resolve(resultPath, element.EntityName + '.ts');
+            let rendered = Mustache.render(template, element);
+            fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }
 }
