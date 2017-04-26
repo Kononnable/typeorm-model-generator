@@ -12,7 +12,7 @@ interface ColumnInfo {
     isPrimary:boolean,
     numericPrecision:number|null,
     numericScale:number|null,
-    relation:RelationInfo
+    relations:RelationInfo[]
 }
 
 

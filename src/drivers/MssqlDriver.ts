@@ -45,6 +45,7 @@ export class MssqlDriver extends AbstractDriver {
             }).forEach((resp) => {
                 let colInfo: ColumnInfo = <ColumnInfo>{};
                 colInfo.name = resp.COLUMN_NAME;
+                colInfo.relations=[];
                 colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
                 colInfo.default = resp.COLUMN_DEFAULT;
                 switch (resp.DATA_TYPE) {
@@ -276,21 +277,21 @@ order by
                 isOneToMany=false;
             }
 
-            ownerColumn.relation=<RelationInfo>{
+            ownerColumn.relations.push(<RelationInfo>{
                 actionOnDelete:relationTmp.actionOnDelete,
                 isOwner:true,
                 relatedColumn:relatedColumn.name,
                 relatedTable:relationTmp.referencedTable,
                 relationType:isOneToMany?"OneToMany":"OneToOne"
-            }
-            relatedColumn.relation=<RelationInfo>{
+            })
+            relatedColumn.relations.push(<RelationInfo>{
                 actionOnDelete:relationTmp.actionOnDelete,
                 isOwner:false,
                 relatedColumn:ownerColumn.name,
                 relatedTable:relationTmp.ownerTable,
                 relationType:isOneToMany?"ManyToOne":"OneToOne"
-            }
-            
+            })
+
         })
         return entities;
     }
