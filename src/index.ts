@@ -40,6 +40,11 @@ var argv = Yargs
         choices: ['mssql'],
         default: 'mssql'
     })
+    .option('o', {
+        alias: 'output',
+        describe: 'Where to place generated models.',
+        default: './output'
+    })
     .argv;
 
 
@@ -62,11 +67,13 @@ let engine = new Engine(
         port: parseInt(argv.p) || standardPort,
         databaseName: argv.d,
         user: argv.u,
-        password: argv.x
+        password: argv.x,
+        databaseType:argv.e,
+        resultsPath:argv.o
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);
 engine.createModelFromDatabase().then( ()=>{
-        // process.abort();
         console.info(`[${new Date().toLocaleTimeString()}] Typeorm model classes created.`)
-})
+})    
+

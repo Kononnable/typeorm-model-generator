@@ -325,7 +325,9 @@ order by
                         resolve(true)
                     }
                     else {
-                        //TODO:Report errors
+                        console.error('Error connecting to MSSQL Server.')
+                        console.error(err)
+                        process.abort()
                         reject(err)
                     }
                 });

@@ -27,9 +27,24 @@ export class Engine {
     private createModelFromMetadata(databaseModel: DatabaseModel) {
         let templatePath = path.resolve(__dirname, 'entity.mst')
         let template = fs.readFileSync(templatePath, 'UTF-8');
-        //TODO:get results path to argvs, check if dir exists before
-        let resultPath = path.resolve(__dirname, '../results')
-        //TODO:Refactor to new method
+        let resultPath = path.resolve(__dirname, '../'+this.Options.resultsPath)
+        if (!fs.existsSync(resultPath))
+            fs.mkdirSync(resultPath);
+        this.createTsConfigFile(resultPath)
+        this.createTypeOrm(resultPath)
+        Mustache.escape = function (value) {
+            return value;
+        };
+        let entitesPath = path.resolve(resultPath, './entities')
+        if (!fs.existsSync(entitesPath))
+            fs.mkdirSync(entitesPath);
+        databaseModel.entities.forEach(element => {
+            let resultFilePath = path.resolve(entitesPath, element.EntityName + '.ts');
+            let rendered = Mustache.render(template, element);
+            fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
+        });
+    }
+    private createTsConfigFile(resultPath) {
         fs.writeFileSync(path.resolve(resultPath, 'tsconfig.json'), `{"compilerOptions": {
         "lib": ["es5", "es6"],
         "target": "es6",
@@ -39,15 +54,24 @@ export class Engine {
         "experimentalDecorators": true,
         "sourceMap": true
     }}`, { encoding: 'UTF-8', flag: 'w' });
-        //TODO:Create ormconfig file
-        Mustache.escape = function (value) {
-            return value;
-        };
-        databaseModel.entities.forEach(element => {
-            let resultFilePath = path.resolve(resultPath, element.EntityName + '.ts');
-            let rendered = Mustache.render(template, element);
-            fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
-        });
+    }
+    private createTypeOrm(resultPath) {
+        fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
+  {
+    "name": "default",
+    "driver": {
+      "type": "${this.Options.databaseType}",
+      "host": "${this.Options.host}",
+      "port": ${this.Options.port},
+      "username": "${this.Options.user}",
+      "password": "${this.Options.password}",
+      "database": "${this.Options.databaseName}"
+    },
+    "entities": [
+      "entities/*.js"
+    ]
+  }
+]`, { encoding: 'UTF-8', flag: 'w' });
     }
 }
 export interface EngineOptions {
@@ -55,5 +79,7 @@ export interface EngineOptions {
     port: number,
     databaseName: string,
     user: string,
-    password: string
+    password: string,
+    resultsPath: string,
+    databaseType: string
 }
