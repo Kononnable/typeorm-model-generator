@@ -326,7 +326,7 @@ order by
                     }
                     else {
                         console.error('Error connecting to MSSQL Server.')
-                        console.error(err)
+                        console.error(err.message)
                         process.abort()
                         reject(err)
                     }
