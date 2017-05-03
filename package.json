@@ -25,6 +25,7 @@
     "mustache": "^2.3.0",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.0.10",
+    "typescript": "^2.3.2",
     "yargs": "^7.0.2"
   },
   "devDependencies": {
