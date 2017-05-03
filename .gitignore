@@ -6,3 +6,5 @@ typings/
 **/*.js
 **/*.js.map
 output/**/*.*
+.nyc_output/
+coverage/
