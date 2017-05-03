@@ -1,4 +1,4 @@
-import { AbstractDriver } from './abstractDriver'
+import { AbstractDriver } from './AbstractDriver'
 import * as MSSQL from 'mssql'
 import {ColumnInfo} from './../models/ColumnInfo'
 import {EntityInfo} from './../models/EntityInfo'

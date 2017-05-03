@@ -2,7 +2,7 @@ import { MssqlDriver } from './drivers/MssqlDriver';
 import * as Mustache from 'mustache'
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
-import { AbstractDriver } from "./drivers/abstractDriver";
+import { AbstractDriver } from "./drivers/AbstractDriver";
 // var x = Mustache.render("{{a}}", { a: 'test' });
 // console.log(x);
 
