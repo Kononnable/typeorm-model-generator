@@ -9,7 +9,7 @@
     "setup": "npm install  && npm run typings-install",
     "start": "tsc && node ./src/index.js",
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.js --reporter lcovonly -- -R spec",
-    "posttest": "codecov"
+    "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remapped.json & codecov --file ./coverage/coverage-remapped.json -t a0408113-95c4-4fea-92e3-f63e11949ac2"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,7 @@
     "codecov": "^2.1.0",
     "istanbul": "^0.4.5",
     "mocha": "^3.3.0",
+    "remap-istanbul": "^0.9.5",
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0",
     "typings": "^2.1.0"
