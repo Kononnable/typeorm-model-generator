@@ -9,7 +9,7 @@
     "setup": "npm install  && npm run typings-install",
     "start": "tsc && node ./src/index.js",
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha test/**/*.js --reporter lcovonly -- -R spec",
-    "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remapped.json & codecov --file ./coverage/coverage-remapped.json -t a0408113-95c4-4fea-92e3-f63e11949ac2"
+    "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remapped.json & codecov --file=./coverage/coverage-remapped.json "
   },
   "repository": {
     "type": "git",
