@@ -25,9 +25,9 @@ export class Engine {
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
-        let templatePath = path.resolve(__dirname, 'entity.mst')
+        let templatePath = path.resolve(process.cwd(), 'src/entity.mst')
         let template = fs.readFileSync(templatePath, 'UTF-8');
-        let resultPath = path.resolve(__dirname, '../'+this.Options.resultsPath)
+        let resultPath = this.Options.resultsPath
         if (!fs.existsSync(resultPath))
             fs.mkdirSync(resultPath);
         this.createTsConfigFile(resultPath)

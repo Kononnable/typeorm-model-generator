@@ -1,85 +1,77 @@
 import "reflect-metadata";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
-import { createTestingConnections, closeTestingConnections, reloadTestingDatabases } from "./../utils/test-utils"
-import fs = require('fs');
+import { setupSingleTestingConnection, closeTestingConnections, reloadTestingDatabases } from "./../utils/test-utils"
+import fs = require('fs-extra');
 import path = require('path')
 import { Post } from "./examples/sample1-simple-entity/entity/Post";
 import * as mockFS from "mock-fs";
 import { Engine } from "./../../src/Engine";
 import { AbstractDriver } from "./../../src/drivers/AbstractDriver";
 import { MssqlDriver } from "./../../src/drivers/MssqlDriver";
+import { DriverType } from "typeorm/driver/DriverOptions";
+import { expect } from "chai";
+import * as Sinon from 'sinon'
 
-describe("integration tests", function () {
-    let connections: Connection[];
 
-    describe('should ...', async () => {
-        let examplesPath = path.resolve(__dirname, 'examples')
+  describe("integration tests", async function () {
+        let examplesPath = path.resolve(process.cwd(), 'test/integration/examples')
         let files = fs.readdirSync(examplesPath)
         // console.log(files)
-        files.forEach(folder => {
-            it(folder, async () => {
-                connections = await createTestingConnections({
+        
+    let dbDrivers:[DriverType]=['mssql']
+
+        for( let folder of files){
+        // files.forEach( async folder => {
+            
+            describe(folder, async function  () {
+    
+            for (let dbDriver of dbDrivers){
+     it(dbDriver,async function() {
+            let connOpt =await setupSingleTestingConnection(<any>dbDriver,{
                     entities: [Post],
                     schemaCreate: true,
                 })
-                await connections.forEach(async conn => {
+                let conn = await createConnection(connOpt)
+                await conn.entityManager.query(`select 'TODO'`)//depends on driver - remove tables
+                if (conn.isConnected)
+                    await conn.close()
 
-                    // conn.s
-                    console.log('aa')
-                    //TODO get model from db
-                    await conn.entityManager.query(`select 'TODO'`)//depends on driver - remove tables
-                    //compare models
-                    if (conn.isConnected)
-                     await conn.close() 
-                     let q=conn.isConnected
-                    console.log(q)
+                let driver: AbstractDriver;
+                driver = new MssqlDriver();
+                let standardPort = 1433;
 
-
-                    let resultPath = path.resolve(__dirname, '../model')
-                    mockFS({ resultPath: {} })
-
-
-                    var driver: AbstractDriver;
-
-                    driver = new MssqlDriver();
-                    let standardPort = 1433;
-
-                    let engine = new Engine(
-                        driver, {
-                            host: 'localhost',
-                            port: standardPort,
-                            databaseName: 'test',
-                            user: 'sa',
-                            password: 'password',
-                            databaseType: 'mssql',
-                            resultsPath: `test/model`
-                        });
+let resultsPath= path.resolve(process.cwd(),`output`)
+                let engine = new Engine(
+                    driver, {
+                        //TODO:get data from env
+                        host: 'localhost',
+                        port: standardPort,
+                        databaseName: 'test',
+                        user: 'sa',
+                        password: 'password',
+                        databaseType: 'mssql',
+                        resultsPath: resultsPath
+                    });
+                    fs.removeSync(resultsPath)
 
 
-                    let result = await engine.createModelFromDatabase()
-                    console.log(result);
-                });
+                let result = await engine.createModelFromDatabase()
+  
+                //TODO:Compare reslts
+                let filesOrgPath=path.resolve(examplesPath,folder,'entity')
+                let filesGenPath=path.resolve(resultsPath,'entities')
 
-            })
+                 let filesOrg = fs.readdirSync(filesOrgPath).map(function(this,val){return val.toString().toLowerCase();}).filter( function(this,val,ind,arr){return val.toString().endsWith('.ts')})
+                 let filesGen = fs.readdirSync(filesGenPath).map(function(this,val){return val.toString().toLowerCase();}).filter( function(this,val,ind,arr){return val.toString().endsWith('.ts')})
+                 
+                 expect(filesOrg).to.be.deep.equal(filesGen)
 
-        });
-    })
-
-    // describe("sample1", async function () {
-    //     connections = await createTestingConnections({
-    //         //entities: [Post],
-    //         schemaCreate: false,
-    //     })
-    //     await connections.forEach( async conn => {
-    //         await conn.syncSchema()
-    //         conn.entityManager.query('TODO')//depends on 
-    //     });
-    //     closeTestingConnections(connections)
-
-    //     //foreach driver
-    //     //create model from db
-    //     //compare models
-
-    // })
+                 for(let file of filesOrg){
+                     
+                     expect(fs.readFileSync(path.resolve(filesOrgPath,file)).toString()).to.be.eq(fs.readFileSync(path.resolve(filesGenPath,file)).toString())
+                 }
 });
 
+        }
+            })}
+  })

@@ -3,6 +3,7 @@ import * as Mustache from 'mustache'
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
 import { AbstractDriver } from "./drivers/AbstractDriver";
+import path = require('path')
 // var x = Mustache.render("{{a}}", { a: 'test' });
 // console.log(x);
 
@@ -43,7 +44,7 @@ var argv = Yargs
     .option('o', {
         alias: 'output',
         describe: 'Where to place generated models.',
-        default: './output'
+        default:  path.resolve(process.cwd(),'output')
     })
     .argv;
 
