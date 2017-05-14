@@ -12,17 +12,13 @@ services:
   - docker
 
 env:
-  - MSSQLSkip=0 MSSQLHost=localhost MSSQLPort=1433 MSSQLUsername=sa MSSQLPassword=!Passw0rd MSSQLDatabase=test
+  - MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd MSSQL_Database=tempdb
 
 before_install:
   - docker pull microsoft/mssql-server-linux
-  - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 -d microsoft/mssql-server-linux
-  - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-  - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-  - sudo apt-get update 
-  - sudo apt-get install mssql-tools 
-  
+  - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 --name mssql -d microsoft/mssql-server-linux
+
+
 before_script:
   - npm run typings-install
   - tsc
-  - sqlcmd -S $MSSQLHost,$MSSQLPort -U $MSSQLUsername -P $MSSQLPassword -Q 'CREATE DATABASE TEST'

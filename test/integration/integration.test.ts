@@ -17,7 +17,7 @@ describe("integration tests", async function () {
     let files = fs.readdirSync(examplesPath)
 
     let dbDrivers: DriverType[] = []
-    if (process.env.MSSQLSkip=='0') dbDrivers.push('mssql')
+    if (process.env.MSSQL_Skip=='0') dbDrivers.push('mssql')
 
     for (let folder of files) {
 
@@ -31,12 +31,12 @@ describe("integration tests", async function () {
                     let connOpt: ConnectionOptions = {
 
                         driver: {
-                            database: process.env.MSSQLDatabase,
-                            host: process.env.MSSQLHost,
-                            password: process.env.MSSQLPassword,
+                            database: process.env.MSSQL_Database,
+                            host: process.env.MSSQL_Host,
+                            password: process.env.MSSQL_Password,
                             type: 'mssql',
-                            username: process.env.MSSQLUsername,
-                            port: process.env.MSSQLPort
+                            username: process.env.MSSQL_Username,
+                            port: process.env.MSSQL_Port
                         },
                         dropSchemaOnConnection: true,
                         autoSchemaSync: true,
@@ -54,11 +54,11 @@ describe("integration tests", async function () {
                     let engine = new Engine(
                         driver, {
                             //TODO:get data from env
-                            host: process.env.MSSQLHost,
-                            port: process.env.MSSQLPort,
-                            databaseName: process.env.MSSQLDatabase,
-                            user: process.env.MSSQLUsername,
-                            password: process.env.MSSQLPassword,
+                            host: process.env.MSSQL_Host,
+                            port: process.env.MSSQL_Port,
+                            databaseName: process.env.MSSQL_Database,
+                            user: process.env.MSSQL_Username,
+                            password: process.env.MSSQL_Password,
                             databaseType: 'mssql',
                             resultsPath: resultsPath
                         });
