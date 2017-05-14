@@ -4,6 +4,15 @@ node_js:
   - 6
   - 5
   - 4
+env:
+  - MSSQLSkip=0
+  - MSSQLHost=localhost
+  - MSSQLPort=1433
+  - MSSQLUsername=sa
+  - MSSQLPassword=!Passw0rd
+  - MSSQLDatabase=test
 before_script:
+  - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 -d microsoft/mssql-server-linux
   - npm run typings-install
   - tsc
+  - sqlcmd -S $MSSQLHost,$MSSQLPort -U $MSSQLUsername -P $MSSQLPassword -Q 'CREATE DATABASE TEST'
