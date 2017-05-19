@@ -10,6 +10,7 @@ import { MssqlDriver } from "./../../src/drivers/MssqlDriver";
 import { DriverType } from "typeorm/driver/DriverOptions";
 import { expect } from "chai";
 import * as Sinon from 'sinon'
+import { EntityFileToJson } from "../utils/EntityFileToJson";
 
 
 describe("integration tests", async function () {
@@ -75,8 +76,10 @@ describe("integration tests", async function () {
                     expect(filesOrg).to.be.deep.equal(filesGen)
 
                     for (let file of filesOrg) {
-                        //TODO:Compare files logically(not buffer to buffer)
-                        //expect(fs.readFileSync(path.resolve(filesOrgPath, file)).toString()).to.be.eq(fs.readFileSync(path.resolve(filesGenPath, file)).toString())
+                        let entftj = new EntityFileToJson();
+                        let jsonEntityOrg= entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
+                        let jsonEntityGen= entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
+                        expect(jsonEntityGen).to.be.deep.eq(jsonEntityOrg)
                     }
                 });
 
