@@ -39,9 +39,10 @@ export class MssqlDriver extends AbstractDriver {
         let request = new MSSQL.Request(this.Connection)
         let response: { TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
              IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-            NUMERIC_PRECISION:number,NUMERIC_SCALE:number }[]
+            NUMERIC_PRECISION:number,NUMERIC_SCALE:number,IsIdentity:number }[]
             = await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
-   DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS`);
+   DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
+   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS`);
         entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal.TABLE_NAME == ent.EntityName;
@@ -49,6 +50,7 @@ export class MssqlDriver extends AbstractDriver {
                 let colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.name = resp.COLUMN_NAME;
                 colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
+                colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
                 colInfo.default = resp.COLUMN_DEFAULT;
                 switch (resp.DATA_TYPE) {
                     case "int":

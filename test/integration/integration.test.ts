@@ -3,7 +3,6 @@ import "reflect-metadata";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import fs = require('fs-extra');
 import path = require('path')
-import { Post } from "./examples/sample1-simple-entity/entity/Post";
 import { Engine } from "./../../src/Engine";
 import { AbstractDriver } from "./../../src/drivers/AbstractDriver";
 import { MssqlDriver } from "./../../src/drivers/MssqlDriver";
@@ -11,7 +10,10 @@ import { DriverType } from "typeorm/driver/DriverOptions";
 import { expect } from "chai";
 import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
+var chai = require('chai');
+var chaiSubset = require('chai-subset');
 
+chai.use(chaiSubset);
 
 describe("integration tests", async function () {
     let examplesPath = path.resolve(process.cwd(), 'test/integration/examples')
@@ -54,7 +56,6 @@ describe("integration tests", async function () {
                     let resultsPath = path.resolve(process.cwd(), `output`)
                     let engine = new Engine(
                         driver, {
-                            //TODO:get data from env
                             host: process.env.MSSQL_Host,
                             port: process.env.MSSQL_Port,
                             databaseName: process.env.MSSQL_Database,
@@ -70,8 +71,8 @@ describe("integration tests", async function () {
 
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPath).map(function (this, val) { return val.toString().toLowerCase(); }).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).map(function (this, val) { return val.toString().toLowerCase(); }).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
 
                     expect(filesOrg).to.be.deep.equal(filesGen)
 
@@ -79,7 +80,7 @@ describe("integration tests", async function () {
                         let entftj = new EntityFileToJson();
                         let jsonEntityOrg= entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
                         let jsonEntityGen= entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
-                        expect(jsonEntityGen).to.be.deep.eq(jsonEntityOrg)
+                        expect(jsonEntityGen).to.containSubset(jsonEntityOrg)
                     }
                 });
 

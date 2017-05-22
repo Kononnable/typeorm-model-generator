@@ -7,7 +7,7 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
 
     {{#Columns}}
 
-    @Column("{{sql_type}}",{ {{#is_nullable}}nullable:true,{{/is_nullable}}{{#char_max_lenght}}length:{{char_max_lenght}},{{/char_max_lenght}}{{#default}}default:"{{default}}",{{/default}}{{#numericPrecision}}precision:{{numericPrecision}},{{/numericPrecision}}{{#numericScale}}scale:{{numericScale}},{{/numericScale}}{{#isPrimary}}primary:{{isPrimary}},{{/isPrimary}}}){{#relations}}
+    @Column("{{sql_type}}",{ {{#is_generated}}generated:true,{{/is_generated}}{{#is_nullable}}nullable:true,{{/is_nullable}}{{^is_nullable}}nullable:false,{{/is_nullable}}{{#char_max_lenght}}length:{{char_max_lenght}},{{/char_max_lenght}}{{#default}}default:"{{default}}",{{/default}}{{#numericPrecision}}precision:{{numericPrecision}},{{/numericPrecision}}{{#numericScale}}scale:{{numericScale}},{{/numericScale}}{{#isPrimary}}primary:{{isPrimary}},{{/isPrimary}}}){{#relations}}
     @{{relationType}}(type=>{{relatedTable}},x=>x.{{relatedColumn}}){{#isOwner}}
     @JoinTable(){{/isOwner}}{{/relations}}
     {{name}}:{{ts_type}};

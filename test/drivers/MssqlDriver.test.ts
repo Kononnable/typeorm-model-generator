@@ -56,12 +56,13 @@ describe('MssqlDriver', function () {
                     let response = <{
                         TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
                         IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-                        NUMERIC_PRECISION: number, NUMERIC_SCALE: number
+                        NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity:number 
                     }[]>[]
                     response.push({
                         TABLE_NAME: 'name', CHARACTER_MAXIMUM_LENGTH: 0,
                         COLUMN_DEFAULT: 'a', COLUMN_NAME: 'name', DATA_TYPE: 'int',
-                        IS_NULLABLE: 'YES', NUMERIC_PRECISION: 0, NUMERIC_SCALE: 0
+                        IS_NULLABLE: 'YES', NUMERIC_PRECISION: 0, NUMERIC_SCALE: 0,
+                        IsIdentity:1
                     })
                     return response;
                 }
@@ -81,6 +82,7 @@ describe('MssqlDriver', function () {
             default: 'a',
             is_nullable: true,
             isPrimary: false,
+            is_generated:true,
             name: 'name',
             numericPrecision: null,
             numericScale: null,

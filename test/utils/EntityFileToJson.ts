@@ -1,4 +1,28 @@
 export class EntityFileToJson {
+    getColumnOptionsAndType(trimmedLine: string, col: EntityColumn) {
+        let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
+
+        if (decoratorParameters.length > 0) {
+            if (decoratorParameters.search(',') > 0) {
+                col.columnType = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim()
+                let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
+                if (badJSON.lastIndexOf(',') == badJSON.length - 2) {
+                    badJSON = badJSON.slice(0, badJSON.length - 2) + badJSON[badJSON.length - 1]
+                }
+                col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+            } else {
+                if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
+                    col.columnType = decoratorParameters
+                } else {
+                    let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
+                    if (badJSON.lastIndexOf(',') == badJSON.length - 2) {
+                        badJSON = badJSON.slice(0, badJSON.length - 2) + badJSON[badJSON.length - 1]
+                    }
+                    col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+                }
+            }
+        }
+    }
 
     convert(entityFile: Buffer): EntityJson {
         let retVal = new EntityJson();
@@ -7,7 +31,7 @@ export class EntityFileToJson {
         let isMultilineStatement = false;
         let priorPartOfMultilineStatement = '';
 
-        let lines = entityFile.toString().replace('\r','').split('\n');
+        let lines = entityFile.toString().replace('\r', '').split('\n');
         for (let line of lines) {
             let trimmedLine = line.trim();
             if (isMultilineStatement)
@@ -33,8 +57,9 @@ export class EntityFileToJson {
                         continue;
                     } else {
                         isMultilineStatement = false;
-                        retVal.columns.push(new EntityColumn())
-                        //TODO:Options, column type if declared
+                        let col = new EntityColumn()
+                        this.getColumnOptionsAndType(trimmedLine, col)
+                        retVal.columns.push(col);
                         continue;
                     }
 
@@ -45,8 +70,10 @@ export class EntityFileToJson {
                         continue;
                     } else {
                         isMultilineStatement = false;
-                        retVal.columns.push(new EntityColumn())
-                        //TODO:Options, column type if declared
+                        let col = new EntityColumn()
+                        this.getColumnOptionsAndType(trimmedLine, col)
+                        col.columnOptions['primary'] = true
+                        retVal.columns.push(col);
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@PrimaryGeneratedColumn')) {
@@ -56,8 +83,11 @@ export class EntityFileToJson {
                         continue;
                     } else {
                         isMultilineStatement = false;
-                        retVal.columns.push(new EntityColumn())
-                        //TODO:Options, column type if declared
+                        let col = new EntityColumn()
+                        this.getColumnOptionsAndType(trimmedLine, col)
+                        col.columnOptions['primary'] = true
+                        col.columnOptions['generated'] = true
+                        retVal.columns.push(col);
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@ManyToOne')) {
@@ -83,11 +113,11 @@ export class EntityFileToJson {
                         continue;
                     }
                 } else if (trimmedLine.split(':').length - 1 > 0) {
-                    retVal.columns[retVal.columns.length-1].columnName=trimmedLine.split(':')[0].trim();
-                    retVal.columns[retVal.columns.length-1].columnType=trimmedLine.split(':')[1].split(';')[0].trim();
+                    retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
+                    retVal.columns[retVal.columns.length - 1].columnType = trimmedLine.split(':')[1].split(';')[0].trim();
                     continue
-                }else if(trimmedLine='}'){
-                    isInClassBody=false;
+                } else if (trimmedLine = '}') {
+                    isInClassBody = false;
                     continue; //class declaration end
                 }
             }
@@ -112,4 +142,5 @@ class EntityJson {
 class EntityColumn {
     columnName: string
     columnType: string
+    columnOptions: any = {}
 }

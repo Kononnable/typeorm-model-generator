@@ -1,6 +1,6 @@
 import {Column, Entity,PrimaryColumn,Index} from "typeorm";
 
-@Entity()
+@Entity("Post")
 export class Post {
 
     @PrimaryColumn("int", { generated: true })

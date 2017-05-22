@@ -10,9 +10,11 @@ export class ColumnInfo {
     "float" | "double" | "decimal" | "date" | "time" | "datetime" | "boolean" | "json";
     char_max_lenght: number|null=null;
     isPrimary:boolean=false;
+    is_generated:boolean=false;
     numericPrecision:number|null=null;
     numericScale:number|null=null;
     relations:RelationInfo[];
+
 
     constructor() {
         this.relations=[];
