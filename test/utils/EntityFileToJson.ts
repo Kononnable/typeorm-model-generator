@@ -6,8 +6,8 @@ export class EntityFileToJson {
             if (decoratorParameters.search(',') > 0) {
                 col.columnType = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim()
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
-                if (badJSON.lastIndexOf(',') == badJSON.length - 2) {
-                    badJSON = badJSON.slice(0, badJSON.length - 2) + badJSON[badJSON.length - 1]
+                if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
+                    badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                 }
                 col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
             } else {
@@ -15,8 +15,8 @@ export class EntityFileToJson {
                     col.columnType = decoratorParameters
                 } else {
                     let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
-                    if (badJSON.lastIndexOf(',') == badJSON.length - 2) {
-                        badJSON = badJSON.slice(0, badJSON.length - 2) + badJSON[badJSON.length - 1]
+                    if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
+                        badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                     }
                     col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 }

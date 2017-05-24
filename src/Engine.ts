@@ -1,7 +1,7 @@
 import { MssqlDriver } from './drivers/MssqlDriver'
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { DatabaseModel } from './models/DatabaseModel'
-import * as Mustache from 'mustache'
+import * as Handlebars from 'handlebars'
 import fs = require('fs');
 import path = require('path')
 /**
@@ -32,15 +32,13 @@ export class Engine {
             fs.mkdirSync(resultPath);
         this.createTsConfigFile(resultPath)
         this.createTypeOrm(resultPath)
-        Mustache.escape = function (value) {
-            return value;
-        };
         let entitesPath = path.resolve(resultPath, './entities')
         if (!fs.existsSync(entitesPath))
             fs.mkdirSync(entitesPath);
+            let compliedTemplate = Handlebars.compile(template,{noEscape:true})
         databaseModel.entities.forEach(element => {
             let resultFilePath = path.resolve(entitesPath, element.EntityName + '.ts');
-            let rendered = Mustache.render(template, element);
+            let rendered =compliedTemplate(element)
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }

@@ -1,11 +1,8 @@
 import { MssqlDriver } from './drivers/MssqlDriver';
-import * as Mustache from 'mustache'
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import path = require('path')
-// var x = Mustache.render("{{a}}", { a: 'test' });
-// console.log(x);
 
 
 

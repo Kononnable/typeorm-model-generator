@@ -22,14 +22,15 @@
   },
   "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
   "dependencies": {
+    "handlebars": "^4.0.10",
     "mssql": "^3.3.0",
-    "mustache": "^2.3.0",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.0.10",
     "typescript": "^2.3.2",
     "yargs": "^7.0.2"
   },
   "devDependencies": {
+    "@types/handlebars": "^4.0.32",
     "@types/chai": "^3.5.2",
     "@types/chai-as-promised": "0.0.30",
     "@types/chai-subset": "^1.3.0",
