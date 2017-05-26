@@ -1,4 +1,4 @@
-import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, JoinTable} from "typeorm";
+import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, JoinColumn} from "typeorm";
 {{relationImports}}
 
 @Entity()
@@ -7,7 +7,7 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
 
     {{#Columns}}
 
-    @Column("{{sql_type}}",{ {{#is_generated}}
+   {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
         generated:true,{{/is_generated}}{{#is_nullable}}
         nullable:true,{{/is_nullable}}{{^is_nullable}}
         nullable:false,{{/is_nullable}}{{#char_max_lenght}}
@@ -16,9 +16,13 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         precision:{{numericPrecision}},{{/numericPrecision}}{{#numericScale}}
         scale:{{numericScale}},{{/numericScale}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}} 
-        }){{#relations}}
-    @{{relationType}}(type=>{{relatedTable}},x=>x.{{relatedColumn}}){{#isOwner}}
-    @JoinTable(){{/isOwner}}{{/relations}}
+        })
     {{name}}:{{ts_type}};
+        {{/relations}}{{#relations}}
+    @{{relationType}}(type=>{{relatedTable}},x=>x.{{relatedColumn}}){{#isOwner}}
+    @JoinColumn(){{/isOwner}}
+    {{#if isOneToMany}}{{../name}}:{{relatedTable}}[];
+    {{else}}{{../name}}:{{relatedTable}};
+    {{/if}}{{/relations}}
     {{/Columns}}
 }

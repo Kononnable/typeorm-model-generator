@@ -80,7 +80,7 @@ describe("integration tests", async function () {
                         let entftj = new EntityFileToJson();
                         let jsonEntityOrg= entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
                         let jsonEntityGen= entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
-                        expect(jsonEntityGen).to.containSubset(jsonEntityOrg)
+                        expect(jsonEntityGen,`Error in file ${file}`).to.containSubset(jsonEntityOrg)
                     }
                 });
 

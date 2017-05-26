@@ -4,6 +4,7 @@ import * as Sinon from 'sinon'
 import * as MSSQL from 'mssql'
 import { EntityInfo } from './../../src/models/EntityInfo'
 import { ColumnInfo } from './../../src/models/ColumnInfo'
+import { RelationInfo } from './../../src/models/RelationInfo'
 
 
 describe('MssqlDriver', function () {

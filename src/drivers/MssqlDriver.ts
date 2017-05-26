@@ -1,22 +1,23 @@
 import { AbstractDriver } from './AbstractDriver'
 import * as MSSQL from 'mssql'
-import {ColumnInfo} from './../models/ColumnInfo'
-import {EntityInfo} from './../models/EntityInfo'
-import {DatabaseModel} from './../models/DatabaseModel'
+import { ColumnInfo } from './../models/ColumnInfo'
+import { EntityInfo } from './../models/EntityInfo'
+import { RelationInfo } from './../models/RelationInfo'
+import { DatabaseModel } from './../models/DatabaseModel'
 /**
  * MssqlDriver
  */
 export class MssqlDriver extends AbstractDriver {
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
-            let primaryIndex = entity.Indexes.find(v=>v.isPrimaryKey);
-            if (!primaryIndex){
+            let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
+            if (!primaryIndex) {
                 console.error(`Table ${entity.EntityName} has no PK.`)
                 return;
             }
-            let pIndex=primaryIndex //typescript error? pIndex:IndexInfo; primaryIndex:IndexInfo|undefined
-            entity.Columns.forEach(col=>{
-                if(pIndex.columns.some( cIndex=> cIndex.name==col.name)) col.isPrimary=true
+            let pIndex = primaryIndex //typescript error? pIndex:IndexInfo; primaryIndex:IndexInfo|undefined
+            entity.Columns.forEach(col => {
+                if (pIndex.columns.some(cIndex => cIndex.name == col.name)) col.isPrimary = true
             })
         });
     }
@@ -37,9 +38,11 @@ export class MssqlDriver extends AbstractDriver {
     }
     async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
-        let response: { TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
-             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-            NUMERIC_PRECISION:number,NUMERIC_SCALE:number,IsIdentity:number }[]
+        let response: {
+            TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
+            IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
+            NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity: number
+        }[]
             = await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
    COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS`);
@@ -116,8 +119,8 @@ export class MssqlDriver extends AbstractDriver {
                     case "decimal":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
-                        colInfo.numericPrecision=resp.NUMERIC_PRECISION
-                        colInfo.numericScale=resp.NUMERIC_SCALE
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        colInfo.numericScale = resp.NUMERIC_SCALE
                         break;
                     case "xml":
                         colInfo.ts_type = "string"
@@ -127,7 +130,7 @@ export class MssqlDriver extends AbstractDriver {
                         console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH>0?resp.CHARACTER_MAXIMUM_LENGTH:null;
+                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
@@ -192,7 +195,8 @@ ORDER BY
         let response: {
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
             TableReferenced: string, ForeignKeyColumnReferenced: string,
-            onDelete: "RESTRICT" | "CASCADE" | "SET NULL", object_id: number
+            onDelete: "RESTRICT" | "CASCADE" | "SET NULL",
+            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL", object_id: number
         }[]
             = await request.query(`select 
     parentTable.name as TableWithForeignKey, 
@@ -201,6 +205,7 @@ ORDER BY
      referencedTable.name as TableReferenced, 
      referencedColumn.name as ForeignKeyColumnReferenced,
      fk.delete_referential_action_desc as onDelete,
+     fk.update_referential_action_desc as onUpdate,
      fk.object_id
 from 
     sys.foreign_keys fk 
@@ -228,6 +233,7 @@ order by
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete = resp.onDelete;
+                rels.actionOnUpdate = resp.onUpdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;
@@ -236,66 +242,84 @@ order by
             rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
             rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
         })
-        relationsTemp.forEach( (relationTmp)=>{
-            let ownerEntity = entities.find((entitity)=>{
-                return entitity.EntityName==relationTmp.ownerTable;
+        relationsTemp.forEach((relationTmp) => {
+            let ownerEntity = entities.find((entitity) => {
+                return entitity.EntityName == relationTmp.ownerTable;
             })
-            if (!ownerEntity){
+            if (!ownerEntity) {
                 console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
                 return;
             }
-            let referencedEntity = entities.find((entitity)=>{
-                return entitity.EntityName==relationTmp.referencedTable;
+            let referencedEntity = entities.find((entitity) => {
+                return entitity.EntityName == relationTmp.referencedTable;
             })
-            if (!referencedEntity){
+            if (!referencedEntity) {
                 console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
                 return;
             }
-            let ownerColumn = ownerEntity.Columns.find((column)=>{
-                return column.name==relationTmp.ownerColumnsNames[0];
+            let ownerColumn = ownerEntity.Columns.find((column) => {
+                return column.name == relationTmp.ownerColumnsNames[0];
             })
-            if(!ownerColumn){
+            if (!ownerColumn) {
                 console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
                 return;
             }
-            let relatedColumn = referencedEntity.Columns.find((column)=>{
-                return column.name==relationTmp.referencedColumnsNames[0];
+            let relatedColumn = referencedEntity.Columns.find((column) => {
+                return column.name == relationTmp.referencedColumnsNames[0];
             })
-            if(!relatedColumn){
+            if (!relatedColumn) {
                 console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
                 return;
             }
-            let ownColumn:ColumnInfo = ownerColumn;
-            let isOneToMany:boolean;
-            isOneToMany=false;
+            let ownColumn: ColumnInfo = ownerColumn;
+            let isOneToMany: boolean;
+            isOneToMany = false;
             let index = ownerEntity.Indexes.find(
-                (index)=>{
-                    return index.isUnique && index.columns.some(col=>{
-                        return col.name==ownColumn.name
+                (index) => {
+                    return index.isUnique && index.columns.some(col => {
+                        return col.name == ownColumn.name
                     })
                 }
             )
-            if (!index){
-                isOneToMany=true;
-            }else{
-                isOneToMany=false;
+            if (!index) {
+                isOneToMany = true;
+            } else {
+                isOneToMany = false;
             }
-
-            ownerColumn.relations.push(<RelationInfo>{
-                actionOnDelete:relationTmp.actionOnDelete,
-                isOwner:true,
-                relatedColumn:relatedColumn.name,
-                relatedTable:relationTmp.referencedTable,
-                relationType:isOneToMany?"OneToMany":"OneToOne"
-            })
-            relatedColumn.relations.push(<RelationInfo>{
-                actionOnDelete:relationTmp.actionOnDelete,
-                isOwner:false,
-                relatedColumn:ownerColumn.name,
-                relatedTable:relationTmp.ownerTable,
-                relationType:isOneToMany?"ManyToOne":"OneToOne"
-            })
-
+            let ownerRelation=new RelationInfo()
+                ownerRelation.actionOnDelete= relationTmp.actionOnDelete
+                ownerRelation.actionOnUpdate= relationTmp.actionOnUpdate
+                ownerRelation.isOwner= true
+                ownerRelation.relatedColumn= relatedColumn.name.toLowerCase()
+                ownerRelation.relatedTable= relationTmp.referencedTable
+                ownerRelation.relationType= isOneToMany ? "OneToMany" : "OneToOne"
+            ownerColumn.relations.push(ownerRelation)
+            if (isOneToMany) {
+                let col = new ColumnInfo()
+                col.name = ownerEntity.EntityName.toLowerCase() //+ 's'
+                let referencedRelation = new RelationInfo();
+                col.relations.push(referencedRelation)
+                    referencedRelation.actionOnDelete= relationTmp.actionOnDelete
+                    referencedRelation.actionOnUpdate= relationTmp.actionOnUpdate
+                    referencedRelation.isOwner= false
+                    referencedRelation.relatedColumn= ownerColumn.name
+                    referencedRelation.relatedTable= relationTmp.ownerTable
+                    referencedRelation.relationType= "ManyToOne"
+                referencedEntity.Columns.push(col)
+            } else {
+                let col = new ColumnInfo()
+                col.name = ownerEntity.EntityName.toLowerCase()
+                let referencedRelation = new RelationInfo();
+                col.relations.push(referencedRelation)
+                    referencedRelation.actionOnDelete= relationTmp.actionOnDelete
+                    referencedRelation.actionOnUpdate= relationTmp.actionOnUpdate
+                    referencedRelation.isOwner= false
+                    referencedRelation.relatedColumn= ownerColumn.name
+                    referencedRelation.relatedTable= relationTmp.ownerTable
+                    referencedRelation.relationType= "OneToOne"
+                
+                referencedEntity.Columns.push(col)
+            }
         })
         return entities;
     }

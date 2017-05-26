@@ -1,3 +1,4 @@
+import {RelationInfo} from './RelationInfo'
 /**
  * ColumnInfo
  */

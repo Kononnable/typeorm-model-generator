@@ -4,7 +4,12 @@ export class EntityFileToJson {
 
         if (decoratorParameters.length > 0) {
             if (decoratorParameters.search(',') > 0) {
-                col.columnType = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim()
+                col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|').map(function (x) {
+                        if (!x.endsWith('[]')) {
+                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        }
+                        return x;
+                    });
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
                 if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
                     badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
@@ -12,7 +17,12 @@ export class EntityFileToJson {
                 col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
             } else {
                 if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
-                    col.columnType = decoratorParameters
+                    col.columnTypes = decoratorParameters.split('|').map(function (x) {
+                        if (!x.endsWith('[]')) {
+                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        }
+                        return x;
+                    });
                 } else {
                     let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
                     if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
@@ -34,6 +44,9 @@ export class EntityFileToJson {
         let lines = entityFile.toString().replace('\r', '').split('\n');
         for (let line of lines) {
             let trimmedLine = line.trim();
+            if (trimmedLine.startsWith('//')) {
+                continue; //commented line   
+            }
             if (isMultilineStatement)
                 trimmedLine = priorPartOfMultilineStatement + ' ' + trimmedLine
             if (trimmedLine.length == 0)
@@ -97,8 +110,9 @@ export class EntityFileToJson {
                         continue;
                     } else {
                         isMultilineStatement = false;
-                        retVal.columns.push(new EntityColumn())
-                        //TODO:Options,relation options if declared
+                        let column = new EntityColumn()
+                        retVal.columns.push(column)
+                        column.relationType = "OneToMany"//"ManyToOne" - can't distinguish OneTwoMany from OneToOne without indexes
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@OneToMany')) {
@@ -108,13 +122,47 @@ export class EntityFileToJson {
                         continue;
                     } else {
                         isMultilineStatement = false;
-                        retVal.columns.push(new EntityColumn())
-                        //TODO:Options, relation options if declared
+                        let column = new EntityColumn()
+                        retVal.columns.push(column)
+                        column.relationType = "OneToMany"
+                        continue;
+                    }
+                } else if (trimmedLine.startsWith('@OneToOne')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        let column = new EntityColumn()
+                        retVal.columns.push(column)
+                        column.relationType = "OneToMany"//"OneToOne" - can't distinguish OneTwoMany from OneToOne without indexes
+                        continue;
+                    }
+                } else if (trimmedLine.startsWith('@JoinColumn')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        retVal.columns[retVal.columns.length - 1].isOwnerOfRelation = true;
                         continue;
                     }
                 } else if (trimmedLine.split(':').length - 1 > 0) {
                     retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
-                    retVal.columns[retVal.columns.length - 1].columnType = trimmedLine.split(':')[1].split(';')[0].trim();
+                    //TODO:Should check if null only column is nullable?
+                    retVal.columns[retVal.columns.length - 1].columnTypes = trimmedLine.split(':')[1].split(';')[0].trim().split('|').map(function (x) {
+                        if (!x.endsWith('[]')) {
+                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        }
+                        return x;
+                    });
+                   
+                    if (!retVal.columns[retVal.columns.length - 1].columnTypes.some(function (this, val, ind, arr) {
+                        return val == "null" ? true : false;
+                    })) retVal.columns[retVal.columns.length - 1].columnTypes.push('null[]')
+
                     continue
                 } else if (trimmedLine = '}') {
                     isInClassBody = false;
@@ -122,7 +170,8 @@ export class EntityFileToJson {
                 }
             }
 
-            console.log(`[EntityFileToJson:convert] Line not recognized: ${trimmedLine}`)
+            console.log(`[EntityFileToJson:convert] Line not recognized in entity ${retVal.entityName}:`)
+            console.log(`${trimmedLine}`)
         }
         return retVal;
     }
@@ -141,6 +190,8 @@ class EntityJson {
 }
 class EntityColumn {
     columnName: string
-    columnType: string
+    columnTypes: string[]
     columnOptions: any = {}
+    relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "None" = "None"
+    isOwnerOfRelation: boolean = false;
 }
