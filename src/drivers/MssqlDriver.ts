@@ -15,9 +15,8 @@ export class MssqlDriver extends AbstractDriver {
                 console.error(`Table ${entity.EntityName} has no PK.`)
                 return;
             }
-            let pIndex = primaryIndex //typescript error? pIndex:IndexInfo; primaryIndex:IndexInfo|undefined
             entity.Columns.forEach(col => {
-                if (pIndex.columns.some(cIndex => cIndex.name == col.name)) col.isPrimary = true
+                if (primaryIndex!.columns.some(cIndex => cIndex.name == col.name)) col.isPrimary = true
             })
         });
     }
