@@ -5,9 +5,9 @@ export class EntityFileToJson {
         if (decoratorParameters.length > 0) {
             if (decoratorParameters.search(',') > 0) {
                 col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|').map(function (x) {
-                        if (!x.endsWith('[]')) {
-                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                        }
+                        // if (!x.endsWith('[]')) {
+                        //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        // }
                         return x;
                     });
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
@@ -18,9 +18,9 @@ export class EntityFileToJson {
             } else {
                 if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
                     col.columnTypes = decoratorParameters.split('|').map(function (x) {
-                        if (!x.endsWith('[]')) {
-                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                        }
+                        // if (!x.endsWith('[]')) {
+                        //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        // }
                         return x;
                     });
                 } else {
@@ -112,7 +112,7 @@ export class EntityFileToJson {
                         isMultilineStatement = false;
                         let column = new EntityColumn()
                         retVal.columns.push(column)
-                        column.relationType = "OneToMany"//"ManyToOne" - can't distinguish OneTwoMany from OneToOne without indexes
+                        column.relationType = "ManyToOne"
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@OneToMany')) {
@@ -136,7 +136,7 @@ export class EntityFileToJson {
                         isMultilineStatement = false;
                         let column = new EntityColumn()
                         retVal.columns.push(column)
-                        column.relationType = "OneToMany"//"OneToOne" - can't distinguish OneTwoMany from OneToOne without indexes
+                        column.relationType = "OneToOne"
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@JoinColumn')) {
@@ -153,15 +153,15 @@ export class EntityFileToJson {
                     retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
                     //TODO:Should check if null only column is nullable?
                     retVal.columns[retVal.columns.length - 1].columnTypes = trimmedLine.split(':')[1].split(';')[0].trim().split('|').map(function (x) {
-                        if (!x.endsWith('[]')) {
-                            x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                        }
+                        // if (!x.endsWith('[]')) {
+                        //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
+                        // }
                         return x;
                     });
                    
                     if (!retVal.columns[retVal.columns.length - 1].columnTypes.some(function (this, val, ind, arr) {
                         return val == "null" ? true : false;
-                    })) retVal.columns[retVal.columns.length - 1].columnTypes.push('null[]')
+                    })) retVal.columns[retVal.columns.length - 1].columnTypes.push('null')
 
                     continue
                 } else if (trimmedLine = '}') {

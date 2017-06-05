@@ -33,6 +33,9 @@ export class Engine {
         this.createTsConfigFile(resultPath)
         this.createTypeOrm(resultPath)
         let entitesPath = path.resolve(resultPath, './entities')
+        Handlebars.registerHelper('toLowerCase', function (str) {
+            return str.toLowerCase();
+        });
         if (!fs.existsSync(entitesPath))
             fs.mkdirSync(entitesPath);
             let compliedTemplate = Handlebars.compile(template,{noEscape:true})

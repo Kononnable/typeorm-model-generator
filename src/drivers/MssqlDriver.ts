@@ -273,10 +273,10 @@ order by
             let ownColumn: ColumnInfo = ownerColumn;
             let isOneToMany: boolean;
             isOneToMany = false;
-            let index = ownerEntity.Indexes.find(
+            let index = referencedEntity.Indexes.find(
                 (index) => {
                     return index.isUnique && index.columns.some(col => {
-                        return col.name == ownColumn.name
+                        return col.name == relatedColumn!.name
                     })
                 }
             )
@@ -285,38 +285,44 @@ order by
             } else {
                 isOneToMany = false;
             }
-            let ownerRelation=new RelationInfo()
-                ownerRelation.actionOnDelete= relationTmp.actionOnDelete
-                ownerRelation.actionOnUpdate= relationTmp.actionOnUpdate
-                ownerRelation.isOwner= true
-                ownerRelation.relatedColumn= relatedColumn.name.toLowerCase()
-                ownerRelation.relatedTable= relationTmp.referencedTable
-                ownerRelation.relationType= isOneToMany ? "OneToMany" : "OneToOne"
+            let ownerRelation = new RelationInfo()
+            ownerRelation.actionOnDelete = relationTmp.actionOnDelete
+            ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate
+            ownerRelation.isOwner = true
+            ownerRelation.relatedColumn = relatedColumn.name.toLowerCase()
+            ownerRelation.relatedTable = relationTmp.referencedTable
+            ownerRelation.ownerTable = relationTmp.ownerTable
+            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase()
+            ownerRelation.relationType = isOneToMany ? "OneToMany" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
                 let col = new ColumnInfo()
                 col.name = ownerEntity.EntityName.toLowerCase() //+ 's'
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                    referencedRelation.actionOnDelete= relationTmp.actionOnDelete
-                    referencedRelation.actionOnUpdate= relationTmp.actionOnUpdate
-                    referencedRelation.isOwner= false
-                    referencedRelation.relatedColumn= ownerColumn.name
-                    referencedRelation.relatedTable= relationTmp.ownerTable
-                    referencedRelation.relationType= "ManyToOne"
+                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
+                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
+                referencedRelation.isOwner = false
+                referencedRelation.relatedColumn = ownerColumn.name
+                referencedRelation.relatedTable = relationTmp.ownerTable
+                referencedRelation.ownerTable = relationTmp.referencedTable
+                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase()
+                referencedRelation.relationType = "ManyToOne"
                 referencedEntity.Columns.push(col)
             } else {
                 let col = new ColumnInfo()
                 col.name = ownerEntity.EntityName.toLowerCase()
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                    referencedRelation.actionOnDelete= relationTmp.actionOnDelete
-                    referencedRelation.actionOnUpdate= relationTmp.actionOnUpdate
-                    referencedRelation.isOwner= false
-                    referencedRelation.relatedColumn= ownerColumn.name
-                    referencedRelation.relatedTable= relationTmp.ownerTable
-                    referencedRelation.relationType= "OneToOne"
-                
+                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
+                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
+                referencedRelation.isOwner = false
+                referencedRelation.relatedColumn = ownerColumn.name
+                referencedRelation.relatedTable = relationTmp.ownerTable
+                referencedRelation.ownerTable = relationTmp.referencedTable
+                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase()
+                referencedRelation.relationType = "OneToOne"
+
                 referencedEntity.Columns.push(col)
             }
         })

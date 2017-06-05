@@ -3,6 +3,8 @@ export class RelationInfo {
     relationType: "OneToOne" | "OneToMany" | "ManyToOne"
     relatedTable: string
     relatedColumn: string
+    ownerTable: string
+    ownerColumn: string
     actionOnDelete: "RESTRICT" | "CASCADE" | "SET NULL"
     actionOnUpdate: "RESTRICT" | "CASCADE" | "SET NULL"
 
