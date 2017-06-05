@@ -273,10 +273,10 @@ order by
             let ownColumn: ColumnInfo = ownerColumn;
             let isOneToMany: boolean;
             isOneToMany = false;
-            let index = referencedEntity.Indexes.find(
+            let index = ownerEntity.Indexes.find(
                 (index) => {
                     return index.isUnique && index.columns.some(col => {
-                        return col.name == relatedColumn!.name
+                        return col.name == ownerColumn!.name
                     })
                 }
             )
@@ -293,11 +293,11 @@ order by
             ownerRelation.relatedTable = relationTmp.referencedTable
             ownerRelation.ownerTable = relationTmp.ownerTable
             ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase()
-            ownerRelation.relationType = isOneToMany ? "OneToMany" : "OneToOne"
+            ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase() //+ 's'
+                col.name = ownerEntity.EntityName.toLowerCase() +'s'
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -307,7 +307,7 @@ order by
                 referencedRelation.relatedTable = relationTmp.ownerTable
                 referencedRelation.ownerTable = relationTmp.referencedTable
                 referencedRelation.ownerColumn = relatedColumn.name.toLowerCase()
-                referencedRelation.relationType = "ManyToOne"
+                referencedRelation.relationType = "OneToMany"
                 referencedEntity.Columns.push(col)
             } else {
                 let col = new ColumnInfo()

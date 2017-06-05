@@ -61,6 +61,15 @@ export class EntityFileToJson {
                     retVal.entityName = trimmedLine.substring(trimmedLine.indexOf('class') + 5, trimmedLine.lastIndexOf('{')).trim().toLowerCase()
                     isInClassBody = true;
                     continue;
+                } else if (trimmedLine.startsWith('@Index')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        //TODO:Add indicies to comparision model
+                        continue;
+                    }
                 }
             } else {
                 if (trimmedLine.startsWith('@Column')) {
@@ -113,6 +122,7 @@ export class EntityFileToJson {
                         let column = new EntityColumn()
                         retVal.columns.push(column)
                         column.relationType = "ManyToOne"
+                        column.isOwnerOfRelation=true;
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@OneToMany')) {
@@ -147,6 +157,15 @@ export class EntityFileToJson {
                     } else {
                         isMultilineStatement = false;
                         retVal.columns[retVal.columns.length - 1].isOwnerOfRelation = true;
+                        continue;
+                    }
+                } else if (trimmedLine.startsWith('@Index')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        //TODO:Add indicies to comparision model
                         continue;
                     }
                 } else if (trimmedLine.split(':').length - 1 > 0) {
