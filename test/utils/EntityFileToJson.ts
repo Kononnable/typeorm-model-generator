@@ -172,6 +172,9 @@ export class EntityFileToJson {
                     retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
                     //TODO:Should check if null only column is nullable?
                     retVal.columns[retVal.columns.length - 1].columnTypes = trimmedLine.split(':')[1].split(';')[0].trim().split('|').map(function (x) {
+                        if (x=='any') {
+                            x='string' //for json columns
+                        }
                         // if (!x.endsWith('[]')) {
                         //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
                         // }

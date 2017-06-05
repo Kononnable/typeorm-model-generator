@@ -12,9 +12,9 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         nullable:true,{{/is_nullable}}{{^is_nullable}}
         nullable:false,{{/is_nullable}}{{#char_max_lenght}}
         length:{{.}},{{/char_max_lenght}}{{#default}}
-        default:"{{default}}",{{/default}}{{#numericPrecision}}
-        precision:{{numericPrecision}},{{/numericPrecision}}{{#numericScale}}
-        scale:{{numericScale}},{{/numericScale}}{{#isPrimary}}
+        default:"{{.}}",{{/default}}{{#numericPrecision}}
+        precision:{{.}},{{/numericPrecision}}{{#numericScale}}
+        scale:{{.}},{{/numericScale}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}} 
         })
     {{name}}:{{ts_type}};

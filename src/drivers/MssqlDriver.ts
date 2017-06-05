@@ -75,12 +75,20 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
                         break;
-                    case "date":
+                    case "bigint":
                         colInfo.ts_type = "number"
+                        colInfo.sql_type = "bigint"
+                        break;
+                    case "date":
+                        colInfo.ts_type = "Date"
                         colInfo.sql_type = "date"
                         break;
+                    case "time":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "time"
+                        break;
                     case "datetime":
-                        colInfo.ts_type = "number";
+                        colInfo.ts_type = "Date";
                         colInfo.sql_type = "datetime"
                         break;
                     case "char":
