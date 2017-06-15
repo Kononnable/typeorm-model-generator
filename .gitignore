@@ -9,4 +9,3 @@ output/**/*.*
 .nyc_output/
 coverage/
 .env
-package-lock.json
