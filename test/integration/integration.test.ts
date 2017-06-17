@@ -114,9 +114,9 @@ function compileTsFiles(fileNames: string[], options: ts.CompilerOptions): boole
     let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 
     allDiagnostics.forEach(diagnostic => {
-        let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        let lineAndCharacter = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
         let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-        console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+        console.log(`${diagnostic.file.fileName} (${lineAndCharacter.line + 1},${lineAndCharacter.character + 1}): ${message}`);
         compileErrors = true;
     });
 
