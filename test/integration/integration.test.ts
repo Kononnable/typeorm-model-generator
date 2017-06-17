@@ -12,20 +12,23 @@ import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');
 var chaiSubset = require('chai-subset');
+import * as ts from "typescript";
+
 
 chai.use(chaiSubset);
+
 
 describe("integration tests", async function () {
     let examplesPath = path.resolve(process.cwd(), 'test/integration/examples')
     let files = fs.readdirSync(examplesPath)
 
     let dbDrivers: DriverType[] = []
-    if (process.env.MSSQL_Skip=='0') dbDrivers.push('mssql')
+    if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
 
     for (let folder of files) {
 
         describe(folder, async function () {
-
+            this.slow(5000)
             for (let dbDriver of dbDrivers) {
                 it(dbDriver, async function () {
 
@@ -74,17 +77,47 @@ describe("integration tests", async function () {
                     let filesOrg = fs.readdirSync(filesOrgPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
                     let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
 
-                    expect(filesOrg).to.be.deep.equal(filesGen)
+                    expect(filesOrg,'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
                     for (let file of filesOrg) {
                         let entftj = new EntityFileToJson();
-                        let jsonEntityOrg= entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
-                        let jsonEntityGen= entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
-                        expect(jsonEntityGen,`Error in file ${file}`).to.containSubset(jsonEntityOrg)
+                        let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
+                        let jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
+                        expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
                     }
+                    const currentDirectoryFiles = fs.readdirSync(filesGenPath).
+                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => {
+                            return path.resolve(filesGenPath, v)
+                        })
+                    let compileErrors = compileTsFiles(currentDirectoryFiles, {
+
+                        experimentalDecorators: true,
+                        sourceMap: false,
+                        emitDecoratorMetadata: true,
+                        target: ts.ScriptTarget.ES2016,
+                        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+                        module: ts.ModuleKind.CommonJS
+                    });
+                    expect(compileErrors, 'Errors detected while compiling generated model').to.be.false;
                 });
 
             }
         })
     }
 })
+
+function compileTsFiles(fileNames: string[], options: ts.CompilerOptions): boolean {
+    let program = ts.createProgram(fileNames, options);
+    let emitResult = program.emit();
+    let compileErrors = false;
+    let allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+
+    allDiagnostics.forEach(diagnostic => {
+        let { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+        let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+        console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
+        compileErrors = true;
+    });
+
+    return compileErrors;
+}

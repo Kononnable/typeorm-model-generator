@@ -301,7 +301,7 @@ order by
             ownerRelation.relatedColumn = relatedColumn.name.toLowerCase()
             ownerRelation.relatedTable = relationTmp.referencedTable
             ownerRelation.ownerTable = relationTmp.ownerTable
-            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase()
+            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase()+(isOneToMany ? 's':'')
             ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
@@ -329,7 +329,7 @@ order by
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
                 referencedRelation.ownerTable = relationTmp.referencedTable
-                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase()
+                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase() 
                 referencedRelation.relationType = "OneToOne"
 
                 referencedEntity.Columns.push(col)
