@@ -18,7 +18,9 @@ import * as ts from "typescript";
 chai.use(chaiSubset);
 
 
-describe("integration tests", async function () {
+describe("integration tests", async function() {
+    this.timeout(10000)
+    this.slow(5000)//compiling created models takes time
     let examplesPath = path.resolve(process.cwd(), 'test/integration/examples')
     let files = fs.readdirSync(examplesPath)
 
@@ -27,10 +29,9 @@ describe("integration tests", async function () {
 
     for (let folder of files) {
 
-        describe(folder, async function () {
-            this.slow(5000)
+        describe(folder, async function() {
             for (let dbDriver of dbDrivers) {
-                it(dbDriver, async function () {
+                it(dbDriver, async function() {
 
                     let filesOrgPath = path.resolve(examplesPath, folder, 'entity')
 
@@ -74,10 +75,10 @@ describe("integration tests", async function () {
 
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPath).filter(function(this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesGen = fs.readdirSync(filesGenPath).filter(function(this, val, ind, arr) { return val.toString().endsWith('.ts') })
 
-                    expect(filesOrg,'Errors detected in model comparision').to.be.deep.equal(filesGen)
+                    expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
                     for (let file of filesOrg) {
                         let entftj = new EntityFileToJson();
