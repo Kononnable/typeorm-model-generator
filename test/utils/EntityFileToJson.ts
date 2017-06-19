@@ -148,6 +148,18 @@ export class EntityFileToJson {
                         retVal.columns.push(col);
                         continue;
                     }
+                } else if (trimmedLine.startsWith('@VersionColumn')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        let col = new EntityColumn()
+                        this.getColumnOptionsAndType(trimmedLine, col)
+                        retVal.columns.push(col);
+                        continue;
+                    }
                 } else if (trimmedLine.startsWith('@PrimaryGeneratedColumn')) {
                     if (this.isPartOfMultilineStatement(trimmedLine)) {
                         isMultilineStatement = true;
@@ -246,9 +258,13 @@ export class EntityFileToJson {
                         }
                     })
                     continue
-                } else if (trimmedLine = '}') {
+                } else if (trimmedLine == '}') {
                     isInClassBody = false;
                     continue; //class declaration end
+                }
+                else {
+                    console.log(`[EntityFileToJson:convert] Line not recognized in entity ${retVal.entityName}:`)
+                    console.log(`${trimmedLine}`)
                 }
             }
 
