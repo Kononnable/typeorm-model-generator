@@ -3,7 +3,7 @@ interface RelationTempInfo{
     ownerColumnsNames:string[],
     referencedTable:string,
     referencedColumnsNames:string[],
-    actionOnDelete:"RESTRICT"|"CASCADE"|"SET NULL",
-    actionOnUpdate:"RESTRICT"|"CASCADE"|"SET NULL",
-    object_id:number
+    actionOnDelete:"RESTRICT"|"CASCADE"|"SET NULL"|"NO ACTION",
+    actionOnUpdate:"RESTRICT"|"CASCADE"|"SET NULL"|"NO ACTION",
+    object_id:number|string
 }

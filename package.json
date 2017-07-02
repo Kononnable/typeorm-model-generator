@@ -22,8 +22,10 @@
   },
   "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
   "dependencies": {
+    "@types/pg": "^6.1.41",
     "handlebars": "^4.0.10",
     "mssql": "^3.3.0",
+    "pg": "^6.4.0",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.0.10",
     "typescript": "^2.4.0",

@@ -1,13 +1,16 @@
 import { AbstractDriver } from './AbstractDriver'
-import * as MSSQL from 'mssql'
+import * as PG from 'pg'
+
 import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
 /**
- * MssqlDriver
+ * PostgresDriver
  */
-export class MssqlDriver extends AbstractDriver {
+export class PostgresDriver extends AbstractDriver {
+   private Connection:PG.Client;
+
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
@@ -22,13 +25,14 @@ export class MssqlDriver extends AbstractDriver {
     }
 
     async GetAllTables(): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection)
-        let response: { TABLE_SCHEMA: string, TABLE_NAME: string }[]
-            = await request.query("SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'");
+        
+        let response: { table_schema: string, table_name: string }[]
+            = (await this.Connection.query("SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema = 'public' ")).rows;
+        
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
             let ent: EntityInfo = new EntityInfo();
-            ent.EntityName = val.TABLE_NAME;
+            ent.EntityName = val.table_name;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -36,44 +40,42 @@ export class MssqlDriver extends AbstractDriver {
         return ret;
     }
     async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection)
         let response: {
-            TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
-            IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-            NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity: number
+            table_name: string, column_name: string, column_default: string,
+            is_nullable: string, data_type: string, character_maximum_length: number,
+            numeric_precision: number, numeric_scale: number, isidentity: number
         }[]
-            = await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
-   DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS`);
+            = (await this.Connection.query(`SELECT table_name,column_name,column_default,is_nullable,
+            data_type,character_maximum_length,numeric_precision,numeric_scale
+            --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity 
+           , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
+            FROM INFORMATION_SCHEMA.COLUMNS where table_schema ='public'`)).rows;
         entities.forEach((ent) => {
             response.filter((filterVal) => {
-                return filterVal.TABLE_NAME == ent.EntityName;
+                return filterVal.table_name == ent.EntityName;
             }).forEach((resp) => {
                 let colInfo: ColumnInfo = new ColumnInfo();
-                colInfo.name = resp.COLUMN_NAME;
-                colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
-                colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
-                colInfo.default = resp.COLUMN_DEFAULT;
-                switch (resp.DATA_TYPE) {
-                    case "int":
+                colInfo.name = resp.column_name;
+                colInfo.is_nullable = resp.is_nullable == 'YES' ? true : false;
+                colInfo.is_generated = resp.isidentity == 1 ? true : false;
+                colInfo.default = colInfo.is_generated?'':resp.column_default;
+                switch (resp.data_type) {
+                    //TODO:change types to postgres
+                     case "integer":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
                         break;
-                    case "tinyint":
+                      case "character varying":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                     case "text":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
-                        break;
-                    case "smallint":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "smallint"
-                        break;
-                    case "bit":
-                        colInfo.ts_type = "boolean"
-                        colInfo.sql_type = "boolean"
-                        break;
-                    case "float":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "float"
                         break;
                     case "bigint":
                         colInfo.ts_type = "number"
@@ -83,114 +85,101 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.ts_type = "Date"
                         colInfo.sql_type = "date"
                         break;
-                    case "time":
-                        colInfo.ts_type = "Date"
-                        colInfo.sql_type = "time"
+                    case "boolean":
+                        colInfo.ts_type = "boolean"
+                        colInfo.sql_type = "boolean"
                         break;
-                    case "datetime":
-                        colInfo.ts_type = "Date";
-                        colInfo.sql_type = "datetime"
-                        break;
-                    case "char":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
-                    case "nchar":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
-                    case "text":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
-                    case "ntext":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
-                    case "varchar":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
-                        break;
-                    case "nvarchar":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
-                        break;
-                    case "money":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "decimal"
-                        break;
-                    case "real":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "double"
-                        break;
-                    case "decimal":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "decimal"
-                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
-                        colInfo.numericScale = resp.NUMERIC_SCALE
-                        break;
-                    case "xml":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
+                    // case "double precision":
+                    //     colInfo.ts_type = "number"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+                    // case "boolean":
+                    //     colInfo.ts_type = "boolean"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+                    // case "boolean":
+                    //     colInfo.ts_type = "boolean"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+                    // case "boolean":
+                    //     colInfo.ts_type = "boolean"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+                    // case "boolean":
+                    //     colInfo.ts_type = "boolean"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+                    // case "boolean":
+                    //     colInfo.ts_type = "boolean"
+                    //     colInfo.sql_type = "boolean"
+                    //     break;
+
                     default:
-                        console.error("Unknown column type:" + resp.DATA_TYPE);
+                        console.error("Unknown column type:" + resp.data_type);
                         break;
                 }
-                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
         return entities;
     }
     async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection)
         let response: {
-            TableName: string, IndexName: string, ColumnName: string, is_unique: number,
+            tablename: string, indexname: string, columnname: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
         }[]
-            = await request.query(`SELECT 
-     TableName = t.name,
-     IndexName = ind.name,
-     ColumnName = col.name,
-     ind.is_unique,
-     ind.is_primary_key
-    -- ,ic.is_descending_key,
-    -- ic.is_included_column
-FROM 
-     sys.indexes ind 
-INNER JOIN 
-     sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id 
-INNER JOIN 
-     sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id 
-INNER JOIN 
-     sys.tables t ON ind.object_id = t.object_id 
-WHERE 
-     t.is_ms_shipped = 0 
-ORDER BY 
-     t.name, ind.name, ind.index_id, ic.key_ordinal;`);
+            = (await this.Connection.query(`SELECT  
+c.relname AS tablename,
+i.relname as indexname, 
+f.attname AS columnname,  
+CASE  
+    WHEN p.contype = 'u' THEN 't' 
+    WHEN p.contype = 'p' THEN 't' 
+    ELSE 'f'
+END AS is_unique,  
+CASE  
+    WHEN p.contype = 'p' THEN 't'  
+    ELSE 'f'  
+END AS is_primary_key
+FROM pg_attribute f  
+JOIN pg_class c ON c.oid = f.attrelid  
+JOIN pg_type t ON t.oid = f.atttypid  
+LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
+LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
+LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
+LEFT JOIN pg_class AS g ON p.confrelid = g.oid
+LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid 
+LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid 
+
+WHERE c.relkind = 'r'::char  
+AND n.nspname = 'public'  -- Replace with Schema name 
+--AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
+AND f.attnum > 0
+AND i.oid<>0
+ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach((ent) => {
             response.filter((filterVal) => {
-                return filterVal.TableName == ent.EntityName;
+                return filterVal.tablename == ent.EntityName;
             }).forEach((resp) => {
                 let indexInfo: IndexInfo = <IndexInfo>{};
                 let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
                 if (ent.Indexes.filter((filterVal) => {
-                    return filterVal.name == resp.IndexName
+                    return filterVal.name == resp.indexname
                 }).length > 0) {
                     indexInfo = ent.Indexes.filter((filterVal) => {
-                        return filterVal.name == resp.IndexName
+                        return filterVal.name == resp.indexname
                     })[0];
                 } else {
                     indexInfo.columns = <IndexColumnInfo[]>[];
-                    indexInfo.name = resp.IndexName;
+                    indexInfo.name = resp.indexname;
                     indexInfo.isUnique = resp.is_unique == 1 ? true : false;
                     indexInfo.isPrimaryKey = resp.is_primary_key == 1 ? true : false;
                     ent.Indexes.push(indexInfo);
                 }
-                indexColumnInfo.name = resp.ColumnName;
-              //  indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
-              //  indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
+                indexColumnInfo.name = resp.columnname;
+                // indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
+                //indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                 indexInfo.columns.push(indexColumnInfo);
 
             })
@@ -199,38 +188,49 @@ ORDER BY
         return entities;
     }
     async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection)
         let response: {
-            TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
-            TableReferenced: string, ForeignKeyColumnReferenced: string,
-            onDelete: "RESTRICT" | "CASCADE" | "SET NULL",
-            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL", object_id: number
+            tablewithforeignkey: string, fk_partno: number, foreignkeycolumn: string,
+            tablereferenced: string, foreignkeycolumnreferenced: string,
+            ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION",
+            onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION", object_id: string
         }[]
-            = await request.query(`select 
-    parentTable.name as TableWithForeignKey, 
-    fkc.constraint_column_id as FK_PartNo,
-     parentColumn.name as ForeignKeyColumn,
-     referencedTable.name as TableReferenced, 
-     referencedColumn.name as ForeignKeyColumnReferenced,
-     fk.delete_referential_action_desc as onDelete,
-     fk.update_referential_action_desc as onUpdate,
-     fk.object_id
-from 
-    sys.foreign_keys fk 
-inner join 
-    sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
-inner join 
-    sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
-inner join 
-    sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
-inner join 
-    sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
-inner join 
-    sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
-where 
-    fk.is_disabled=0 and fk.is_ms_shipped=0
-order by 
-    TableWithForeignKey, FK_PartNo`);
+            = (await this.Connection.query(`SELECT 
+    cl.relname AS tablewithforeignkey,
+att.attnum as fk_partno,
+ att.attname AS foreignkeycolumn,
+con.relname AS tablereferenced,
+    att2.attname AS foreignkeycolumnreferenced,
+   update_rule as ondelete,
+   delete_rule as onupdate,
+    con.conname as object_id
+   FROM ( 
+       SELECT 
+         unnest(con1.conkey) AS parent,
+         unnest(con1.confkey) AS child,
+         con1.confrelid,
+         con1.conrelid,
+         cl_1.relname,
+       con1.conname
+       FROM 
+         pg_class cl_1,
+         pg_namespace ns,
+         pg_constraint con1
+       WHERE 
+         con1.contype = 'f'::"char" 
+         AND cl_1.relnamespace = ns.oid 
+         AND con1.conrelid = cl_1.oid
+  ) con,
+    pg_attribute att,
+    pg_class cl,
+    pg_attribute att2,
+    information_schema.referential_constraints rc
+  WHERE 
+    att.attrelid = con.confrelid 
+    AND att.attnum = con.child 
+    AND cl.oid = con.confrelid
+    AND att2.attrelid = con.conrelid 
+    AND att2.attnum = con.parent
+    and rc.constraint_name= con.conname`)).rows;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
             let rels = relationsTemp.find((val) => {
@@ -240,15 +240,15 @@ order by
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete = resp.onDelete;
-                rels.actionOnUpdate = resp.onUpdate;
+                rels.actionOnDelete = resp.ondelete;
+                rels.actionOnUpdate = resp.onupdate;
                 rels.object_id = resp.object_id;
-                rels.ownerTable = resp.TableWithForeignKey;
-                rels.referencedTable = resp.TableReferenced;
+                rels.ownerTable = resp.tablewithforeignkey;
+                rels.referencedTable = resp.tablereferenced;
                 relationsTemp.push(rels);
             }
-            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
-            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
+            rels.ownerColumnsNames.push(resp.foreignkeycolumn);
+            rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
         })
         relationsTemp.forEach((relationTmp) => {
             let ownerEntity = entities.find((entitity) => {
@@ -309,8 +309,8 @@ order by
                 col.name = ownerEntity.EntityName.toLowerCase() +'s'
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
-                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
+                referencedRelation.actionondelete = relationTmp.actionOnDelete
+                referencedRelation.actiononupdate = relationTmp.actionOnUpdate
                 referencedRelation.isOwner = false
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
@@ -323,8 +323,8 @@ order by
                 col.name = ownerEntity.EntityName.toLowerCase()
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
-                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
+                referencedRelation.actionondelete = relationTmp.actionOnDelete
+                referencedRelation.actiononupdate = relationTmp.actionOnUpdate
                 referencedRelation.isOwner = false
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
@@ -338,34 +338,42 @@ order by
         return entities;
     }
     async DisconnectFromServer() {
-        if (this.Connection)
-            await this.Connection.close();
-    }
-
-    private Connection: MSSQL.Connection;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
-        let config: MSSQL.config = {
-            database: database,
-            server: server,
-            port: port,
-            user: user,
-            password: password,
-            options: {
-                encrypt: true, // Use this if you're on Windows Azure
-                appName: 'typeorm-model-generator'
-            }
-        }
-
-
-        let promise = new Promise<boolean>(
-            (resolve, reject) => {
-                this.Connection = new MSSQL.Connection(config, (err) => {
+        if (this.Connection){
+              let promise = new Promise<boolean>(
+            (resolve, reject) => { this.Connection.end((err) => {
                     if (!err) {
                         //Connection successfull
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to MSSQL Server.')
+                        console.error('Error connecting to Postgres Server.')
+                        console.error(err.message)
+                        process.abort()
+                        reject(err)
+                    }
+                });
+            })
+        await promise;
+        }
+    }
+
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
+        this.Connection=new PG.Client({database: database,
+            host: server,
+            port: port,
+            user: user,
+            password: password})
+      
+
+        let promise = new Promise<boolean>(
+            (resolve, reject) => {
+                this.Connection.connect( (err) => {
+                    if (!err) {
+                        //Connection successfull
+                        resolve(true)
+                    }
+                    else {
+                        console.error('Error connecting to Postgres Server.')
                         console.error(err.message)
                         process.abort()
                         reject(err)

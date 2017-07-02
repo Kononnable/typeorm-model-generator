@@ -17,7 +17,9 @@ env:
 
 before_install:
   - docker pull microsoft/mssql-server-linux
+  - docker pull postgres
   - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 --name mssql -d microsoft/mssql-server-linux
+  - docker run -e 'POSTGRES_PASSWORD=!Passw0rd' -p 5432:5432 --name postgres -d postgres
 
 
 before_script:
