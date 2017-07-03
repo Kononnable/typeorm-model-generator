@@ -43,7 +43,7 @@ export class PostgresDriver extends AbstractDriver {
         let response: {
             table_name: string, column_name: string, column_default: string,
             is_nullable: string, data_type: string, character_maximum_length: number,
-            numeric_precision: number, numeric_scale: number, isidentity: number
+            numeric_precision: number, numeric_scale: number, isidentity: string
         }[]
             = (await this.Connection.query(`SELECT table_name,column_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale
@@ -57,7 +57,7 @@ export class PostgresDriver extends AbstractDriver {
                 let colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.name = resp.column_name;
                 colInfo.is_nullable = resp.is_nullable == 'YES' ? true : false;
-                colInfo.is_generated = resp.isidentity == 1 ? true : false;
+                colInfo.is_generated = resp.isidentity == 'YES' ? true : false;
                 colInfo.default = colInfo.is_generated?'':resp.column_default;
                 switch (resp.data_type) {
                     //TODO:change types to postgres
@@ -89,26 +89,30 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.ts_type = "boolean"
                         colInfo.sql_type = "boolean"
                         break;
-                    // case "double precision":
-                    //     colInfo.ts_type = "number"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
+                    case "double precision":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "double"
+                        break;
+                    case "real":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "float"
+                        break;
+                    case "numeric":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "decimal"
+                        break;
+                    case "time without time zone":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "time"
+                        break;
+                    case "timestamp without time zone":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "datetime"
+                        break;
+                    case "json":
+                        colInfo.ts_type = "any"
+                        colInfo.sql_type = "json"
+                        break;
                     // case "boolean":
                     //     colInfo.ts_type = "boolean"
                     //     colInfo.sql_type = "boolean"
@@ -134,13 +138,13 @@ c.relname AS tablename,
 i.relname as indexname, 
 f.attname AS columnname,  
 CASE  
-    WHEN p.contype = 'u' THEN 't' 
-    WHEN p.contype = 'p' THEN 't' 
-    ELSE 'f'
+    WHEN p.contype = 'u' THEN '1' 
+    WHEN p.contype = 'p' THEN '1' 
+    ELSE '0'
 END AS is_unique,  
 CASE  
-    WHEN p.contype = 'p' THEN 't'  
-    ELSE 'f'  
+    WHEN p.contype = 'p' THEN '1'  
+    ELSE '0'  
 END AS is_primary_key
 FROM pg_attribute f  
 JOIN pg_class c ON c.oid = f.attrelid  
@@ -178,6 +182,9 @@ ORDER BY c.relname,f.attname;`)).rows;
                     ent.Indexes.push(indexInfo);
                 }
                 indexColumnInfo.name = resp.columnname;
+                if (resp.is_primary_key==0) {
+                    indexInfo.isPrimaryKey=false;
+                }
                 // indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
                 //indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                 indexInfo.columns.push(indexColumnInfo);
