@@ -134,34 +134,33 @@ export class PostgresDriver extends AbstractDriver {
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
         }[]
             = (await this.Connection.query(`SELECT  
-c.relname AS tablename,
-i.relname as indexname, 
-f.attname AS columnname,  
-CASE  
-    WHEN p.contype = 'u' THEN '1' 
-    WHEN p.contype = 'p' THEN '1' 
-    ELSE '0'
-END AS is_unique,  
-CASE  
-    WHEN p.contype = 'p' THEN '1'  
-    ELSE '0'  
-END AS is_primary_key
-FROM pg_attribute f  
-JOIN pg_class c ON c.oid = f.attrelid  
-JOIN pg_type t ON t.oid = f.atttypid  
-LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
-LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
-LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
-LEFT JOIN pg_class AS g ON p.confrelid = g.oid
-LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid 
-LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid 
-
-WHERE c.relkind = 'r'::char  
-AND n.nspname = 'public'  -- Replace with Schema name 
---AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
-AND f.attnum > 0
-AND i.oid<>0
-ORDER BY c.relname,f.attname;`)).rows;
+            c.relname AS tablename,
+            i.relname as indexname, 
+            f.attname AS columnname,  
+            CASE  
+                WHEN ix.indisunique = true THEN '1' 
+                ELSE '0'
+            END AS is_unique,  
+            CASE  
+                WHEN p.contype = 'p' THEN '1'  
+                ELSE '0'  
+            END AS is_primary_key
+            FROM pg_attribute f  
+            JOIN pg_class c ON c.oid = f.attrelid  
+            JOIN pg_type t ON t.oid = f.atttypid  
+            LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
+            LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
+            LEFT JOIN pg_class AS g ON p.confrelid = g.oid
+            LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid 
+            LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid 
+            
+            WHERE c.relkind = 'r'::char  
+            AND n.nspname = 'public'  -- Replace with Schema name 
+            --AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
+            AND f.attnum > 0
+            AND i.oid<>0
+            ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal.tablename == ent.EntityName;
@@ -202,42 +201,42 @@ ORDER BY c.relname,f.attname;`)).rows;
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION", object_id: string
         }[]
             = (await this.Connection.query(`SELECT 
-    cl.relname AS tablewithforeignkey,
-att.attnum as fk_partno,
- att.attname AS foreignkeycolumn,
-con.relname AS tablereferenced,
-    att2.attname AS foreignkeycolumnreferenced,
-   update_rule as ondelete,
-   delete_rule as onupdate,
-    con.conname as object_id
-   FROM ( 
-       SELECT 
-         unnest(con1.conkey) AS parent,
-         unnest(con1.confkey) AS child,
-         con1.confrelid,
-         con1.conrelid,
-         cl_1.relname,
-       con1.conname
-       FROM 
-         pg_class cl_1,
-         pg_namespace ns,
-         pg_constraint con1
-       WHERE 
-         con1.contype = 'f'::"char" 
-         AND cl_1.relnamespace = ns.oid 
-         AND con1.conrelid = cl_1.oid
-  ) con,
-    pg_attribute att,
-    pg_class cl,
-    pg_attribute att2,
-    information_schema.referential_constraints rc
-  WHERE 
-    att.attrelid = con.confrelid 
-    AND att.attnum = con.child 
-    AND cl.oid = con.confrelid
-    AND att2.attrelid = con.conrelid 
-    AND att2.attnum = con.parent
-    and rc.constraint_name= con.conname`)).rows;
+            con.relname AS tablewithforeignkey,
+            att.attnum as fk_partno,
+                 att2.attname AS foreignkeycolumn,
+              cl.relname AS tablereferenced,
+              att.attname AS foreignkeycolumnreferenced,
+               update_rule as ondelete,
+               delete_rule as onupdate,
+                con.conname as object_id
+               FROM ( 
+                   SELECT 
+                     unnest(con1.conkey) AS parent,
+                     unnest(con1.confkey) AS child,
+                     con1.confrelid,
+                     con1.conrelid,
+                     cl_1.relname,
+                   con1.conname
+                   FROM 
+                     pg_class cl_1,
+                     pg_namespace ns,
+                     pg_constraint con1
+                   WHERE 
+                     con1.contype = 'f'::"char" 
+                     AND cl_1.relnamespace = ns.oid 
+                     AND con1.conrelid = cl_1.oid
+              ) con,
+                pg_attribute att,
+                pg_class cl,
+                pg_attribute att2,
+                information_schema.referential_constraints rc
+              WHERE 
+                att.attrelid = con.confrelid 
+                AND att.attnum = con.child 
+                AND cl.oid = con.confrelid
+                AND att2.attrelid = con.conrelid 
+                AND att2.attnum = con.parent
+                and rc.constraint_name= con.conname`)).rows;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
             let rels = relationsTemp.find((val) => {
