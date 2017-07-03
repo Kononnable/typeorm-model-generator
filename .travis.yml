@@ -16,6 +16,7 @@ env:
   - MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd MSSQL_Database=tempdb
 
 before_install:
+  - sudo service postgresql stop
   - docker pull microsoft/mssql-server-linux
   - docker pull postgres
   - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 --name mssql -d microsoft/mssql-server-linux
