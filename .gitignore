@@ -10,3 +10,4 @@ output/**/*.*
 coverage/
 .env
 dist
+*.tgz

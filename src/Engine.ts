@@ -25,7 +25,7 @@ export class Engine {
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
-        let templatePath = path.resolve(process.cwd(), 'src/entity.mst')
+        let templatePath = path.resolve(__dirname, '../../src/entity.mst')
         let template = fs.readFileSync(templatePath, 'UTF-8');
         let resultPath = this.Options.resultsPath
         if (!fs.existsSync(resultPath))

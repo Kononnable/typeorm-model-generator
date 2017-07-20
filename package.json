@@ -2,6 +2,7 @@
   "name": "typeorm-model-generator",
   "version": "0.0.1",
   "description": "Generates models for TypeORM from existing databases.",
+  "bin": "bin/typeorm-model-generator",
   "scripts": {
     "tsc:w": "tsc -w",
     "tsc": "tsc",
