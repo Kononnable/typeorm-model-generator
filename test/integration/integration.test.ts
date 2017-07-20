@@ -22,8 +22,9 @@ chai.use(chaiSubset);
 describe("integration tests", async function () {
     this.timeout(10000)
     this.slow(5000)//compiling created models takes time
-    let examplesPath = path.resolve(process.cwd(), 'test/integration/examples')
-    let files = fs.readdirSync(examplesPath)
+    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/examples')
+    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
+    let files = fs.readdirSync(examplesPathTS)
 
     let dbDrivers: DriverType[] = []
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
@@ -35,17 +36,18 @@ describe("integration tests", async function () {
             for (let dbDriver of dbDrivers) {
                 it(dbDriver, async function () {
 
-                    let filesOrgPath = path.resolve(examplesPath, folder, 'entity')
+                    let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
+                    let filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
                     let resultsPath = path.resolve(process.cwd(), `output`)
                     fs.removeSync(resultsPath)
 
                     let engine: Engine;
                     switch (dbDriver) {
                         case 'mssql':
-                            engine = await createMSSQLModels(filesOrgPath, resultsPath)
+                            engine = await createMSSQLModels(filesOrgPathJS, resultsPath)
                             break;
                         case 'postgres':
-                            engine = await createPostgresModels(filesOrgPath, resultsPath)
+                            engine = await createPostgresModels(filesOrgPathJS, resultsPath)
                             break;
                         default:
                             console.log(`Unknown engine type`);
@@ -58,14 +60,14 @@ describe("integration tests", async function () {
 
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
                     let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
 
                     expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
                     for (let file of filesOrg) {
                         let entftj = new EntityFileToJson();
-                        let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPath, file)))
+                        let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPathTS, file)))
                         let jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
                         expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
                     }

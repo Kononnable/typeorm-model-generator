@@ -9,3 +9,4 @@ output/**/*.*
 .nyc_output/
 coverage/
 .env
+dist
