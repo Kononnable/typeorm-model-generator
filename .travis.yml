@@ -14,7 +14,8 @@ services:
 
 env:
   - MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd MSSQL_Database=tempdb
-
+  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres POSTGRES_Password=!Passw0rd POSTGRES_Database=postgres
+  
 before_install:
   - sudo service postgresql stop
   - docker pull microsoft/mssql-server-linux
