@@ -376,4 +376,21 @@ order by
 
         await promise;
     }
+    async CreateDB(dbName:string){
+        let request = new MSSQL.Request(this.Connection);
+        let resp =await request.query(`CREATE DATABASE ${dbName}; `)
+    }
+    async UseDB(dbName:string){
+       let request = new MSSQL.Request(this.Connection);
+       let resp =await request.query(`USE ${dbName}; `)
+   }
+   async DropDB(dbName:string){
+      let request = new MSSQL.Request(this.Connection);
+      let resp =await request.query(`DROP DATABASE ${dbName}; `)
+  }
+     async CheckIfDBExists(dbName:string):Promise<boolean>{
+        let request = new MSSQL.Request(this.Connection);
+        let resp =await request.query(`SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `)
+        return resp.length>0;
+    }
 }

@@ -390,4 +390,19 @@ export class PostgresDriver extends AbstractDriver {
 
         await promise;
     }
+
+    async CreateDB(dbName:string){
+        
+        let resp = await this.Connection.query(`CREATE DATABASE ${dbName}; `)
+    }
+    async UseDB(dbName:string){
+        let resp =await this.Connection.query(`USE ${dbName}; `)
+    } 
+    async DropDB(dbName:string){
+        let resp =await this.Connection.query(`DROP DATABASE ${dbName}; `)
+    }
+     async CheckIfDBExists(dbName:string):Promise<boolean>{
+        let resp =await this.Connection.query(`SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `)
+        return resp.rowCount>0;
+    }
 }

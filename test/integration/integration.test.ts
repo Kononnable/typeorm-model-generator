@@ -93,6 +93,15 @@ describe("integration tests", async function () {
 })
 
 async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+   
+    let driver: AbstractDriver;
+    driver = new MssqlDriver();
+    await driver.ConnectToServer(`master`,process.env.MSSQL_Host,process.env.MSSQL_Port,process.env.MSSQL_Username, process.env.MSSQL_Password);
+    
+    if (! await driver.CheckIfDBExists(process.env.MSSQL_Database))
+        await  driver.CreateDB(process.env.MSSQL_Database);
+    await driver.DisconnectFromServer();
+
     let connOpt: ConnectionOptions = {
         driver: {
             database: process.env.MSSQL_Database,
@@ -111,7 +120,7 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
     if (conn.isConnected)
         await conn.close()
 
-    let driver: AbstractDriver;
+    
     driver = new MssqlDriver();
     let engine = new Engine(
         driver, {
@@ -123,10 +132,20 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
             databaseType: 'mssql',
             resultsPath: resultsPath
         });
+
+      
     return engine;
 }
 
 async function createPostgresModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new PostgresDriver();
+    await driver.ConnectToServer(`postgres`,process.env.POSTGRES_Host,process.env.POSTGRES_Port,process.env.POSTGRES_Username, process.env.POSTGRES_Password);
+    
+    if (! await driver.CheckIfDBExists(process.env.POSTGRES_Database))
+        await  driver.CreateDB(process.env.POSTGRES_Database);
+    await driver.DisconnectFromServer();
+
     let connOpt: ConnectionOptions = {
         driver: {
             database: process.env.POSTGRES_Database,
@@ -145,7 +164,6 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
     if (conn.isConnected)
         await conn.close()
 
-    let driver: AbstractDriver;
     driver = new PostgresDriver();
     let engine = new Engine(
         driver, {
@@ -157,6 +175,9 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
             databaseType: 'postgres',
             resultsPath: resultsPath
         });
+
+    
+
     return engine;
 }
 

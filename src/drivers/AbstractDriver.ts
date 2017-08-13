@@ -22,4 +22,9 @@ export abstract class AbstractDriver {
     abstract async GetRelations(entities: EntityInfo[]):Promise<EntityInfo[]>;
     abstract async FindPrimaryColumnsFromIndexes(dbModel:DatabaseModel);
     abstract async DisconnectFromServer();
+
+    abstract async CreateDB(dbName:string);
+    abstract async DropDB(dbName:string);
+    abstract async UseDB(dbName:string);
+    abstract async CheckIfDBExists(dbName:string):Promise<boolean>;
 }
