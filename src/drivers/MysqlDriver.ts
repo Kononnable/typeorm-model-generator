@@ -329,7 +329,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to MYSQL Server.')
+                        console.error('Error disconnecting to MYSQL Server.')
                         console.error(err.message)
                         process.abort()
                         reject(err)
