@@ -189,13 +189,13 @@ ORDER BY
                     ent.Indexes.push(indexInfo);
                 }
                 indexColumnInfo.name = resp.ColumnName;
-              //  indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
-              //  indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
+                //  indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
+                //  indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                 indexInfo.columns.push(indexColumnInfo);
 
             })
         })
-       
+
         return entities;
     }
     async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
@@ -301,12 +301,12 @@ order by
             ownerRelation.relatedColumn = relatedColumn.name.toLowerCase()
             ownerRelation.relatedTable = relationTmp.referencedTable
             ownerRelation.ownerTable = relationTmp.ownerTable
-            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase()+(isOneToMany ? 's':'')
+            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
             ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase() +'s'
+                col.name = ownerEntity.EntityName.toLowerCase() + 's'
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -329,7 +329,7 @@ order by
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
                 referencedRelation.ownerTable = relationTmp.referencedTable
-                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase() 
+                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase()
                 referencedRelation.relationType = "OneToOne"
 
                 referencedEntity.Columns.push(col)
@@ -376,21 +376,21 @@ order by
 
         await promise;
     }
-    async CreateDB(dbName:string){
+    async CreateDB(dbName: string) {
         let request = new MSSQL.Request(this.Connection);
-        let resp =await request.query(`CREATE DATABASE ${dbName}; `)
+        let resp = await request.query(`CREATE DATABASE ${dbName}; `)
     }
-    async UseDB(dbName:string){
-       let request = new MSSQL.Request(this.Connection);
-       let resp =await request.query(`USE ${dbName}; `)
-   }
-   async DropDB(dbName:string){
-      let request = new MSSQL.Request(this.Connection);
-      let resp =await request.query(`DROP DATABASE ${dbName}; `)
-  }
-     async CheckIfDBExists(dbName:string):Promise<boolean>{
+    async UseDB(dbName: string) {
         let request = new MSSQL.Request(this.Connection);
-        let resp =await request.query(`SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `)
-        return resp.length>0;
+        let resp = await request.query(`USE ${dbName}; `)
+    }
+    async DropDB(dbName: string) {
+        let request = new MSSQL.Request(this.Connection);
+        let resp = await request.query(`DROP DATABASE ${dbName}; `)
+    }
+    async CheckIfDBExists(dbName: string): Promise<boolean> {
+        let request = new MSSQL.Request(this.Connection);
+        let resp = await request.query(`SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `)
+        return resp.length > 0;
     }
 }

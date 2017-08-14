@@ -2,6 +2,7 @@ import { AbstractDriver } from "./drivers/AbstractDriver";
 import { MssqlDriver } from './drivers/MssqlDriver';
 import { PostgresDriver } from "./drivers/PostgresDriver";
 import { MysqlDriver } from "./drivers/MysqlDriver";
+import { MariaDbDriver } from "./drivers/MariaDbDriver";
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
 import path = require('path')
@@ -37,7 +38,7 @@ var argv = Yargs
     .option('e', {
         alias: 'engine',
         describe: 'Database engine.',
-        choices: ['mssql', 'postgres', 'mysql'],
+        choices: ['mssql', 'postgres', 'mysql', 'mariadb'],
         default: 'mssql'
     })
     .option('o', {
@@ -60,6 +61,10 @@ switch (argv.e) {
         standardPort = 5432;
         break;
     case 'mysql':
+        driver = new MysqlDriver();
+        standardPort = 3306;
+        break;
+    case 'mariadb':
         driver = new MysqlDriver();
         standardPort = 3306;
         break;

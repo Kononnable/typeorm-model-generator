@@ -15,13 +15,14 @@ var chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
+import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 
 
 chai.use(chaiSubset);
 
 
 describe("integration tests", async function () {
-    this.timeout(10000)
+    this.timeout(20000)
     this.slow(5000)//compiling created models takes time
     let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/examples')
     let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
@@ -31,6 +32,7 @@ describe("integration tests", async function () {
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
+    if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
 
     for (let folder of files) {
 
@@ -54,6 +56,10 @@ describe("integration tests", async function () {
                         case 'mysql':
                             engine = await createMysqlModels(filesOrgPathJS, resultsPath)
                             break;
+                        case 'mariadb':
+                            engine = await createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
+
                         default:
                             console.log(`Unknown engine type`);
                             engine = <Engine>{}
@@ -222,6 +228,49 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
             user: process.env.MYSQL_Username,
             password: process.env.MYSQL_Password,
             databaseType: 'mysql',
+            resultsPath: resultsPath
+        });
+
+
+
+    return engine;
+}
+async function createMariaDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new MariaDbDriver();
+    await driver.ConnectToServer(`mysql`, process.env.MARIADB_Host, process.env.MARIADB_Port, process.env.MARIADB_Username, process.env.MARIADB_Password);
+
+    if (! await driver.CheckIfDBExists(process.env.MARIADB_Database))
+        await driver.CreateDB(process.env.MARIADB_Database);
+    await driver.DisconnectFromServer();
+
+    let connOpt: ConnectionOptions = {
+        driver: {
+            database: process.env.MARIADB_Database,
+            host: process.env.MARIADB_Host,
+            password: process.env.MARIADB_Password,
+            type: 'mariadb',
+            username: process.env.MARIADB_Username,
+            port: process.env.MARIADB_Port
+        },
+        dropSchemaOnConnection: true,
+        autoSchemaSync: true,
+        entities: [path.resolve(filesOrgPath, '*.js')],
+    }
+    let conn = await createConnection(connOpt)
+
+    if (conn.isConnected)
+        await conn.close()
+
+    driver = new MariaDbDriver();
+    let engine = new Engine(
+        driver, {
+            host: process.env.MARIADB_Host,
+            port: process.env.MARIADB_Port,
+            databaseName: process.env.MARIADB_Database,
+            user: process.env.MARIADB_Username,
+            password: process.env.MARIADB_Password,
+            databaseType: 'mariadb',
             resultsPath: resultsPath
         });
 

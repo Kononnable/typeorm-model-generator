@@ -1,15 +1,13 @@
 import { AbstractDriver } from './AbstractDriver'
-import * as PG from 'pg'
+import * as MariaDb from 'mysql'
 import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
 /**
- * PostgresDriver
+ * MariaDb
  */
-export class PostgresDriver extends AbstractDriver {
-    private Connection: PG.Client;
-
+export class MariaDbDriver extends AbstractDriver {
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
@@ -25,13 +23,14 @@ export class PostgresDriver extends AbstractDriver {
 
     async GetAllTables(): Promise<EntityInfo[]> {
 
-        let response: { table_schema: string, table_name: string }[]
-            = (await this.Connection.query("SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema = 'public' ")).rows;
-
+        let response = await this.ExecQuery<{ TABLE_SCHEMA: string, TABLE_NAME: string }>(`SELECT TABLE_SCHEMA, TABLE_NAME
+            FROM information_schema.tables
+            WHERE table_type='BASE TABLE'
+            AND table_schema like DATABASE()`);
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
             let ent: EntityInfo = new EntityInfo();
-            ent.EntityName = val.table_name;
+            ent.EntityName = val.TABLE_NAME;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -39,42 +38,48 @@ export class PostgresDriver extends AbstractDriver {
         return ret;
     }
     async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let response: {
-            table_name: string, column_name: string, column_default: string,
-            is_nullable: string, data_type: string, character_maximum_length: number,
-            numeric_precision: number, numeric_scale: number, isidentity: string
-        }[]
-            = (await this.Connection.query(`SELECT table_name,column_name,column_default,is_nullable,
-            data_type,character_maximum_length,numeric_precision,numeric_scale
-            --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity 
-           , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
-            FROM INFORMATION_SCHEMA.COLUMNS where table_schema ='public'`)).rows;
+        let response = await this.ExecQuery<{
+            TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
+            IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
+            NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity: number
+        }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+            DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS
+             where TABLE_SCHEMA like DATABASE()`);
         entities.forEach((ent) => {
             response.filter((filterVal) => {
-                return filterVal.table_name == ent.EntityName;
+                return filterVal.TABLE_NAME == ent.EntityName;
             }).forEach((resp) => {
                 let colInfo: ColumnInfo = new ColumnInfo();
-                colInfo.name = resp.column_name;
-                colInfo.is_nullable = resp.is_nullable == 'YES' ? true : false;
-                colInfo.is_generated = resp.isidentity == 'YES' ? true : false;
-                colInfo.default = colInfo.is_generated ? '' : resp.column_default;
-                switch (resp.data_type) {
-                    //TODO:change types to postgres
-                    case "integer":
+                colInfo.name = resp.COLUMN_NAME;
+                colInfo.is_nullable = resp.IS_NULLABLE == 'YES' ? true : false;
+                colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
+                colInfo.default = resp.COLUMN_DEFAULT;
+                switch (resp.DATA_TYPE) {
+                    case "int":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
                         break;
-                    case "character varying":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
-                        break;
-                    case "text":
-                        colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
+                    case "tinyint":
+                        if (resp.NUMERIC_PRECISION == 3) {
+                            colInfo.ts_type = "boolean"
+                            colInfo.sql_type = "boolean"
+                        } else {
+                            colInfo.ts_type = "number"
+                            colInfo.sql_type = "smallint"
+                        }
                         break;
                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
+                        break;
+                    case "bit":
+                        colInfo.ts_type = "boolean"
+                        colInfo.sql_type = "boolean"
+                        break;
+                    case "float":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "float"
                         break;
                     case "bigint":
                         colInfo.ts_type = "number"
@@ -84,107 +89,101 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.ts_type = "Date"
                         colInfo.sql_type = "date"
                         break;
-                    case "boolean":
-                        colInfo.ts_type = "boolean"
-                        colInfo.sql_type = "boolean"
-                        break;
-                    case "double precision":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "double"
-                        break;
-                    case "real":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "float"
-                        break;
-                    case "numeric":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "decimal"
-                        break;
-                    case "time without time zone":
+                    case "time":
                         colInfo.ts_type = "Date"
                         colInfo.sql_type = "time"
                         break;
-                    case "timestamp without time zone":
-                        colInfo.ts_type = "Date"
+                    case "datetime":
+                        colInfo.ts_type = "Date";
                         colInfo.sql_type = "datetime"
                         break;
-                    case "json":
-                        colInfo.ts_type = "any"
-                        colInfo.sql_type = "json"
+                    case "char":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
                         break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
-
+                    case "nchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "text":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "ntext":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
+                    case "varchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "string"
+                        break;
+                    case "nvarchar":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "string"
+                        break;
+                    case "money":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "decimal"
+                        break;
+                    case "real":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "double"
+                        break;
+                    case "double":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "double"
+                        break;
+                    case "decimal":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "decimal"
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        colInfo.numericScale = resp.NUMERIC_SCALE
+                        break;
+                    case "xml":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "text"
+                        break;
                     default:
-                        console.error("Unknown column type:" + resp.data_type);
+                        console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
+                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
         return entities;
     }
     async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let response: {
-            tablename: string, indexname: string, columnname: string, is_unique: number,
+        let response = await this.ExecQuery<{
+            TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
-        }[]
-            = (await this.Connection.query(`SELECT  
-            c.relname AS tablename,
-            i.relname as indexname, 
-            f.attname AS columnname,  
-            CASE  
-                WHEN ix.indisunique = true THEN '1' 
-                ELSE '0'
-            END AS is_unique,  
-            CASE  
-                WHEN p.contype = 'p' THEN '1'  
-                ELSE '0'  
-            END AS is_primary_key
-            FROM pg_attribute f  
-            JOIN pg_class c ON c.oid = f.attrelid  
-            JOIN pg_type t ON t.oid = f.atttypid  
-            LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
-            LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
-            LEFT JOIN pg_class AS g ON p.confrelid = g.oid
-            LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid 
-            LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid 
-            
-            WHERE c.relkind = 'r'::char  
-            AND n.nspname = 'public'  -- Replace with Schema name 
-            --AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
-            AND f.attnum > 0
-            AND i.oid<>0
-            ORDER BY c.relname,f.attname;`)).rows;
+        }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique, 
+            CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
+            FROM information_schema.statistics sta
+            WHERE table_schema like DATABASE();
+            `);
         entities.forEach((ent) => {
             response.filter((filterVal) => {
-                return filterVal.tablename == ent.EntityName;
+                return filterVal.TableName == ent.EntityName;
             }).forEach((resp) => {
                 let indexInfo: IndexInfo = <IndexInfo>{};
                 let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
                 if (ent.Indexes.filter((filterVal) => {
-                    return filterVal.name == resp.indexname
+                    return filterVal.name == resp.IndexName
                 }).length > 0) {
                     indexInfo = ent.Indexes.filter((filterVal) => {
-                        return filterVal.name == resp.indexname
+                        return filterVal.name == resp.IndexName
                     })[0];
                 } else {
                     indexInfo.columns = <IndexColumnInfo[]>[];
-                    indexInfo.name = resp.indexname;
+                    indexInfo.name = resp.IndexName;
                     indexInfo.isUnique = resp.is_unique == 1 ? true : false;
                     indexInfo.isPrimaryKey = resp.is_primary_key == 1 ? true : false;
                     ent.Indexes.push(indexInfo);
                 }
-                indexColumnInfo.name = resp.columnname;
-                if (resp.is_primary_key == 0) {
-                    indexInfo.isPrimaryKey = false;
-                }
-                // indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
-                //indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
+                indexColumnInfo.name = resp.ColumnName;
+                //  indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
+                //  indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                 indexInfo.columns.push(indexColumnInfo);
 
             })
@@ -193,49 +192,28 @@ export class PostgresDriver extends AbstractDriver {
         return entities;
     }
     async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let response: {
-            tablewithforeignkey: string, fk_partno: number, foreignkeycolumn: string,
-            tablereferenced: string, foreignkeycolumnreferenced: string,
-            ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION",
-            onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION", object_id: string
-        }[]
-            = (await this.Connection.query(`SELECT 
-            con.relname AS tablewithforeignkey,
-            att.attnum as fk_partno,
-                 att2.attname AS foreignkeycolumn,
-              cl.relname AS tablereferenced,
-              att.attname AS foreignkeycolumnreferenced,
-               update_rule as ondelete,
-               delete_rule as onupdate,
-                con.conname as object_id
-               FROM ( 
-                   SELECT 
-                     unnest(con1.conkey) AS parent,
-                     unnest(con1.confkey) AS child,
-                     con1.confrelid,
-                     con1.conrelid,
-                     cl_1.relname,
-                   con1.conname
-                   FROM 
-                     pg_class cl_1,
-                     pg_namespace ns,
-                     pg_constraint con1
-                   WHERE 
-                     con1.contype = 'f'::"char" 
-                     AND cl_1.relnamespace = ns.oid 
-                     AND con1.conrelid = cl_1.oid
-              ) con,
-                pg_attribute att,
-                pg_class cl,
-                pg_attribute att2,
-                information_schema.referential_constraints rc
-              WHERE 
-                att.attrelid = con.confrelid 
-                AND att.attnum = con.child 
-                AND cl.oid = con.confrelid
-                AND att2.attrelid = con.conrelid 
-                AND att2.attnum = con.parent
-                and rc.constraint_name= con.conname`)).rows;
+        let response = await this.ExecQuery<{
+            TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
+            TableReferenced: string, ForeignKeyColumnReferenced: string,
+            onDelete: "RESTRICT" | "CASCADE" | "SET NULL",
+            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL", object_id: string
+        }>(`SELECT 
+            CU.TABLE_NAME TableWithForeignKey,   
+            CU.ORDINAL_POSITION FK_PartNo,
+            CU.COLUMN_NAME ForeignKeyColumn, 
+            CU.REFERENCED_TABLE_NAME TableReferenced,  
+            CU.REFERENCED_COLUMN_NAME ForeignKeyColumnReferenced,
+            RC.DELETE_RULE onDelete,
+            RC.UPDATE_RULE onUpdate,
+            CU.CONSTRAINT_NAME object_id
+           FROM
+            INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU
+           JOIN 
+            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
+          WHERE
+            TABLE_SCHEMA = SCHEMA()       
+            AND CU.REFERENCED_TABLE_NAME IS NOT NULL; 
+            `);
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
             let rels = relationsTemp.find((val) => {
@@ -245,15 +223,15 @@ export class PostgresDriver extends AbstractDriver {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete = resp.ondelete;
-                rels.actionOnUpdate = resp.onupdate;
+                rels.actionOnDelete = resp.onDelete;
+                rels.actionOnUpdate = resp.onUpdate;
                 rels.object_id = resp.object_id;
-                rels.ownerTable = resp.tablewithforeignkey;
-                rels.referencedTable = resp.tablereferenced;
+                rels.ownerTable = resp.TableWithForeignKey;
+                rels.referencedTable = resp.TableReferenced;
                 relationsTemp.push(rels);
             }
-            rels.ownerColumnsNames.push(resp.foreignkeycolumn);
-            rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
+            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
+            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
         })
         relationsTemp.forEach((relationTmp) => {
             let ownerEntity = entities.find((entitity) => {
@@ -314,8 +292,8 @@ export class PostgresDriver extends AbstractDriver {
                 col.name = ownerEntity.EntityName.toLowerCase() + 's'
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                referencedRelation.actionondelete = relationTmp.actionOnDelete
-                referencedRelation.actiononupdate = relationTmp.actionOnUpdate
+                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
+                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
                 referencedRelation.isOwner = false
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
@@ -328,8 +306,8 @@ export class PostgresDriver extends AbstractDriver {
                 col.name = ownerEntity.EntityName.toLowerCase()
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
-                referencedRelation.actionondelete = relationTmp.actionOnDelete
-                referencedRelation.actiononupdate = relationTmp.actionOnUpdate
+                referencedRelation.actionOnDelete = relationTmp.actionOnDelete
+                referencedRelation.actionOnUpdate = relationTmp.actionOnUpdate
                 referencedRelation.isOwner = false
                 referencedRelation.relatedColumn = ownerColumn.name
                 referencedRelation.relatedTable = relationTmp.ownerTable
@@ -343,45 +321,50 @@ export class PostgresDriver extends AbstractDriver {
         return entities;
     }
     async DisconnectFromServer() {
-        if (this.Connection) {
-            let promise = new Promise<boolean>(
-                (resolve, reject) => {
-                    this.Connection.end((err) => {
-                        if (!err) {
-                            //Connection successfull
-                            resolve(true)
-                        }
-                        else {
-                            console.error('Error connecting to Postgres Server.')
-                            console.error(err.message)
-                            process.abort()
-                            reject(err)
-                        }
-                    });
-                })
+        let promise = new Promise<boolean>(
+            (resolve, reject) => {
+                this.Connection.end((err) => {
+                    if (!err) {
+                        //Connection successfull
+                        resolve(true)
+                    }
+                    else {
+                        console.error('Error disconnecting to MariaDb Server.')
+                        console.error(err.message)
+                        process.abort()
+                        reject(err)
+                    }
+                });
+            }
+        )
+
+        if (this.Connection)
             await promise;
-        }
+
     }
 
+    private Connection: MariaDb.IConnection;
     async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
-        this.Connection = new PG.Client({
+        let config: MariaDb.IConnectionConfig = {
             database: database,
             host: server,
             port: port,
             user: user,
-            password: password
-        })
+            password: password,
+        }
 
 
         let promise = new Promise<boolean>(
             (resolve, reject) => {
+                this.Connection = MariaDb.createConnection(config)
+
                 this.Connection.connect((err) => {
                     if (!err) {
                         //Connection successfull
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to Postgres Server.')
+                        console.error('Error connecting to MariaDb Server.')
                         console.error(err.message)
                         process.abort()
                         reject(err)
@@ -392,19 +375,33 @@ export class PostgresDriver extends AbstractDriver {
 
         await promise;
     }
-
     async CreateDB(dbName: string) {
-
-        let resp = await this.Connection.query(`CREATE DATABASE ${dbName}; `)
+        let resp = await this.ExecQuery<any>(`CREATE DATABASE ${dbName}; `)
     }
     async UseDB(dbName: string) {
-        let resp = await this.Connection.query(`USE ${dbName}; `)
+        let resp = await this.ExecQuery<any>(`USE ${dbName}; `)
     }
     async DropDB(dbName: string) {
-        let resp = await this.Connection.query(`DROP DATABASE ${dbName}; `)
+        let resp = await this.ExecQuery<any>(`DROP DATABASE ${dbName}; `)
     }
     async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let resp = await this.Connection.query(`SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `)
-        return resp.rowCount > 0;
+        let resp = await this.ExecQuery<any>(`SHOW DATABASES LIKE '${dbName}' `)
+        return resp.length > 0;
+    }
+    async ExecQuery<T>(sql: string): Promise<Array<T>> {
+        let ret: Array<T> = [];
+        let that = this;
+        let query = this.Connection.query(sql)
+        let stream = query.stream({});
+        let promise = new Promise<boolean>(
+            (resolve, reject) => {
+                stream.on('data',
+                    chunk => {
+                        ret.push(<T><any>chunk)
+                    });
+                stream.on('end', () => resolve(true));
+            })
+        await promise;
+        return ret;
     }
 }
