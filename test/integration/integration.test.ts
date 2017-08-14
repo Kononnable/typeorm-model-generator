@@ -29,10 +29,10 @@ describe("integration tests", async function () {
     let files = fs.readdirSync(examplesPathTS)
 
     let dbDrivers: DriverType[] = []
-    if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
+    if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
 
     for (let folder of files) {
 
