@@ -7,6 +7,8 @@ Generates models for TypeORM from existing databases.
 Suported db engines:
 * Microsoft SQL Server
 * PostgreSQL
+* MySQL
+* MariaDB
 
 
 
@@ -28,7 +30,8 @@ Options:
   -u, --user      Username for database server.                       [required]
   -x, --pass      Password for database server.                       [required]
   -p, --port      Port number for database server.
-  -e, --engine    Database engine.                [choices: "mssql", "postgres"]
+  -e, --engine    Database engine.
+           [choices: "mssql", "postgres", "mysql", "mariadb"] [default: "mssql"]
   -o, --output    Where to place generated models.
 ```
 ### Examples
