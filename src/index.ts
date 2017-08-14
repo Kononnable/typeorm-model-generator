@@ -1,9 +1,10 @@
+import { AbstractDriver } from "./drivers/AbstractDriver";
 import { MssqlDriver } from './drivers/MssqlDriver';
+import { PostgresDriver } from "./drivers/PostgresDriver";
+import { MysqlDriver } from "./drivers/MysqlDriver";
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
-import { AbstractDriver } from "./drivers/AbstractDriver";
 import path = require('path')
-import { PostgresDriver } from "./drivers/PostgresDriver";
 
 
 
@@ -36,7 +37,7 @@ var argv = Yargs
     .option('e', {
         alias: 'engine',
         describe: 'Database engine.',
-        choices: ['mssql','postgres'],
+        choices: ['mssql', 'postgres', 'mysql'],
         default: 'mssql'
     })
     .option('o', {
@@ -53,10 +54,14 @@ switch (argv.e) {
     case 'mssql':
         driver = new MssqlDriver();
         standardPort = 1433;
-        break; 
-        case 'postgres':
+        break;
+    case 'postgres':
         driver = new PostgresDriver();
         standardPort = 5432;
+        break;
+    case 'mysql':
+        driver = new MysqlDriver();
+        standardPort = 3306;
         break;
     default:
         console.error('Database engine not recognized.')

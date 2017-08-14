@@ -14,6 +14,7 @@ var chai = require('chai');
 var chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import { PostgresDriver } from "../../src/drivers/PostgresDriver";
+import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 
 
 chai.use(chaiSubset);
@@ -29,6 +30,7 @@ describe("integration tests", async function () {
     let dbDrivers: DriverType[] = []
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
+    if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
 
     for (let folder of files) {
 
@@ -49,9 +51,12 @@ describe("integration tests", async function () {
                         case 'postgres':
                             engine = await createPostgresModels(filesOrgPathJS, resultsPath)
                             break;
+                        case 'mysql':
+                            engine = await createMysqlModels(filesOrgPathJS, resultsPath)
+                            break;
                         default:
                             console.log(`Unknown engine type`);
-                            engine=<Engine>{}
+                            engine = <Engine>{}
                             break;
                     }
 
@@ -93,13 +98,13 @@ describe("integration tests", async function () {
 })
 
 async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
-   
+
     let driver: AbstractDriver;
     driver = new MssqlDriver();
-    await driver.ConnectToServer(`master`,process.env.MSSQL_Host,process.env.MSSQL_Port,process.env.MSSQL_Username, process.env.MSSQL_Password);
-    
+    await driver.ConnectToServer(`master`, process.env.MSSQL_Host, process.env.MSSQL_Port, process.env.MSSQL_Username, process.env.MSSQL_Password);
+
     if (! await driver.CheckIfDBExists(process.env.MSSQL_Database))
-        await  driver.CreateDB(process.env.MSSQL_Database);
+        await driver.CreateDB(process.env.MSSQL_Database);
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -120,7 +125,7 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
     if (conn.isConnected)
         await conn.close()
 
-    
+
     driver = new MssqlDriver();
     let engine = new Engine(
         driver, {
@@ -133,17 +138,17 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
             resultsPath: resultsPath
         });
 
-      
+
     return engine;
 }
 
 async function createPostgresModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new PostgresDriver();
-    await driver.ConnectToServer(`postgres`,process.env.POSTGRES_Host,process.env.POSTGRES_Port,process.env.POSTGRES_Username, process.env.POSTGRES_Password);
-    
+    await driver.ConnectToServer(`postgres`, process.env.POSTGRES_Host, process.env.POSTGRES_Port, process.env.POSTGRES_Username, process.env.POSTGRES_Password);
+
     if (! await driver.CheckIfDBExists(process.env.POSTGRES_Database))
-        await  driver.CreateDB(process.env.POSTGRES_Database);
+        await driver.CreateDB(process.env.POSTGRES_Database);
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -176,7 +181,51 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
             resultsPath: resultsPath
         });
 
-    
+
+
+    return engine;
+}
+
+async function createMysqlModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new MysqlDriver();
+    await driver.ConnectToServer(`mysql`, process.env.MYSQL_Host, process.env.MYSQL_Port, process.env.MYSQL_Username, process.env.MYSQL_Password);
+
+    if (! await driver.CheckIfDBExists(process.env.MYSQL_Database))
+        await driver.CreateDB(process.env.MYSQL_Database);
+    await driver.DisconnectFromServer();
+
+    let connOpt: ConnectionOptions = {
+        driver: {
+            database: process.env.MYSQL_Database,
+            host: process.env.MYSQL_Host,
+            password: process.env.MYSQL_Password,
+            type: 'mysql',
+            username: process.env.MYSQL_Username,
+            port: process.env.MYSQL_Port
+        },
+        dropSchemaOnConnection: true,
+        autoSchemaSync: true,
+        entities: [path.resolve(filesOrgPath, '*.js')],
+    }
+    let conn = await createConnection(connOpt)
+
+    if (conn.isConnected)
+        await conn.close()
+
+    driver = new MysqlDriver();
+    let engine = new Engine(
+        driver, {
+            host: process.env.MYSQL_Host,
+            port: process.env.MYSQL_Port,
+            databaseName: process.env.MYSQL_Database,
+            user: process.env.MYSQL_Username,
+            password: process.env.MYSQL_Password,
+            databaseType: 'mysql',
+            resultsPath: resultsPath
+        });
+
+
 
     return engine;
 }

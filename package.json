@@ -24,9 +24,11 @@
   },
   "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
   "dependencies": {
+    "@types/mysql": "0.0.34",
     "@types/pg": "^6.1.41",
     "handlebars": "^4.0.10",
     "mssql": "^3.3.0",
+    "mysql": "^2.14.1",
     "pg": "^6.4.0",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.0.10",
@@ -34,14 +36,14 @@
     "yargs": "^7.0.2"
   },
   "devDependencies": {
-    "@types/handlebars": "^4.0.32",
     "@types/chai": "^3.5.2",
     "@types/chai-as-promised": "0.0.30",
     "@types/chai-subset": "^1.3.0",
     "@types/fs-extra": "^3.0.0",
+    "@types/handlebars": "^4.0.32",
     "@types/mocha": "^2.2.41",
     "@types/mssql": "^3.3.0",
-    "@types/node": "^7.0.10",
+    "@types/node": "^7.0.39",
     "@types/sinon": "^2.1.3",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
