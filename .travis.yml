@@ -25,3 +25,4 @@ before_script:
   - npm run typings-install
   - npm link typescript
   - tsc
+  - sleep 10s
