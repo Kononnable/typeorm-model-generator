@@ -13,22 +13,10 @@ services:
   - docker
 
 env:
-  - MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd MSSQL_Database=typeorm_mg
-  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres POSTGRES_Password=!Passw0rd POSTGRES_Database=typeorm_mg
-  - MYSQL_Skip=0 MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root MYSQL_Password=!Passw0rd MYSQL_Database=typeorm_mg
-  - MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307 MARIADB_Username=root MARIADB_Password=!Passw0rd MARIADB_Database=typeorm_mg
+  - MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd MSSQL_Database=typeorm_mg POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres POSTGRES_Password=!Passw0rd POSTGRES_Database=typeorm_mg MYSQL_Skip=0 MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root MYSQL_Password=!Passw0rd MYSQL_Database=typeorm_mg MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307 MARIADB_Username=root MARIADB_Password=!Passw0rd MARIADB_Database=typeorm_mg
 
 before_install:
-  - sudo service mysql stop
-  - sudo service postgresql stop
-  - docker pull microsoft/mssql-server-linux
-  - docker pull postgres
-  - docker pull mysql
-  - docker pull mariadb
-  - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=!Passw0rd' -p 1433:1433 --name mssql -d microsoft/mssql-server-linux
-  - docker run -e 'POSTGRES_PASSWORD=!Passw0rd' -p 5432:5432 --name postgres -d postgres
-  - docker run -e MYSQL_ROOT_PASSWORD=!Passw0rd -p 3306:3306 --name mysql -d mysql
-  - docker run -e MYSQL_ROOT_PASSWORD=!Passw0rd -p 3307:3306 --name mariadb -d mariadb
+  - docker-compose up -d
 
 
 before_script:
