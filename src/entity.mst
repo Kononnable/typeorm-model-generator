@@ -1,28 +1,30 @@
 import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, JoinColumn} from "typeorm";
-{{relationImports}}
+{{#each Imports}}
+import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName this}}";
+{{/each}}
 
-@Entity()
+@Entity("{{toEntityName EntityName}}")
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
-{{/isPrimaryKey}}{{/Indexes}}export class {{EntityName}} {
+{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
+{{#Columns}}
 
-    {{#Columns}}
+{{~^relations}}	@Column("{{sql_type}}", {{curly true}}{{#is_generated}}generated: true,{{/is_generated}}
+		name: "{{name}}",{{#is_nullable}}
+		nullable: true,{{/is_nullable}}{{^is_nullable}}
+		nullable: false,{{/is_nullable}}{{#char_max_lenght}}
+		length: {{.}},{{/char_max_lenght}}{{#default}}
+		default: "{{.}}",{{/default}}{{#numericPrecision}}
+		precision:{{.}},{{/numericPrecision}}{{#numericScale}}
+		scale: {{.}},{{/numericScale}}{{#isPrimary}}
+		primary: {{isPrimary}},{{/isPrimary}}
+	})
+	{{toPropertyName name}}: {{ts_type}};
+{{/relations~}}
 
-   {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
-        generated:true,{{/is_generated}}{{#is_nullable}}
-        nullable:true,{{/is_nullable}}{{^is_nullable}}
-        nullable:false,{{/is_nullable}}{{#char_max_lenght}}
-        length:{{.}},{{/char_max_lenght}}{{#default}}
-        default:"{{.}}",{{/default}}{{#numericPrecision}}
-        precision:{{.}},{{/numericPrecision}}{{#numericScale}}
-        scale:{{.}},{{/numericScale}}{{#isPrimary}}
-        primary:{{isPrimary}},{{/isPrimary}} 
-        })
-    {{name}}:{{ts_type}};
-        {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{relatedTable}}, {{../name}}=>{{../name}}.{{#if isOwner}}{{ownerColumn}}{{else}}{{relatedColumn}}{{/if}}){{#isOwner}}
-    @JoinColumn(){{/isOwner}}
-    {{#if isOneToMany}}{{../name}}:{{relatedTable}}[];
-    {{else}}{{../name}}:{{relatedTable}};
-    {{/if}}{{/relations}}
-    {{/Columns}}
+{{~#relations}}	@{{relationType}}(type => {{toEntityName relatedTable}}, {{toPropertyName ../name}} => {{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}}{{else}}{{toPropertyName relatedColumn}}{{/if}}){{#isOwner}}
+	@JoinColumn(){{/isOwner}}
+	{{#if isOneToMany}}{{toPropertyName ../name}}: {{toEntityName relatedTable}}[];{{else}}{{toPropertyName ../name}}: {{toEntityName relatedTable}};{{/if}}
+{{/relations~}}
+{{"\n"}}
+{{/Columns}}
 }
