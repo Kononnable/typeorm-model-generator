@@ -33,6 +33,7 @@ Options:
   -e, --engine    Database engine.
            [choices: "mssql", "postgres", "mysql", "mariadb"] [default: "mssql"]
   -o, --output    Where to place generated models.
+  -c, --case      Convert snake_case tables names to PascalCase entities and snake_case columns to camelCase properties
 ```
 ### Examples
 
