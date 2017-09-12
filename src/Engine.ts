@@ -3,6 +3,7 @@ import { DatabaseModel } from './models/DatabaseModel'
 import * as Handlebars from 'handlebars'
 import fs = require('fs');
 import path = require('path')
+import changeCase = require("change-case");
 /**
  * Engine
  */
@@ -24,6 +25,10 @@ export class Engine {
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
+        Handlebars.registerHelper("curly", (open) => {return open ? "{" : "}";});
+        Handlebars.registerHelper("toEntityName", str => {return this.Options.convertCase ? changeCase.pascalCase(str) : str;});
+        Handlebars.registerHelper("toFileName", str => {return this.Options.convertCase ? changeCase.paramCase(str) : str;});
+        Handlebars.registerHelper("toPropertyName", str => {return this.Options.convertCase ? changeCase.camelCase(str) : str;});
         let templatePath = path.resolve(__dirname, '../../src/entity.mst')
         let template = fs.readFileSync(templatePath, 'UTF-8');
         let resultPath = this.Options.resultsPath
@@ -39,7 +44,19 @@ export class Engine {
             fs.mkdirSync(entitesPath);
             let compliedTemplate = Handlebars.compile(template,{noEscape:true})
         databaseModel.entities.forEach(element => {
-            let resultFilePath = path.resolve(entitesPath, element.EntityName + '.ts');
+            element.Imports = [];
+            element.Columns.forEach((column) => {
+                column.relations.forEach(
+                    (relation) => {
+                        if (element.EntityName !== relation.relatedTable)
+                        {element.Imports.push(relation.relatedTable);}
+                    }
+                );
+            });
+            element.Imports.filter(function (elem, index, self) {
+                return index === self.indexOf(elem);
+            });
+            let resultFilePath = path.resolve(entitesPath, (this.Options.convertCase ? changeCase.paramCase(element.EntityName) : element.EntityName) + '.ts');
             let rendered =compliedTemplate(element)
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
@@ -81,5 +98,6 @@ export interface EngineOptions {
     user: string,
     password: string,
     resultsPath: string,
-    databaseType: string
+    databaseType: string,
+    convertCase: boolean
 }

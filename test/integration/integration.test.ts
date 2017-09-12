@@ -141,7 +141,8 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
             user: process.env.MSSQL_Username,
             password: process.env.MSSQL_Password,
             databaseType: 'mssql',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            convertCase: true
         });
 
 
@@ -184,7 +185,8 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
             user: process.env.POSTGRES_Username,
             password: process.env.POSTGRES_Password,
             databaseType: 'postgres',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            convertCase: true
         });
 
 
@@ -228,7 +230,8 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
             user: process.env.MYSQL_Username,
             password: process.env.MYSQL_Password,
             databaseType: 'mysql',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            convertCase: true
         });
 
 
@@ -271,7 +274,8 @@ async function createMariaDBModels(filesOrgPath: string, resultsPath: string): P
             user: process.env.MARIADB_Username,
             password: process.env.MARIADB_Password,
             databaseType: 'mariadb',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            convertCase: true
         });
 
 
