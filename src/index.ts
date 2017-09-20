@@ -46,6 +46,10 @@ var argv = Yargs
         describe: 'Where to place generated models.',
         default: path.resolve(process.cwd(), 'output')
     })
+    .option('c', {
+        alias: 'case',
+        describe: 'Convert snake_case tables names to PascalCase entities and snake_case columns to camelCase properties'
+    })
     .argv;
 
 
@@ -82,7 +86,8 @@ let engine = new Engine(
         user: argv.u,
         password: argv.x,
         databaseType: argv.e,
-        resultsPath: argv.o
+        resultsPath: argv.o,
+        convertCase: !!argv.c
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);

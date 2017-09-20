@@ -26,6 +26,7 @@
   "dependencies": {
     "@types/mysql": "0.0.34",
     "@types/pg": "^6.1.41",
+    "change-case": "^3.0.1",
     "handlebars": "^4.0.10",
     "mssql": "^3.3.0",
     "mysql": "^2.14.1",
