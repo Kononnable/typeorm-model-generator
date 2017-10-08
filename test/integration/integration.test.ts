@@ -6,7 +6,6 @@ import path = require('path')
 import { Engine } from "./../../src/Engine";
 import { AbstractDriver } from "./../../src/drivers/AbstractDriver";
 import { MssqlDriver } from "./../../src/drivers/MssqlDriver";
-import { DriverType } from "typeorm/driver/DriverOptions";
 import { expect } from "chai";
 import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
@@ -28,7 +27,7 @@ describe("integration tests", async function () {
     let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
     let files = fs.readdirSync(examplesPathTS)
 
-    let dbDrivers: DriverType[] = []
+    let dbDrivers: string[] = []
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
@@ -107,23 +106,22 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
 
     let driver: AbstractDriver;
     driver = new MssqlDriver();
-    await driver.ConnectToServer(`master`, process.env.MSSQL_Host, process.env.MSSQL_Port, process.env.MSSQL_Username, process.env.MSSQL_Password);
+    await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password));
 
-    if (! await driver.CheckIfDBExists(process.env.MSSQL_Database))
-        await driver.CreateDB(process.env.MSSQL_Database);
+    if (! await driver.CheckIfDBExists(String(process.env.MSSQL_Database)))
+        await driver.CreateDB(String(process.env.MSSQL_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-        driver: {
-            database: process.env.MSSQL_Database,
-            host: process.env.MSSQL_Host,
-            password: process.env.MSSQL_Password,
-            type: 'mssql',
-            username: process.env.MSSQL_Username,
-            port: process.env.MSSQL_Port
-        },
-        dropSchemaOnConnection: true,
-        autoSchemaSync: true,
+
+        database: String(process.env.MSSQL_Database),
+        host: String(process.env.MSSQL_Host),
+        password: String(process.env.MSSQL_Password),
+        type: 'mssql',
+        username: String(process.env.MSSQL_Username),
+        port: Number(process.env.MSSQL_Port),
+        dropSchema: true,
+        synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
     let conn = await createConnection(connOpt)
@@ -135,11 +133,11 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
     driver = new MssqlDriver();
     let engine = new Engine(
         driver, {
-            host: process.env.MSSQL_Host,
-            port: process.env.MSSQL_Port,
-            databaseName: process.env.MSSQL_Database,
-            user: process.env.MSSQL_Username,
-            password: process.env.MSSQL_Password,
+            host: String(process.env.MSSQL_Host),
+            port: Number(process.env.MSSQL_Port),
+            databaseName: String(process.env.MSSQL_Database),
+            user: String(process.env.MSSQL_Username),
+            password: String(process.env.MSSQL_Password),
             databaseType: 'mssql',
             resultsPath: resultsPath
         });
@@ -151,23 +149,21 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
 async function createPostgresModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new PostgresDriver();
-    await driver.ConnectToServer(`postgres`, process.env.POSTGRES_Host, process.env.POSTGRES_Port, process.env.POSTGRES_Username, process.env.POSTGRES_Password);
+    await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password));
 
-    if (! await driver.CheckIfDBExists(process.env.POSTGRES_Database))
-        await driver.CreateDB(process.env.POSTGRES_Database);
+    if (! await driver.CheckIfDBExists(String(process.env.POSTGRES_Database)))
+        await driver.CreateDB(String(process.env.POSTGRES_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-        driver: {
-            database: process.env.POSTGRES_Database,
-            host: process.env.POSTGRES_Host,
-            password: process.env.POSTGRES_Password,
-            type: 'postgres',
-            username: process.env.POSTGRES_Username,
-            port: process.env.POSTGRES_Port
-        },
-        dropSchemaOnConnection: true,
-        autoSchemaSync: true,
+        database: String(process.env.POSTGRES_Database),
+        host: String(process.env.POSTGRES_Host),
+        password: String(process.env.POSTGRES_Password),
+        type: 'postgres',
+        username: String(process.env.POSTGRES_Username),
+        port: Number(process.env.POSTGRES_Port),
+        dropSchema: true,
+        synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
     let conn = await createConnection(connOpt)
@@ -178,11 +174,11 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
     driver = new PostgresDriver();
     let engine = new Engine(
         driver, {
-            host: process.env.POSTGRES_Host,
-            port: process.env.POSTGRES_Port,
-            databaseName: process.env.POSTGRES_Database,
-            user: process.env.POSTGRES_Username,
-            password: process.env.POSTGRES_Password,
+            host: String(process.env.POSTGRES_Host),
+            port: Number(process.env.POSTGRES_Port),
+            databaseName: String(process.env.POSTGRES_Database),
+            user: String(process.env.POSTGRES_Username),
+            password: String(process.env.POSTGRES_Password),
             databaseType: 'postgres',
             resultsPath: resultsPath
         });
@@ -195,23 +191,21 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
 async function createMysqlModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MysqlDriver();
-    await driver.ConnectToServer(`mysql`, process.env.MYSQL_Host, process.env.MYSQL_Port, process.env.MYSQL_Username, process.env.MYSQL_Password);
+    await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password));
 
-    if (! await driver.CheckIfDBExists(process.env.MYSQL_Database))
-        await driver.CreateDB(process.env.MYSQL_Database);
+    if (! await driver.CheckIfDBExists(String(process.env.MYSQL_Database)))
+        await driver.CreateDB(String(process.env.MYSQL_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-        driver: {
-            database: process.env.MYSQL_Database,
-            host: process.env.MYSQL_Host,
-            password: process.env.MYSQL_Password,
-            type: 'mysql',
-            username: process.env.MYSQL_Username,
-            port: process.env.MYSQL_Port
-        },
-        dropSchemaOnConnection: true,
-        autoSchemaSync: true,
+        database: String(process.env.MYSQL_Database),
+        host: String(process.env.MYSQL_Host),
+        password: String(process.env.MYSQL_Password),
+        type: 'mysql',
+        username: String(process.env.MYSQL_Username),
+        port: Number(process.env.MYSQL_Port),
+        dropSchema: true,
+        synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
     let conn = await createConnection(connOpt)
@@ -222,11 +216,11 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
     driver = new MysqlDriver();
     let engine = new Engine(
         driver, {
-            host: process.env.MYSQL_Host,
-            port: process.env.MYSQL_Port,
-            databaseName: process.env.MYSQL_Database,
-            user: process.env.MYSQL_Username,
-            password: process.env.MYSQL_Password,
+            host: String(process.env.MYSQL_Host),
+            port: Number(process.env.MYSQL_Port),
+            databaseName: String(process.env.MYSQL_Database),
+            user: String(process.env.MYSQL_Username),
+            password: String(process.env.MYSQL_Password),
             databaseType: 'mysql',
             resultsPath: resultsPath
         });
@@ -238,23 +232,22 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
 async function createMariaDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MariaDbDriver();
-    await driver.ConnectToServer(`mysql`, process.env.MARIADB_Host, process.env.MARIADB_Port, process.env.MARIADB_Username, process.env.MARIADB_Password);
+    await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password));
 
-    if (! await driver.CheckIfDBExists(process.env.MARIADB_Database))
-        await driver.CreateDB(process.env.MARIADB_Database);
+    if (! await driver.CheckIfDBExists(String(process.env.MARIADB_Database)))
+        await driver.CreateDB(String(process.env.MARIADB_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-        driver: {
-            database: process.env.MARIADB_Database,
-            host: process.env.MARIADB_Host,
-            password: process.env.MARIADB_Password,
-            type: 'mariadb',
-            username: process.env.MARIADB_Username,
-            port: process.env.MARIADB_Port
-        },
-        dropSchemaOnConnection: true,
-        autoSchemaSync: true,
+
+        database: String(process.env.MARIADB_Database),
+        host: String(process.env.MARIADB_Host),
+        password: String(process.env.MARIADB_Password),
+        type: 'mariadb',
+        username: String(process.env.MARIADB_Username),
+        port: Number(process.env.MARIADB_Port),
+        dropSchema: true,
+        synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
     let conn = await createConnection(connOpt)
@@ -265,11 +258,11 @@ async function createMariaDBModels(filesOrgPath: string, resultsPath: string): P
     driver = new MariaDbDriver();
     let engine = new Engine(
         driver, {
-            host: process.env.MARIADB_Host,
-            port: process.env.MARIADB_Port,
-            databaseName: process.env.MARIADB_Database,
-            user: process.env.MARIADB_Username,
-            password: process.env.MARIADB_Password,
+            host: String(process.env.MARIADB_Host),
+            port: Number(process.env.MARIADB_Port),
+            databaseName: String(process.env.MARIADB_Database),
+            user: String(process.env.MARIADB_Username),
+            password: String(process.env.MARIADB_Password),
             databaseType: 'mariadb',
             resultsPath: resultsPath
         });

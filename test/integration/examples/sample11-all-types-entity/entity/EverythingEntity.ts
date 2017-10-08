@@ -2,7 +2,7 @@ import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn, Index } f
 
 @Entity("EverythingEntity")
 export class EverythingEntity {
-
+//TODO: change to check column types per database engine 
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -30,11 +30,11 @@ export class EverythingEntity {
     @Column("bigint")
     bigintColumn: number;
 
-    @Column("float")
-    floatColumn: number;
+    // @Column("float")
+    // floatColumn: number;
 
-    @Column("double")
-    doubleColumn: number;
+    // @Column("double")
+    // doubleColumn: number;
 
     @Column("decimal")
     decimalColumn: number;
@@ -48,14 +48,14 @@ export class EverythingEntity {
     @Column("time")
     timeColumn: Date;
 
-    @Column("boolean")
-    isBooleanColumn: boolean;
+    // @Column("boolean")
+    // isBooleanColumn: boolean;
 
-    @Column("boolean")
-    isSecondBooleanColumn: boolean;
+    // @Column("boolean")
+    // isSecondBooleanColumn: boolean;
 
-    @Column("json")
-    jsonColumn: any;
+    // @Column("json")
+    // jsonColumn: any;
 
     // @Column()
     // alsoJson: any;

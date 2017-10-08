@@ -59,6 +59,7 @@ export class MysqlDriver extends AbstractDriver {
                     case "int":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "tinyint":
                         if (resp.NUMERIC_PRECISION == 3) {
@@ -67,11 +68,13 @@ export class MysqlDriver extends AbstractDriver {
                         } else {
                             colInfo.ts_type = "number"
                             colInfo.sql_type = "smallint"
-                        }
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                    }
                         break;
                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "bit":
                         colInfo.ts_type = "boolean"
@@ -80,10 +83,12 @@ export class MysqlDriver extends AbstractDriver {
                     case "float":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "bigint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "bigint"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "date":
                         colInfo.ts_type = "Date"
@@ -115,11 +120,13 @@ export class MysqlDriver extends AbstractDriver {
                         break;
                     case "varchar":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
+                        colInfo.sql_type = "varchar"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "nvarchar":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
+                        colInfo.sql_type = "nvarchar"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "money":
                         colInfo.ts_type = "number"
@@ -128,16 +135,19 @@ export class MysqlDriver extends AbstractDriver {
                     case "real":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "double":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "decimal":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION
                         colInfo.numericScale = resp.NUMERIC_SCALE
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "xml":
                         colInfo.ts_type = "string"
@@ -147,7 +157,6 @@ export class MysqlDriver extends AbstractDriver {
                         console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })

@@ -63,10 +63,12 @@ export class PostgresDriver extends AbstractDriver {
                     case "integer":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "character varying":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
+                        colInfo.sql_type = "character varying"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "text":
                         colInfo.ts_type = "string"
@@ -75,10 +77,12 @@ export class PostgresDriver extends AbstractDriver {
                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "bigint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "bigint"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "date":
                         colInfo.ts_type = "Date"
@@ -91,14 +95,17 @@ export class PostgresDriver extends AbstractDriver {
                     case "double precision":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "real":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "numeric":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "time without time zone":
                         colInfo.ts_type = "Date"
@@ -121,7 +128,7 @@ export class PostgresDriver extends AbstractDriver {
                         console.error("Unknown column type:" + resp.data_type);
                         break;
                 }
-                colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
+
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
