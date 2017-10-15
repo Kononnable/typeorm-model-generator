@@ -139,7 +139,8 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
             user: String(process.env.MSSQL_Username),
             password: String(process.env.MSSQL_Password),
             databaseType: 'mssql',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            schemaName:'dbo'
         });
 
 
@@ -180,7 +181,8 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
             user: String(process.env.POSTGRES_Username),
             password: String(process.env.POSTGRES_Password),
             databaseType: 'postgres',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            schemaName:'public'
         });
 
 
@@ -222,7 +224,8 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
             user: String(process.env.MYSQL_Username),
             password: String(process.env.MYSQL_Password),
             databaseType: 'mysql',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            schemaName:'ignored'
         });
 
 
@@ -264,7 +267,8 @@ async function createMariaDBModels(filesOrgPath: string, resultsPath: string): P
             user: String(process.env.MARIADB_Username),
             password: String(process.env.MARIADB_Password),
             databaseType: 'mariadb',
-            resultsPath: resultsPath
+            resultsPath: resultsPath,
+            schemaName:'ignored'
         });
 
 

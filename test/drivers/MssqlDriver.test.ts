@@ -57,7 +57,7 @@ describe('MssqlDriver', function () {
                 }
             }
             )
-        let result = await driver.GetAllTables()
+        let result = await driver.GetAllTables('schema')
         let expectedResult = <EntityInfo[]>[];
         let y = new EntityInfo();
         y.EntityName = 'name'
@@ -105,7 +105,7 @@ describe('MssqlDriver', function () {
             ts_type: 'number',
             relations: <RelationInfo[]>[]
         })
-        let result = await driver.GetCoulmnsFromEntity(entities);
+        let result = await driver.GetCoulmnsFromEntity(entities,'schema');
         expect(result).to.be.deep.equal(expected)
     })
     it('should find primary indexes')

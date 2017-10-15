@@ -21,7 +21,7 @@ export class MysqlDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(): Promise<EntityInfo[]> {
+    async GetAllTables(schema:string): Promise<EntityInfo[]> {
 
         let response = await this.ExecQuery<{ TABLE_SCHEMA: string, TABLE_NAME: string }>(`SELECT TABLE_SCHEMA, TABLE_NAME
             FROM information_schema.tables
@@ -37,7 +37,7 @@ export class MysqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
@@ -162,7 +162,7 @@ export class MysqlDriver extends AbstractDriver {
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
@@ -200,7 +200,7 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
             TableReferenced: string, ForeignKeyColumnReferenced: string,

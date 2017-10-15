@@ -21,10 +21,10 @@ export class MssqlDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(): Promise<EntityInfo[]> {
+    async GetAllTables(schema:string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: { TABLE_SCHEMA: string, TABLE_NAME: string }[]
-            = (await request.query("SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'")).recordset;
+            = (await request.query(`SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA='${schema}'`)).recordset;
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
             let ent: EntityInfo = new EntityInfo();
@@ -35,7 +35,7 @@ export class MssqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
@@ -44,7 +44,7 @@ export class MssqlDriver extends AbstractDriver {
         }[]
             = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS`)).recordset;
+   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS  where TABLE_SCHEMA='${schema}'`)).recordset;
         entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal.TABLE_NAME == ent.EntityName;
@@ -154,7 +154,7 @@ export class MssqlDriver extends AbstractDriver {
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
@@ -176,8 +176,10 @@ INNER JOIN
      sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id 
 INNER JOIN 
      sys.tables t ON ind.object_id = t.object_id 
+INNER JOIN
+     sys.schemas s on s.schema_id=t.schema_id
 WHERE 
-     t.is_ms_shipped = 0 
+     t.is_ms_shipped = 0 and s.name='${schema}'
 ORDER BY 
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach((ent) => {
@@ -209,7 +211,7 @@ ORDER BY
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
@@ -238,8 +240,10 @@ inner join
     sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
 inner join 
     sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
+inner join
+	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
 where 
-    fk.is_disabled=0 and fk.is_ms_shipped=0
+    fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name='${schema}'
 order by 
     TableWithForeignKey, FK_PartNo`)).recordset;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];

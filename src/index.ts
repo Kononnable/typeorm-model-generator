@@ -46,19 +46,26 @@ var argv = Yargs
         describe: 'Where to place generated models.',
         default: path.resolve(process.cwd(), 'output')
     })
+    .option('s', {
+        alias: 'schema',
+        describe: 'Schema name to create model from. Only for mssql and postgres.'
+    })
     .argv;
 
 
 var driver: AbstractDriver;
 var standardPort: number;
+var standardSchema: string = '';
 switch (argv.e) {
     case 'mssql':
         driver = new MssqlDriver();
         standardPort = 1433;
+        standardSchema = 'dbo';
         break;
     case 'postgres':
         driver = new PostgresDriver();
         standardPort = 5432;
+        standardSchema = 'public';
         break;
     case 'mysql':
         driver = new MysqlDriver();
@@ -74,6 +81,7 @@ switch (argv.e) {
         throw new Error('Database engine not recognized.');
 }
 
+
 let engine = new Engine(
     driver, {
         host: argv.h,
@@ -82,7 +90,8 @@ let engine = new Engine(
         user: argv.u,
         password: argv.x,
         databaseType: argv.e,
-        resultsPath: argv.o
+        resultsPath: argv.o,
+        schemaName: argv.s || standardSchema
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);
