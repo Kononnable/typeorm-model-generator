@@ -371,13 +371,14 @@ export class PostgresDriver extends AbstractDriver {
         }
     }
 
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean) {
         this.Connection = new PG.Client({
             database: database,
             host: server,
             port: port,
             user: user,
-            password: password
+            password: password,
+            ssl:ssl
         })
 
 

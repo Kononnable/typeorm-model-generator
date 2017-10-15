@@ -358,7 +358,7 @@ order by
     }
 
     private Connection: MSSQL.ConnectionPool;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean) {
         let config: MSSQL.config = {
             database: database,
             server: server,
@@ -366,7 +366,7 @@ order by
             user: user,
             password: password,
             options: {
-                encrypt: true, // Use this if you're on Windows Azure
+                encrypt: ssl, // Use this if you're on Windows Azure
                 appName: 'typeorm-model-generator'
             }
         }

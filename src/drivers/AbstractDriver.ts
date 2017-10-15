@@ -4,9 +4,9 @@ import { DatabaseModel } from './../models/DatabaseModel'
  * AbstractDriver
  */
 export abstract class AbstractDriver {
-    async GetDataFromServer(database: string, server: string, port: number, user: string, password: string, schema:string): Promise<DatabaseModel> {
+    async GetDataFromServer(database: string, server: string, port: number, user: string, password: string, schema:string, ssl:boolean): Promise<DatabaseModel> {
         let dbModel = <DatabaseModel>{};
-        await this.ConnectToServer(database, server, port, user, password);
+        await this.ConnectToServer(database, server, port, user, password,ssl);
         dbModel.entities = await this.GetAllTables(schema);
         await this.GetCoulmnsFromEntity(dbModel.entities,schema);
         await this.GetIndexesFromEntity(dbModel.entities,schema);
@@ -15,7 +15,7 @@ export abstract class AbstractDriver {
         this.FindPrimaryColumnsFromIndexes(dbModel)
         return dbModel;
     }
-    abstract async ConnectToServer(database: string, server: string, port: number, user: string, password: string);
+    abstract async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean);
     abstract async GetAllTables(schema:string): Promise<EntityInfo[]>
     abstract async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]>;
     abstract async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]>;

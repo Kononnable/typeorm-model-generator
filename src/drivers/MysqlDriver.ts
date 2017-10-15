@@ -21,7 +21,7 @@ export class MysqlDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(schema:string): Promise<EntityInfo[]> {
+    async GetAllTables(schema: string): Promise<EntityInfo[]> {
 
         let response = await this.ExecQuery<{ TABLE_SCHEMA: string, TABLE_NAME: string }>(`SELECT TABLE_SCHEMA, TABLE_NAME
             FROM information_schema.tables
@@ -37,7 +37,7 @@ export class MysqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
@@ -68,8 +68,8 @@ export class MysqlDriver extends AbstractDriver {
                         } else {
                             colInfo.ts_type = "number"
                             colInfo.sql_type = "smallint"
-                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
-                    }
+                            colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        }
                         break;
                     case "smallint":
                         colInfo.ts_type = "number"
@@ -162,7 +162,7 @@ export class MysqlDriver extends AbstractDriver {
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
@@ -200,7 +200,7 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
             TableReferenced: string, ForeignKeyColumnReferenced: string,
@@ -353,13 +353,27 @@ export class MysqlDriver extends AbstractDriver {
     }
 
     private Connection: MYSQL.IConnection;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
-        let config: MYSQL.IConnectionConfig = {
-            database: database,
-            host: server,
-            port: port,
-            user: user,
-            password: password,
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
+        let config: MYSQL.IConnectionConfig
+        if (ssl) {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password,
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
+        } else {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password
+            }
         }
 
 

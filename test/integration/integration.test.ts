@@ -15,7 +15,7 @@ import * as ts from "typescript";
 import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
-
+import * as yn from "yn"
 
 chai.use(chaiSubset);
 
@@ -106,7 +106,7 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
 
     let driver: AbstractDriver;
     driver = new MssqlDriver();
-    await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password));
+    await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password), yn(process.env.MSSQL_SSL));
 
     if (! await driver.CheckIfDBExists(String(process.env.MSSQL_Database)))
         await driver.CreateDB(String(process.env.MSSQL_Database));
@@ -140,7 +140,8 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
             password: String(process.env.MSSQL_Password),
             databaseType: 'mssql',
             resultsPath: resultsPath,
-            schemaName:'dbo'
+            schemaName:'dbo',
+            ssl:yn(process.env.MSSQL_SSL)
         });
 
 
@@ -150,7 +151,7 @@ async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Pro
 async function createPostgresModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new PostgresDriver();
-    await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password));
+    await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password),yn(process.env.POSTGRES_SSL));
 
     if (! await driver.CheckIfDBExists(String(process.env.POSTGRES_Database)))
         await driver.CreateDB(String(process.env.POSTGRES_Database));
@@ -182,7 +183,8 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
             password: String(process.env.POSTGRES_Password),
             databaseType: 'postgres',
             resultsPath: resultsPath,
-            schemaName:'public'
+            schemaName:'public',
+            ssl:yn(process.env.POSTGRES_SSL)
         });
 
 
@@ -193,7 +195,7 @@ async function createPostgresModels(filesOrgPath: string, resultsPath: string): 
 async function createMysqlModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MysqlDriver();
-    await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password));
+    await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password),yn(process.env.MYSQL_SSL));
 
     if (! await driver.CheckIfDBExists(String(process.env.MYSQL_Database)))
         await driver.CreateDB(String(process.env.MYSQL_Database));
@@ -225,7 +227,8 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
             password: String(process.env.MYSQL_Password),
             databaseType: 'mysql',
             resultsPath: resultsPath,
-            schemaName:'ignored'
+            schemaName:'ignored',
+            ssl:yn(process.env.MYSQL_SSL)
         });
 
 
@@ -235,7 +238,7 @@ async function createMysqlModels(filesOrgPath: string, resultsPath: string): Pro
 async function createMariaDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MariaDbDriver();
-    await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password));
+    await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password),yn(process.env.MARIADB_SSL));
 
     if (! await driver.CheckIfDBExists(String(process.env.MARIADB_Database)))
         await driver.CreateDB(String(process.env.MARIADB_Database));
@@ -268,7 +271,8 @@ async function createMariaDBModels(filesOrgPath: string, resultsPath: string): P
             password: String(process.env.MARIADB_Password),
             databaseType: 'mariadb',
             resultsPath: resultsPath,
-            schemaName:'ignored'
+            schemaName:'ignored',
+            ssl:yn(process.env.MARIADB_SSL)
         });
 
 

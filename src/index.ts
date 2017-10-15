@@ -50,6 +50,10 @@ var argv = Yargs
         alias: 'schema',
         describe: 'Schema name to create model from. Only for mssql and postgres.'
     })
+    .option('ssl',{
+        boolean:true,
+        default:false
+    })
     .argv;
 
 
@@ -81,7 +85,6 @@ switch (argv.e) {
         throw new Error('Database engine not recognized.');
 }
 
-
 let engine = new Engine(
     driver, {
         host: argv.h,
@@ -91,7 +94,8 @@ let engine = new Engine(
         password: argv.x,
         databaseType: argv.e,
         resultsPath: argv.o,
-        schemaName: argv.s || standardSchema
+        schemaName: argv.s || standardSchema,
+        ssl:argv.ssl
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);

@@ -31,7 +31,8 @@
     "reflect-metadata": "^0.1.10",
     "typeorm": "^0.1.0-alpha.50",
     "typescript": "^2.5.3",
-    "yargs": "^9.0.1"
+    "yargs": "^9.0.1",
+    "yn": "^2.0.0"
   },
   "devDependencies": {
     "@types/mysql": "0.0.34",

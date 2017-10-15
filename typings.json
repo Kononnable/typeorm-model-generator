@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "mssql": "registry:dt/mssql#3.3.0+20170311011547",
-    "yargs": "registry:npm/yargs#5.0.0+20160907000723"
+    "yargs": "registry:npm/yargs#5.0.0+20160907000723",
+    "yn": "registry:npm/yn#1.3.0+20170508185912"
   }
 }

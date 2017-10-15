@@ -353,13 +353,27 @@ export class MariaDbDriver extends AbstractDriver {
     }
 
     private Connection: MariaDb.IConnection;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
-        let config: MariaDb.IConnectionConfig = {
-            database: database,
-            host: server,
-            port: port,
-            user: user,
-            password: password,
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean) {
+        let config: MariaDb.IConnectionConfig
+        if (ssl) {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password,
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
+        } else {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password
+            }
         }
 
 
