@@ -96,6 +96,10 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.ts_type = "Date";
                         colInfo.sql_type = "datetime"
                         break;
+		    case "datetime2":
+                        colInfo.ts_type = "Date";
+                        colInfo.sql_type = "datetime2"
+                        break;
                     case "char":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "text"
