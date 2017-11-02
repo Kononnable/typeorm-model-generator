@@ -17,7 +17,7 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         scale:{{.}},{{/numericScale}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}} 
         })
-    {{name}}:{{ts_type}};
+    public {{name}}:{{ts_type}};
         {{/relations}}{{#relations}}
     @{{relationType}}(type=>{{relatedTable}}, {{../name}}=>{{../name}}.{{#if isOwner}}{{ownerColumn}}{{else}}{{relatedColumn}}{{/if}}){{#isOwner}}
     @JoinColumn(){{/isOwner}}
