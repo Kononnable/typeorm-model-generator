@@ -46,7 +46,7 @@ export class PostgresDriver extends AbstractDriver {
         }[]
             = (await this.Connection.query(`SELECT table_name,column_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale
-            --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity 
+            --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity
            , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
             FROM INFORMATION_SCHEMA.COLUMNS where table_schema ='${schema}'`)).rows;
         entities.forEach((ent) => {
@@ -73,6 +73,10 @@ export class PostgresDriver extends AbstractDriver {
                     case "text":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "text"
+                        break;
+                    case "uuid":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "uuid"
                         break;
                     case "smallint":
                         colInfo.ts_type = "number"
@@ -115,9 +119,17 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.ts_type = "Date"
                         colInfo.sql_type = "datetime"
                         break;
+                    case "timestamp with time zone":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "timestamp"
+                        break;
                     case "json":
                         colInfo.ts_type = "any"
                         colInfo.sql_type = "json"
+                        break;
+                    case "jsonb":
+                        colInfo.ts_type = "any"
+                        colInfo.sql_type = "jsonb"
                         break;
                     // case "boolean":
                     //     colInfo.ts_type = "boolean"
@@ -139,30 +151,30 @@ export class PostgresDriver extends AbstractDriver {
             tablename: string, indexname: string, columnname: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
         }[]
-            = (await this.Connection.query(`SELECT  
+            = (await this.Connection.query(`SELECT
             c.relname AS tablename,
-            i.relname as indexname, 
-            f.attname AS columnname,  
-            CASE  
-                WHEN ix.indisunique = true THEN '1' 
+            i.relname as indexname,
+            f.attname AS columnname,
+            CASE
+                WHEN ix.indisunique = true THEN '1'
                 ELSE '0'
-            END AS is_unique,  
-            CASE  
-                WHEN p.contype = 'p' THEN '1'  
-                ELSE '0'  
+            END AS is_unique,
+            CASE
+                WHEN p.contype = 'p' THEN '1'
+                ELSE '0'
             END AS is_primary_key
-            FROM pg_attribute f  
-            JOIN pg_class c ON c.oid = f.attrelid  
-            JOIN pg_type t ON t.oid = f.atttypid  
-            LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum  
-            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace  
-            LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)  
+            FROM pg_attribute f
+            JOIN pg_class c ON c.oid = f.attrelid
+            JOIN pg_type t ON t.oid = f.atttypid
+            LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum
+            LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+            LEFT JOIN pg_constraint p ON p.conrelid = c.oid AND f.attnum = ANY (p.conkey)
             LEFT JOIN pg_class AS g ON p.confrelid = g.oid
-            LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid 
-            LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid 
-            
-            WHERE c.relkind = 'r'::char  
-            AND n.nspname = '${schema}' 
+            LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid
+            LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
+
+            WHERE c.relkind = 'r'::char
+            AND n.nspname = '${schema}'
             --AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
             AND f.attnum > 0
             AND i.oid<>0
@@ -206,7 +218,7 @@ export class PostgresDriver extends AbstractDriver {
             ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION",
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION", object_id: string
         }[]
-            = (await this.Connection.query(`SELECT 
+            = (await this.Connection.query(`SELECT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -215,21 +227,21 @@ export class PostgresDriver extends AbstractDriver {
                update_rule as ondelete,
                delete_rule as onupdate,
                 con.conname as object_id
-               FROM ( 
-                   SELECT 
+               FROM (
+                   SELECT
                      unnest(con1.conkey) AS parent,
                      unnest(con1.confkey) AS child,
                      con1.confrelid,
                      con1.conrelid,
                      cl_1.relname,
                    con1.conname
-                   FROM 
+                   FROM
                      pg_class cl_1,
                      pg_namespace ns,
                      pg_constraint con1
-                   WHERE 
-                     con1.contype = 'f'::"char" 
-                     AND cl_1.relnamespace = ns.oid 
+                   WHERE
+                     con1.contype = 'f'::"char"
+                     AND cl_1.relnamespace = ns.oid
                      AND con1.conrelid = cl_1.oid
                      and nspname='${schema}'
               ) con,
@@ -237,11 +249,11 @@ export class PostgresDriver extends AbstractDriver {
                 pg_class cl,
                 pg_attribute att2,
                 information_schema.referential_constraints rc
-              WHERE 
-                att.attrelid = con.confrelid 
-                AND att.attnum = con.child 
+              WHERE
+                att.attrelid = con.confrelid
+                AND att.attnum = con.child
                 AND cl.oid = con.confrelid
-                AND att2.attrelid = con.conrelid 
+                AND att2.attrelid = con.conrelid
                 AND att2.attnum = con.parent
                 and rc.constraint_name= con.conname`)).rows;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
