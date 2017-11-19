@@ -7,7 +7,7 @@ export class ColumnInfo {
     name: string = '';
     default: string | null = null;
     is_nullable: boolean = false;
-    ts_type: 'number' | 'string' | 'boolean' | 'Date' | 'any';
+    ts_type: 'number' | 'string' | 'boolean' | 'Date' | 'Buffer' | 'any';
     sql_type: ColumnType;
     char_max_lenght: number | null = null;
     isPrimary: boolean = false;

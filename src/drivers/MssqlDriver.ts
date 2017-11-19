@@ -21,7 +21,7 @@ export class MssqlDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(schema:string): Promise<EntityInfo[]> {
+    async GetAllTables(schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: { TABLE_SCHEMA: string, TABLE_NAME: string }[]
             = (await request.query(`SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA='${schema}'`)).recordset;
@@ -35,7 +35,7 @@ export class MssqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
@@ -78,9 +78,10 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
                         break;
                     case "bigint":
-                        colInfo.ts_type = "number"
+                        colInfo.ts_type = "string"
                         colInfo.sql_type = "bigint"
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
@@ -98,12 +99,12 @@ export class MssqlDriver extends AbstractDriver {
                         break;
                     case "char":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
+                        colInfo.sql_type = "char"
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "nchar":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
+                        colInfo.sql_type = "nchar"
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "text":
@@ -112,12 +113,30 @@ export class MssqlDriver extends AbstractDriver {
                         break;
                     case "ntext":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "text"
+                        colInfo.sql_type = "ntext"
+                        break;
+                    case "uniqueidentifier":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "uniqueidentifier"
                         break;
                     case "varchar":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "varchar"
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        break;
+                    case "binary":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "binary"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        break;
+                    case "varbinary":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "varbinary"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        break;
+                    case "image":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "image"
                         break;
                     case "nvarchar":
                         colInfo.ts_type = "string"
@@ -127,6 +146,10 @@ export class MssqlDriver extends AbstractDriver {
                     case "money":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
+                        break;
+                    case "smallmoney":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "smallmoney"
                         break;
                     case "real":
                         colInfo.ts_type = "number"
@@ -140,6 +163,32 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.numericScale = resp.NUMERIC_SCALE
                         colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
+                    case "numeric":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "numeric"
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        colInfo.numericScale = resp.NUMERIC_SCALE
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
+                        break;
+                    case "datetime2":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "datetime2"
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        break;
+                    case "time":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "time"
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        break;
+                    case "datetimeoffset":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "datetimeoffset"
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION
+                        break;
+                    case "smalldatetime":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "smalldatetime"
+                        break;
                     case "xml":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "text"
@@ -148,13 +197,13 @@ export class MssqlDriver extends AbstractDriver {
                         console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                
+
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
@@ -211,7 +260,7 @@ ORDER BY
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection)
         let response: {
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
@@ -358,7 +407,7 @@ order by
     }
 
     private Connection: MSSQL.ConnectionPool;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean) {
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
         let config: MSSQL.config = {
             database: database,
             server: server,
