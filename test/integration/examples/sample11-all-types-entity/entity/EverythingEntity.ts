@@ -36,17 +36,17 @@ export class EverythingEntity {
     // @Column("double")
     // doubleColumn: number;
 
-    @Column("decimal")
-    decimalColumn: number;
+    // @Column("decimal")
+    // decimalColumn: number;
 
     @Column()
     date: Date;
 
-    @Column("date")
-    dateColumn: Date;
+    // @Column("date")
+    // dateColumn: Date;
 
-    @Column("time")
-    timeColumn: Date;
+    // @Column("time")
+    // timeColumn: Date;
 
     // @Column("boolean")
     // isBooleanColumn: boolean;

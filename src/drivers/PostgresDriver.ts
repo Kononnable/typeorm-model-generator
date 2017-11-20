@@ -23,7 +23,7 @@ export class PostgresDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(schema:string): Promise<EntityInfo[]> {
+    async GetAllTables(schema: string): Promise<EntityInfo[]> {
 
         let response: { table_schema: string, table_name: string }[]
             = (await this.Connection.query(`SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema = '${schema}' `)).rows;
@@ -38,7 +38,7 @@ export class PostgresDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response: {
             table_name: string, column_name: string, column_default: string,
             is_nullable: string, data_type: string, character_maximum_length: number,
@@ -59,16 +59,14 @@ export class PostgresDriver extends AbstractDriver {
                 colInfo.is_generated = resp.isidentity == 'YES' ? true : false;
                 colInfo.default = colInfo.is_generated ? '' : resp.column_default;
                 switch (resp.data_type) {
-                    //TODO:change types to postgres
                     case "integer":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "character varying":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "character varying"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
                         break;
                     case "text":
                         colInfo.ts_type = "string"
@@ -81,15 +79,13 @@ export class PostgresDriver extends AbstractDriver {
                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "bigint":
-                        colInfo.ts_type = "number"
+                        colInfo.ts_type = "string"
                         colInfo.sql_type = "bigint"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
                         break;
                     case "date":
-                        colInfo.ts_type = "Date"
+                        colInfo.ts_type = "string"
                         colInfo.sql_type = "date"
                         break;
                     case "boolean":
@@ -99,21 +95,24 @@ export class PostgresDriver extends AbstractDriver {
                     case "double precision":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
+                        colInfo.numericPrecision = resp.numeric_precision
+                        colInfo.numericScale = resp.numeric_scale
                         break;
                     case "real":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
+                        colInfo.numericPrecision = resp.numeric_precision
+                        colInfo.numericScale = resp.numeric_scale
                         break;
                     case "numeric":
-                        colInfo.ts_type = "number"
-                        colInfo.sql_type = "decimal"
-                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length: null;
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "numeric"
+                        colInfo.numericPrecision = resp.numeric_precision
+                        colInfo.numericScale = resp.numeric_scale
                         break;
                     case "time without time zone":
-                        colInfo.ts_type = "Date"
-                        colInfo.sql_type = "time"
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "time without time zone"
                         break;
                     case "timestamp without time zone":
                         colInfo.ts_type = "Date"
@@ -124,17 +123,86 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.sql_type = "timestamp"
                         break;
                     case "json":
-                        colInfo.ts_type = "any"
+                        colInfo.ts_type = "Object"
                         colInfo.sql_type = "json"
                         break;
                     case "jsonb":
-                        colInfo.ts_type = "any"
+                        colInfo.ts_type = "Object"
                         colInfo.sql_type = "jsonb"
                         break;
-                    // case "boolean":
-                    //     colInfo.ts_type = "boolean"
-                    //     colInfo.sql_type = "boolean"
-                    //     break;
+                    case "money":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "money"
+                        break;
+                    case "character":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "character"
+                        colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
+                        break;
+                    case "bytea":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "bytea"
+                        break;
+                    case "interval":
+                        colInfo.ts_type = "any"
+                        colInfo.sql_type = "interval"
+                        break;
+                    case "time with time zone":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "time with time zone"
+                        break;
+                    case "point":
+                        colInfo.ts_type = "string|Object"
+                        colInfo.sql_type = "point"
+                        break;
+                    case "line":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "line"
+                        break;
+                    case "lseg":
+                        colInfo.ts_type = "string|string[]"
+                        colInfo.sql_type = "lseg"
+                        break;
+                    case "box":
+                        colInfo.ts_type = "string|Object"
+                        colInfo.sql_type = "box"
+                        break;
+                    case "path":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "path"
+                        break;
+                    case "polygon":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "polygon"
+                        break;
+                    case "circle":
+                        colInfo.ts_type = "string|Object"
+                        colInfo.sql_type = "circle"
+                        break;
+                    case "cidr":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "cidr"
+                        break;
+                    case "inet":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "inet"
+                        break;
+                    case "macaddr":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "macaddr"
+                        break;
+                    case "bit":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "bit"
+                        break;
+                    case "bit varying":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "bit varying"
+                        break;
+                    case "xml":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "xml"
+                        break;
 
                     default:
                         console.error("Unknown column type:" + resp.data_type);
@@ -146,7 +214,7 @@ export class PostgresDriver extends AbstractDriver {
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response: {
             tablename: string, indexname: string, columnname: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
@@ -211,7 +279,7 @@ export class PostgresDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[],schema:string): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response: {
             tablewithforeignkey: string, fk_partno: number, foreignkeycolumn: string,
             tablereferenced: string, foreignkeycolumnreferenced: string,
@@ -383,14 +451,14 @@ export class PostgresDriver extends AbstractDriver {
         }
     }
 
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string,ssl:boolean) {
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
         this.Connection = new PG.Client({
             database: database,
             host: server,
             port: port,
             user: user,
             password: password,
-            ssl:ssl
+            ssl: ssl
         })
 
 
