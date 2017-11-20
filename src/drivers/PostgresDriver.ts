@@ -152,7 +152,7 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.sql_type = "time with time zone"
                         break;
                     case "point":
-                        colInfo.ts_type = "string|Object"
+                        colInfo.ts_type = "string | Object"
                         colInfo.sql_type = "point"
                         break;
                     case "line":
@@ -160,11 +160,11 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.sql_type = "line"
                         break;
                     case "lseg":
-                        colInfo.ts_type = "string|string[]"
+                        colInfo.ts_type = "string | string[]"
                         colInfo.sql_type = "lseg"
                         break;
                     case "box":
-                        colInfo.ts_type = "string|Object"
+                        colInfo.ts_type = "string | Object"
                         colInfo.sql_type = "box"
                         break;
                     case "path":
@@ -176,7 +176,7 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.sql_type = "polygon"
                         break;
                     case "circle":
-                        colInfo.ts_type = "string|Object"
+                        colInfo.ts_type = "string | Object"
                         colInfo.sql_type = "circle"
                         break;
                     case "cidr":
