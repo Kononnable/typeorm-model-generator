@@ -30,7 +30,6 @@ describe("platform specyfic types", async function () {
 
     for (let folder of files) {
 
-        describe(folder, async function () {
             for (let dbDriver of dbDrivers) {
                 if (dbDriver == folder) {
                     it(dbDriver, async function () {
@@ -94,6 +93,5 @@ describe("platform specyfic types", async function () {
                     });
                 }
             }
-        })
     }
 })

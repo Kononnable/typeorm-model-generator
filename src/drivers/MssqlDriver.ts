@@ -359,18 +359,29 @@ order by
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo()
+            let columnName =  ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
+            if (referencedEntity.Columns.filter((filterVal) => {
+                return filterVal.name == columnName;
+            }).length>0){
+                for (let i=2;i<=10;i++){
+                    columnName =  ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')+i.toString();
+                    if (referencedEntity.Columns.filter((filterVal) => {
+                        return filterVal.name == columnName;
+                    }).length==0) break;
+                }
+            }
             ownerRelation.actionOnDelete = relationTmp.actionOnDelete
             ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate
             ownerRelation.isOwner = true
             ownerRelation.relatedColumn = relatedColumn.name.toLowerCase()
             ownerRelation.relatedTable = relationTmp.referencedTable
             ownerRelation.ownerTable = relationTmp.ownerTable
-            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
+            ownerRelation.ownerColumn = columnName
             ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase() + 's'
+                col.name = columnName
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -384,7 +395,7 @@ order by
                 referencedEntity.Columns.push(col)
             } else {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase()
+                col.name = columnName
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
