@@ -15,12 +15,9 @@ import { Engine } from "./../../src/Engine";
 chai.use(chaiSubset);
 
 
-describe("platform specyfic types", async function () {
+describe("Platform specyfic types", async function () {
     this.timeout(20000)
     this.slow(5000)//compiling created models takes time
-    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/entityTypes')
-    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/entityTypes')
-    let files = fs.readdirSync(examplesPathTS)
 
     let dbDrivers: string[] = []
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
@@ -28,70 +25,75 @@ describe("platform specyfic types", async function () {
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
 
+
+    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/entityTypes')
+    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/entityTypes')
+    let files = fs.readdirSync(examplesPathTS)
+
     for (let folder of files) {
 
-            for (let dbDriver of dbDrivers) {
-                if (dbDriver == folder) {
-                    it(dbDriver, async function () {
+        for (let dbDriver of dbDrivers) {
+            if (dbDriver == folder) {
+                it(dbDriver, async function () {
 
-                        let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
-                        let filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
-                        let resultsPath = path.resolve(process.cwd(), `output`)
-                        fs.removeSync(resultsPath)
+                    let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
+                    let filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
+                    let resultsPath = path.resolve(process.cwd(), `output`)
+                    fs.removeSync(resultsPath)
 
-                        let engine: Engine;
-                        switch (dbDriver) {
-                            case 'mssql':
-                                engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
-                                break;
-                            case 'postgres':
-                                engine = await GTU.createPostgresModels(filesOrgPathJS, resultsPath)
-                                break;
-                            case 'mysql':
-                                engine = await GTU.createMysqlModels(filesOrgPathJS, resultsPath)
-                                break;
-                            case 'mariadb':
-                                engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
-                                break;
+                    let engine: Engine;
+                    switch (dbDriver) {
+                        case 'mssql':
+                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'postgres':
+                            engine = await GTU.createPostgresModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'mysql':
+                            engine = await GTU.createMysqlModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'mariadb':
+                            engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
 
-                            default:
-                                console.log(`Unknown engine type`);
-                                engine = <Engine>{}
-                                break;
-                        }
+                        default:
+                            console.log(`Unknown engine type`);
+                            engine = <Engine>{}
+                            break;
+                    }
 
 
-                        let result = await engine.createModelFromDatabase()
+                    let result = await engine.createModelFromDatabase()
 
-                        let filesGenPath = path.resolve(resultsPath, 'entities')
+                    let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                        let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
-                        let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
 
-                        expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
+                    expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
-                        for (let file of filesOrg) {
-                            let entftj = new EntityFileToJson();
-                            let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPathTS, file)))
-                            let jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
-                            expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
-                        }
-                        const currentDirectoryFiles = fs.readdirSync(filesGenPath).
-                            filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => {
-                                return path.resolve(filesGenPath, v)
-                            })
-                        let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
+                    for (let file of filesOrg) {
+                        let entftj = new EntityFileToJson();
+                        let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPathTS, file)))
+                        let jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
+                        expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
+                    }
+                    const currentDirectoryFiles = fs.readdirSync(filesGenPath).
+                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => {
+                            return path.resolve(filesGenPath, v)
+                        })
+                    let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
 
-                            experimentalDecorators: true,
-                            sourceMap: false,
-                            emitDecoratorMetadata: true,
-                            target: ts.ScriptTarget.ES2016,
-                            moduleResolution: ts.ModuleResolutionKind.NodeJs,
-                            module: ts.ModuleKind.CommonJS
-                        });
-                        expect(compileErrors, 'Errors detected while compiling generated model').to.be.false;
+                        experimentalDecorators: true,
+                        sourceMap: false,
+                        emitDecoratorMetadata: true,
+                        target: ts.ScriptTarget.ES2016,
+                        moduleResolution: ts.ModuleResolutionKind.NodeJs,
+                        module: ts.ModuleKind.CommonJS
                     });
-                }
+                    expect(compileErrors, 'Errors detected while compiling generated model').to.be.false;
+                });
             }
+        }
     }
 })

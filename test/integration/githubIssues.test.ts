@@ -16,7 +16,7 @@ import * as GTU from "../utils/GeneralTestUtils"
 chai.use(chaiSubset);
 
 
-describe("TypeOrm examples", async function () {
+describe("GitHub issues", async function () {
     this.timeout(20000)
     this.slow(5000)//compiling created models takes time
 
@@ -26,13 +26,13 @@ describe("TypeOrm examples", async function () {
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
 
-    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/examples')
-    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
+    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/github-issues')
+    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/github-issues')
     let files = fs.readdirSync(examplesPathTS)
 
     for (let folder of files) {
 
-        describe(folder, async function () {
+        describe(`#${folder}`, async function () {
             for (let dbDriver of dbDrivers) {
                 it(dbDriver, async function () {
 
