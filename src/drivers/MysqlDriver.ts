@@ -8,6 +8,8 @@ import { DatabaseModel } from './../models/DatabaseModel'
  * MysqlDriver
  */
 export class MysqlDriver extends AbstractDriver {
+    readonly EngineName:string = 'MySQL'
+
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
@@ -349,7 +351,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error disconnecting to MYSQL Server.')
+                        console.error(`Error disconnecting to ${this.EngineName} Server.`)
                         console.error(err.message)
                         process.abort()
                         reject(err)
@@ -398,7 +400,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to MYSQL Server.')
+                        console.error(`Error connecting to ${this.EngineName} Server.`)
                         console.error(err.message)
                         process.abort()
                         reject(err)
