@@ -392,7 +392,7 @@ export class PostgresDriver extends AbstractDriver {
             if (referencedEntity.Columns.filter((filterVal) => {
                 return filterVal.name == columnName;
             }).length>0){
-                for (let i=2;i<=10;i++){
+                for (let i=2;i<=ownerEntity.Columns.length;i++){
                     columnName =  ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')+i.toString();
                     if (referencedEntity.Columns.filter((filterVal) => {
                         return filterVal.name == columnName;
