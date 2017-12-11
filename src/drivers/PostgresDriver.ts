@@ -65,7 +65,7 @@ export class PostgresDriver extends AbstractDriver {
                         break;
                     case "character varying":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "character varying"
+                        colInfo.sql_type = "varchar"
                         colInfo.char_max_lenght = resp.character_maximum_length > 0 ? resp.character_maximum_length : null;
                         break;
                     case "text":
