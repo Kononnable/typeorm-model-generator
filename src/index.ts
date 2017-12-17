@@ -3,6 +3,7 @@ import { MssqlDriver } from './drivers/MssqlDriver';
 import { PostgresDriver } from "./drivers/PostgresDriver";
 import { MysqlDriver } from "./drivers/MysqlDriver";
 import { MariaDbDriver } from "./drivers/MariaDbDriver";
+import { OracleDriver } from "./drivers/OracleDriver";
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
 import path = require('path')
@@ -38,7 +39,7 @@ var argv = Yargs
     .option('e', {
         alias: 'engine',
         describe: 'Database engine.',
-        choices: ['mssql', 'postgres', 'mysql', 'mariadb'],
+        choices: ['mssql', 'postgres', 'mysql', 'mariadb','oracle'],
         default: 'mssql'
     })
     .option('o', {
@@ -75,9 +76,13 @@ switch (argv.e) {
         driver = new MysqlDriver();
         standardPort = 3306;
         break;
-    case 'mariadb':
+        case 'mariadb':
         driver = new MysqlDriver();
         standardPort = 3306;
+        break;
+    case 'oracle':
+        driver = new OracleDriver();
+        standardPort = 1521;
         break;
     default:
         console.error('Database engine not recognized.')
