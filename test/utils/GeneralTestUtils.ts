@@ -4,6 +4,7 @@ import { MssqlDriver } from "../../src/drivers/MssqlDriver";
 import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
+import { OracleDriver } from "../../src/drivers/OracleDriver";
 import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import * as yn from "yn"
@@ -180,6 +181,51 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             resultsPath: resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MARIADB_SSL)
+        });
+
+
+
+    return engine;
+}
+
+export async function createOracleDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new OracleDriver();
+    await driver.ConnectToServer(`mysql`, String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_Username), String(process.env.ORACLE_Password), yn(process.env.ORACLE_SSL));
+
+    if (! await driver.CheckIfDBExists(String(process.env.ORACLE_Database)))
+        await driver.CreateDB(String(process.env.ORACLE_Database));
+    await driver.DisconnectFromServer();
+
+    let connOpt: ConnectionOptions = {
+
+        database: String(process.env.ORACLE_Database),
+        host: String(process.env.ORACLE_Host),
+        password: String(process.env.ORACLE_Password),
+        type: 'oracle',
+        username: String(process.env.ORACLE_Username),
+        port: Number(process.env.ORACLE_Port),
+        dropSchema: true,
+        synchronize: true,
+        entities: [path.resolve(filesOrgPath, '*.js')],
+    }
+    let conn = await createConnection(connOpt)
+
+    if (conn.isConnected)
+        await conn.close()
+
+    driver = new OracleDriver();
+    let engine = new Engine(
+        driver, {
+            host: String(process.env.ORACLE_Host),
+            port: Number(process.env.ORACLE_Port),
+            databaseName: String(process.env.ORACLE_Database),
+            user: String(process.env.ORACLE_Username),
+            password: String(process.env.ORACLE_Password),
+            databaseType: 'oracle',
+            resultsPath: resultsPath,
+            schemaName: String(process.env.ORACLE_Username),
+            ssl: yn(process.env.ORACLE_SSL)
         });
 
 

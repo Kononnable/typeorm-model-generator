@@ -40,7 +40,7 @@ services:
 
   # oracle
   oracle:
-    image: "store/oracle/database-enterprise:12.2.0.1"
+    image: "store/oracle/database-enterprise:12.2.0.1-slim"
     container_name: "typeorm-mg-oracle"
     ports:
       - "1521:1521"

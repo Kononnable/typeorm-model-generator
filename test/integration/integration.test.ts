@@ -25,6 +25,7 @@ describe("TypeOrm examples", async function () {
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
+    if (process.env.Oracle_Skip == '0') dbDrivers.push('oracle')
 
     let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/examples')
     let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
@@ -52,8 +53,11 @@ describe("TypeOrm examples", async function () {
                         case 'mysql':
                             engine = await GTU.createMysqlModels(filesOrgPathJS, resultsPath)
                             break;
-                        case 'mariadb':
+                            case 'mariadb':
                             engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
+                            case 'oracle':
+                            engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
                             break;
 
                         default:
