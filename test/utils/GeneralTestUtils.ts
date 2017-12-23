@@ -191,7 +191,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
 export async function createOracleDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new OracleDriver();
-    await driver.ConnectToServer(`mysql`, String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_Username), String(process.env.ORACLE_Password), yn(process.env.ORACLE_SSL));
+    await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_Username), String(process.env.ORACLE_Password), yn(process.env.ORACLE_SSL));
 
     if (! await driver.CheckIfDBExists(String(process.env.ORACLE_Database)))
         await driver.CreateDB(String(process.env.ORACLE_Database));
