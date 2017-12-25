@@ -1,14 +1,30 @@
 import { AbstractDriver } from './AbstractDriver'
-import * as Oracle from 'oracledb'
 import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
 import {promisify} from 'util'
+import { request } from 'https';
+
+
 /**
  * OracleDriver
  */
-export class OracleDriver extends AbstractDriver {
+ export class OracleDriver extends AbstractDriver {
+    Oracle:any;
+    constructor() {
+        super();
+        try {
+            this.Oracle= require('oracledb')
+        } catch (error) {
+            console.error(error);
+            process.abort();
+            throw error;            
+        } 
+        
+    }
+    
+
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
@@ -243,9 +259,9 @@ export class OracleDriver extends AbstractDriver {
             await this.Connection.close();
     }
 
-    private Connection: Oracle.IConnection;
+    private Connection: any/*Oracle.IConnection*/;
     async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
-        let config: Oracle.IConnectionAttributes = {
+        let config:  any/*Oracle.IConnectionAttributes*/ = {
             user: user,
             password: password,
             // connectString: `${server}:${port}/ORCLCDB.localdomain/${database}`,
@@ -257,7 +273,7 @@ export class OracleDriver extends AbstractDriver {
         let that=this;
         let promise = new Promise<boolean>(
             (resolve, reject) => {
-                Oracle.getConnection(
+              this.Oracle.getConnection(
                     config,
                     function (err, connection) {
                         if (!err) {
