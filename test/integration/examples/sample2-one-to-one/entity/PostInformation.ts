@@ -1,5 +1,5 @@
-import {PrimaryGeneratedColumn, Column, Entity, OneToOne,JoinColumn} from "typeorm";
-import {Post} from "./Post";
+import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn } from "typeorm";
+import { Post } from "./Post";
 
 @Entity("PostInformation")
 export class PostInformation {
@@ -9,10 +9,8 @@ export class PostInformation {
 
     @Column()
     text: string;
-    
-    @OneToOne(type => Post, post => post.information, {
-        cascadeUpdate: true,
-    })
+
+    @OneToOne(type => Post, post => post.information)
     post: Post;
 
 }

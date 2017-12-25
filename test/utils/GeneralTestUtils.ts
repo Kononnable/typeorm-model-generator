@@ -200,12 +200,13 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
     let connOpt: ConnectionOptions = {
 
         database: String(process.env.ORACLE_Database),
+        sid: String(process.env.ORACLE_Database),
         host: String(process.env.ORACLE_Host),
         password: String(process.env.ORACLE_Password),
         type: 'oracle',
         username: String(process.env.ORACLE_Username),
         port: Number(process.env.ORACLE_Port),
-        dropSchema: true,
+        // dropSchema: true,
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }

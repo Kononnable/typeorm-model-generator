@@ -1,10 +1,10 @@
-import {PrimaryGeneratedColumn, Column, Entity, OneToOne,JoinColumn,Index} from "typeorm";
-import {PostDetails} from "./PostDetails";
-import {PostCategory} from "./PostCategory";
-import {PostAuthor} from "./PostAuthor";
-import {PostInformation} from "./PostInformation";
-import {PostImage} from "./PostImage";
-import {PostMetadata} from "./PostMetadata";
+import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn, Index } from "typeorm";
+import { PostDetails } from "./PostDetails";
+import { PostCategory } from "./PostCategory";
+import { PostAuthor } from "./PostAuthor";
+import { PostInformation } from "./PostInformation";
+import { PostImage } from "./PostImage";
+import { PostMetadata } from "./PostMetadata";
 
 @Entity("Post")
 export class Post {
@@ -20,9 +20,8 @@ export class Post {
 
     // post has relation with category, however inverse relation is not set (category does not have relation with post set)
     @OneToOne(type => PostCategory, {
-        cascadeInsert: true,
-        cascadeUpdate: true,
-        cascadeRemove: true
+        cascade: true,
+        onDelete: 'CASCADE'
     })
     @JoinColumn()
     @Index({ unique: true })
@@ -31,7 +30,7 @@ export class Post {
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this 
     // relation it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostDetails, details => details.post, {
-        cascadeInsert: true
+        cascade: true
     })
     @JoinColumn()
     @Index({ unique: true })
@@ -40,7 +39,7 @@ export class Post {
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostImage, image => image.post, {
-        cascadeUpdate: true
+        cascade: true,
     })
     @JoinColumn()
     @Index({ unique: true })
@@ -49,17 +48,16 @@ export class Post {
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostMetadata, metadata => metadata.post, {
-        cascadeRemove: true
+        onDelete: 'CASCADE'
     })
     @JoinColumn()
     @Index({ unique: true })
-    metadata: PostMetadata|null;
+    metadata: PostMetadata | null;
 
     // post has relation with details. full cascades here
     @OneToOne(type => PostInformation, information => information.post, {
-        cascadeInsert: true,
-        cascadeUpdate: true,
-        cascadeRemove: true
+        cascade: true,
+        onDelete: 'CASCADE'
     })
     @JoinColumn()
     @Index({ unique: true })

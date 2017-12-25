@@ -21,6 +21,7 @@ export class EntityFileToJson {
                         // if (!x.endsWith('[]')) {
                         //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
                         // }
+                        x=x.trim();
                         return x;
                     });
                 } else {
@@ -243,6 +244,7 @@ export class EntityFileToJson {
                         // if (!x.endsWith('[]')) {
                         //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
                         // }
+                        x=x.trim();
                         return x;
                     });
 
