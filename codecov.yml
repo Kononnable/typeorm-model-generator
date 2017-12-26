@@ -1,3 +1,9 @@
 parsers:
   javascript:
     enable_partials: yes
+comment:
+  layout: diff
+  behavior: default
+codecov:
+  notify:
+    require_ci_to_pass: no        
