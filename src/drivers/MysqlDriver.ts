@@ -405,9 +405,9 @@ export class MysqlDriver extends AbstractDriver {
 
     }
 
-    private Connection: MYSQL.IConnection;
+    private Connection: MYSQL.Connection;
     async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
-        let config: MYSQL.IConnectionConfig
+        let config: MYSQL.ConnectionConfig
         if (ssl) {
             config = {
                 database: database,
