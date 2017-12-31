@@ -86,7 +86,7 @@ switch (argv.e) {
         standardPort = 1521;
         break;
     default:
-        TomgUtils.LogFatalError('Database engine not recognized.',false)
+        TomgUtils.LogFatalError('Database engine not recognized.', false)
         throw new Error('Database engine not recognized.');
 }
 
@@ -107,4 +107,3 @@ console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model cla
 engine.createModelFromDatabase().then(() => {
     console.info(`[${new Date().toLocaleTimeString()}] Typeorm model classes created.`)
 })
-

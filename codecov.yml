@@ -1,14 +1,14 @@
 parsers:
-  javascript:
-    enable_partials: yes
+    javascript:
+        enable_partials: yes
 comment:
-  layout: diff
-  behavior: default
+    layout: diff
+    behavior: default
 codecov:
-  notify:
-    require_ci_to_pass: no
+    notify:
+        require_ci_to_pass: no
 coverage:
-  status:
-    project:
-      default:
-        threshold: 5%
+    status:
+        project:
+            default:
+                threshold: 5%

@@ -3,7 +3,7 @@ import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
-import {promisify} from 'util'
+import { promisify } from 'util'
 import { request } from 'https';
 import * as TomgUtils from './../Utils'
 
@@ -11,14 +11,14 @@ import * as TomgUtils from './../Utils'
 /**
  * OracleDriver
  */
- export class OracleDriver extends AbstractDriver {
-    Oracle:any;
+export class OracleDriver extends AbstractDriver {
+    Oracle: any;
     constructor() {
         super();
         try {
-            this.Oracle= require('oracledb')
+            this.Oracle = require('oracledb')
         } catch (error) {
-            TomgUtils.LogFatalError('',false,error);
+            TomgUtils.LogFatalError('', false, error);
             throw error;
         }
 
@@ -29,7 +29,7 @@ import * as TomgUtils from './../Utils'
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`,false)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`, false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -43,7 +43,7 @@ import * as TomgUtils from './../Utils'
 
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
 
-        let response :any[][] = ( await this.Connection.execute(` SELECT TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`)).rows!;
+        let response: any[][] = (await this.Connection.execute(` SELECT TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`)).rows!;
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
             let ent: EntityInfo = new EntityInfo();
@@ -55,11 +55,11 @@ import * as TomgUtils from './../Utils'
         return ret;
     }
     async GetCoulmnsFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
-         let response :any[][] = ( await this.Connection.execute(`SELECT TABLE_NAME, COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
+        let response: any[][] = (await this.Connection.execute(`SELECT TABLE_NAME, COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
           DATA_PRECISION, DATA_SCALE, IDENTITY_COLUMN
          FROM USER_TAB_COLUMNS`)).rows!;
 
-         entities.forEach((ent) => {
+        entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal[0] == ent.EntityName;
             }).forEach((resp) => {
@@ -90,7 +90,7 @@ import * as TomgUtils from './../Utils'
         return entities;
     }
     async GetIndexesFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
-        let response :any[][] = ( await this.Connection.execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END
+        let response: any[][] = (await this.Connection.execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END
         FROM USER_INDEXES ind
         JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
         LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
@@ -126,7 +126,7 @@ import * as TomgUtils from './../Utils'
         return entities;
     }
     async GetRelations(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
-        let response :any[][] = ( await this.Connection.execute(`select owner.TABLE_NAME ownTbl,ownCol.POSITION,ownCol.COLUMN_NAME,
+        let response: any[][] = (await this.Connection.execute(`select owner.TABLE_NAME ownTbl,ownCol.POSITION,ownCol.COLUMN_NAME,
         child.TABLE_NAME,childCol.COLUMN_NAME,
         owner.DELETE_RULE,
         4,owner.CONSTRAINT_NAME
@@ -261,28 +261,28 @@ import * as TomgUtils from './../Utils'
 
     private Connection: any/*Oracle.IConnection*/;
     async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
-        let config:  any/*Oracle.IConnectionAttributes*/ = {
+        let config: any/*Oracle.IConnectionAttributes*/ = {
             user: user,
             password: password,
             // connectString: `${server}:${port}/ORCLCDB.localdomain/${database}`,
             connectString: `${server}:${port}/${database}`,
-             externalAuth: ssl
+            externalAuth: ssl
         }
 
 
-        let that=this;
+        let that = this;
         let promise = new Promise<boolean>(
             (resolve, reject) => {
-              this.Oracle.getConnection(
+                this.Oracle.getConnection(
                     config,
                     function (err, connection) {
                         if (!err) {
                             //Connection successfull
-                            that.Connection=connection
+                            that.Connection = connection
                             resolve(true)
                         }
                         else {
-                            TomgUtils.LogFatalError('Error connecting to Oracle Server.',false,err.message)
+                            TomgUtils.LogFatalError('Error connecting to Oracle Server.', false, err.message)
                             reject(err)
                         }
 

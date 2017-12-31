@@ -16,12 +16,12 @@ export class Engine {
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
         } else {
-            TomgUtils.LogFatalError('Tables not found in selected database. Skipping creation of typeorm model.',false);
+            TomgUtils.LogFatalError('Tables not found in selected database. Skipping creation of typeorm model.', false);
         }
         return true;
     }
-    private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string, schemaName:string, ssl:boolean): Promise<DatabaseModel> {
-        return await this.driver.GetDataFromServer(database, server, port, user, password,schemaName,ssl)
+    private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string, schemaName: string, ssl: boolean): Promise<DatabaseModel> {
+        return await this.driver.GetDataFromServer(database, server, port, user, password, schemaName, ssl)
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
@@ -38,10 +38,10 @@ export class Engine {
         });
         if (!fs.existsSync(entitesPath))
             fs.mkdirSync(entitesPath);
-            let compliedTemplate = Handlebars.compile(template,{noEscape:true})
+        let compliedTemplate = Handlebars.compile(template, { noEscape: true })
         databaseModel.entities.forEach(element => {
             let resultFilePath = path.resolve(entitesPath, element.EntityName + '.ts');
-            let rendered =compliedTemplate(element)
+            let rendered = compliedTemplate(element)
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }
@@ -83,6 +83,6 @@ export interface EngineOptions {
     password: string,
     resultsPath: string,
     databaseType: string,
-    schemaName:string,
-    ssl:boolean
+    schemaName: string,
+    ssl: boolean
 }

@@ -2,8 +2,8 @@
  * IndexInfo
  */
 interface IndexInfo {
-    name:string,
-    columns:IndexColumnInfo[],
-    isUnique:boolean,
-    isPrimaryKey:boolean,
+    name: string,
+    columns: IndexColumnInfo[],
+    isUnique: boolean,
+    isPrimaryKey: boolean,
 }

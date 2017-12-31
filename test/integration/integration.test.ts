@@ -53,10 +53,10 @@ describe("TypeOrm examples", async function () {
                         case 'mysql':
                             engine = await GTU.createMysqlModels(filesOrgPathJS, resultsPath)
                             break;
-                            case 'mariadb':
+                        case 'mariadb':
                             engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
                             break;
-                            case 'oracle':
+                        case 'oracle':
                             engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
                             break;
 

@@ -47,4 +47,3 @@ services:
    # environment:
    #   DB_SID: "ORCLCDB"
    #   SYS_PASSWORD: "Oradoc_db1"
-  

@@ -21,7 +21,7 @@ export class EntityFileToJson {
                         // if (!x.endsWith('[]')) {
                         //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
                         // }
-                        x=x.trim();
+                        x = x.trim();
                         return x;
                     });
                 } else {
@@ -93,7 +93,7 @@ export class EntityFileToJson {
         for (let line of lines) {
             let trimmedLine = line.trim();
             if (trimmedLine.startsWith('//')) {
-                continue; //commented line   
+                continue; //commented line
             }
             if (isMultilineStatement)
                 trimmedLine = priorPartOfMultilineStatement + ' ' + trimmedLine
@@ -102,7 +102,7 @@ export class EntityFileToJson {
 
             else if (!isInClassBody) {
                 if (trimmedLine.startsWith('import')) {
-                    continue; //import statement is not part of entity definition   
+                    continue; //import statement is not part of entity definition
                 } else if (trimmedLine.startsWith('@Entity')) {
                     continue; //TODO:entity options
                 } else if (trimmedLine.startsWith('export class')) {
@@ -244,7 +244,7 @@ export class EntityFileToJson {
                         // if (!x.endsWith('[]')) {
                         //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
                         // }
-                        x=x.trim();
+                        x = x.trim();
                         return x;
                     });
 
@@ -274,15 +274,15 @@ export class EntityFileToJson {
             console.log(`${trimmedLine}`)
         }
 
-        retVal.columns=retVal.columns.map(col=>{
+        retVal.columns = retVal.columns.map(col => {
             if (col.columnName.endsWith('Id'))
-            col.columnName=col.columnName.substr(0,col.columnName.length-2)
+                col.columnName = col.columnName.substr(0, col.columnName.length - 2)
             return col;
         })
-        retVal.indicies=retVal.indicies.map(ind=>{
-            ind.columnNames=ind.columnNames.map(colName=>{
+        retVal.indicies = retVal.indicies.map(ind => {
+            ind.columnNames = ind.columnNames.map(colName => {
                 if (colName.endsWith('Id'))
-                colName=colName.substr(0,colName.length-2)
+                    colName = colName.substr(0, colName.length - 2)
                 return colName;
             })
             return ind;

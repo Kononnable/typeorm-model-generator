@@ -14,7 +14,7 @@ export class MssqlDriver extends AbstractDriver {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`,false)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`, false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -361,15 +361,15 @@ order by
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo()
-            let columnName =  ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
+            let columnName = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
             if (referencedEntity.Columns.filter((filterVal) => {
                 return filterVal.name == columnName;
-            }).length>0){
-                for (let i=2;i<=ownerEntity.Columns.length;i++){
-                    columnName =  ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')+i.toString();
+            }).length > 0) {
+                for (let i = 2; i <= ownerEntity.Columns.length; i++) {
+                    columnName = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '') + i.toString();
                     if (referencedEntity.Columns.filter((filterVal) => {
                         return filterVal.name == columnName;
-                    }).length==0) break;
+                    }).length == 0) break;
                 }
             }
             ownerRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -442,7 +442,7 @@ order by
                         resolve(true)
                     }
                     else {
-                        TomgUtils.LogFatalError('Error connecting to MSSQL Server.',false,err.message)
+                        TomgUtils.LogFatalError('Error connecting to MSSQL Server.', false, err.message)
                         reject(err)
                     }
                 });

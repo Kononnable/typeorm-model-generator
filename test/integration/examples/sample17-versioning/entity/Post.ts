@@ -1,4 +1,4 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn, VersionColumn } from  "typeorm"
+import { Column, Entity, Index, PrimaryGeneratedColumn, VersionColumn } from "typeorm"
 
 @Entity("Post")
 export class Post {
@@ -14,5 +14,5 @@ export class Post {
 
     @VersionColumn()
     version: number;
-    
+
 }

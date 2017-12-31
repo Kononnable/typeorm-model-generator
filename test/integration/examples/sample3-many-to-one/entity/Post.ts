@@ -25,7 +25,7 @@ export class Post {
     })
     category: PostCategory;
 
-    // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this 
+    // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
     // relation it will be inserted automatically to the db when you save this Post entity
     @ManyToOne(type => PostDetails, details => details.posts, {
         cascade: true,
