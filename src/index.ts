@@ -6,6 +6,7 @@ import { MariaDbDriver } from "./drivers/MariaDbDriver";
 import { OracleDriver } from "./drivers/OracleDriver";
 import { Engine } from './Engine'
 import * as Yargs from 'yargs'
+import * as TomgUtils from './Utils'
 import path = require('path')
 
 
@@ -39,7 +40,7 @@ var argv = Yargs
     .option('e', {
         alias: 'engine',
         describe: 'Database engine.',
-        choices: ['mssql', 'postgres', 'mysql', 'mariadb','oracle'],
+        choices: ['mssql', 'postgres', 'mysql', 'mariadb', 'oracle'],
         default: 'mssql'
     })
     .option('o', {
@@ -51,9 +52,9 @@ var argv = Yargs
         alias: 'schema',
         describe: 'Schema name to create model from. Only for mssql and postgres.'
     })
-    .option('ssl',{
-        boolean:true,
-        default:false
+    .option('ssl', {
+        boolean: true,
+        default: false
     })
     .argv;
 
@@ -76,7 +77,7 @@ switch (argv.e) {
         driver = new MysqlDriver();
         standardPort = 3306;
         break;
-        case 'mariadb':
+    case 'mariadb':
         driver = new MysqlDriver();
         standardPort = 3306;
         break;
@@ -85,8 +86,7 @@ switch (argv.e) {
         standardPort = 1521;
         break;
     default:
-        console.error('Database engine not recognized.')
-        process.abort();
+        TomgUtils.LogFatalError('Database engine not recognized.',false)
         throw new Error('Database engine not recognized.');
 }
 
@@ -100,7 +100,7 @@ let engine = new Engine(
         databaseType: argv.e,
         resultsPath: argv.o,
         schemaName: argv.s || standardSchema,
-        ssl:argv.ssl
+        ssl: argv.ssl
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);

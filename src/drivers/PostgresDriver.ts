@@ -4,6 +4,7 @@ import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
+import * as TomgUtils from './../Utils'
 /**
  * PostgresDriver
  */
@@ -14,7 +15,7 @@ export class PostgresDriver extends AbstractDriver {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                console.error(`Table ${entity.EntityName} has no PK.`)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`,false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -205,7 +206,7 @@ export class PostgresDriver extends AbstractDriver {
                         break;
 
                     default:
-                        console.error("Unknown column type:" + resp.data_type);
+                        TomgUtils.LogFatalError("Unknown column type:" + resp.data_type);
                         break;
                 }
 
@@ -348,28 +349,28 @@ export class PostgresDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.ownerTable;
             })
             if (!ownerEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
                 return;
             }
             let referencedEntity = entities.find((entitity) => {
                 return entitity.EntityName == relationTmp.referencedTable;
             })
             if (!referencedEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
                 return;
             }
             let ownerColumn = ownerEntity.Columns.find((column) => {
                 return column.name == relationTmp.ownerColumnsNames[0];
             })
             if (!ownerColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
                 return;
             }
             let relatedColumn = referencedEntity.Columns.find((column) => {
                 return column.name == relationTmp.referencedColumnsNames[0];
             })
             if (!relatedColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
                 return;
             }
             let ownColumn: ColumnInfo = ownerColumn;
@@ -451,9 +452,7 @@ export class PostgresDriver extends AbstractDriver {
                             resolve(true)
                         }
                         else {
-                            console.error('Error connecting to Postgres Server.')
-                            console.error(err.message)
-                            process.abort()
+                            TomgUtils.LogFatalError('Error connecting to Postgres Server.',false,err.message)
                             reject(err)
                         }
                     });
@@ -481,9 +480,7 @@ export class PostgresDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to Postgres Server.')
-                        console.error(err.message)
-                        process.abort()
+                        TomgUtils.LogFatalError('Error connecting to Postgres Server.',false,err.message)
                         reject(err)
                     }
                 });

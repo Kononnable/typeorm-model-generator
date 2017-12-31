@@ -4,6 +4,8 @@ import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
+import * as TomgUtils from './../Utils'
+
 /**
  * MssqlDriver
  */
@@ -12,7 +14,7 @@ export class MssqlDriver extends AbstractDriver {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                console.error(`Table ${entity.EntityName} has no PK.`)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`,false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -194,7 +196,7 @@ export class MssqlDriver extends AbstractDriver {
                         colInfo.sql_type = "text"
                         break;
                     default:
-                        console.error("Unknown column type:" + resp.DATA_TYPE);
+                        TomgUtils.LogFatalError("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
 
@@ -209,7 +211,7 @@ export class MssqlDriver extends AbstractDriver {
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
         }[]
-            = (await request.query(`SELECT 
+            = (await request.query(`SELECT
      TableName = t.name,
      IndexName = ind.name,
      ColumnName = col.name,
@@ -217,19 +219,19 @@ export class MssqlDriver extends AbstractDriver {
      ind.is_primary_key
     -- ,ic.is_descending_key,
     -- ic.is_included_column
-FROM 
-     sys.indexes ind 
-INNER JOIN 
-     sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id 
-INNER JOIN 
-     sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id 
-INNER JOIN 
-     sys.tables t ON ind.object_id = t.object_id 
+FROM
+     sys.indexes ind
+INNER JOIN
+     sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
+INNER JOIN
+     sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
+INNER JOIN
+     sys.tables t ON ind.object_id = t.object_id
 INNER JOIN
      sys.schemas s on s.schema_id=t.schema_id
-WHERE 
+WHERE
      t.is_ms_shipped = 0 and s.name='${schema}'
-ORDER BY 
+ORDER BY
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach((ent) => {
             response.filter((filterVal) => {
@@ -268,32 +270,32 @@ ORDER BY
             onDelete: "RESTRICT" | "CASCADE" | "SET NULL",
             onUpdate: "RESTRICT" | "CASCADE" | "SET NULL", object_id: number
         }[]
-            = (await request.query(`select 
-    parentTable.name as TableWithForeignKey, 
+            = (await request.query(`select
+    parentTable.name as TableWithForeignKey,
     fkc.constraint_column_id as FK_PartNo,
      parentColumn.name as ForeignKeyColumn,
-     referencedTable.name as TableReferenced, 
+     referencedTable.name as TableReferenced,
      referencedColumn.name as ForeignKeyColumnReferenced,
      fk.delete_referential_action_desc as onDelete,
      fk.update_referential_action_desc as onUpdate,
      fk.object_id
-from 
-    sys.foreign_keys fk 
-inner join 
+from
+    sys.foreign_keys fk
+inner join
     sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
-inner join 
+inner join
     sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
-inner join 
+inner join
     sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
-inner join 
+inner join
     sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
-inner join 
+inner join
     sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
 inner join
 	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
-where 
+where
     fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name='${schema}'
-order by 
+order by
     TableWithForeignKey, FK_PartNo`)).recordset;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
@@ -319,28 +321,28 @@ order by
                 return entitity.EntityName == relationTmp.ownerTable;
             })
             if (!ownerEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
                 return;
             }
             let referencedEntity = entities.find((entitity) => {
                 return entitity.EntityName == relationTmp.referencedTable;
             })
             if (!referencedEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
                 return;
             }
             let ownerColumn = ownerEntity.Columns.find((column) => {
                 return column.name == relationTmp.ownerColumnsNames[0];
             })
             if (!ownerColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
                 return;
             }
             let relatedColumn = referencedEntity.Columns.find((column) => {
                 return column.name == relationTmp.referencedColumnsNames[0];
             })
             if (!relatedColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
                 return;
             }
             let ownColumn: ColumnInfo = ownerColumn;
@@ -440,9 +442,7 @@ order by
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to MSSQL Server.')
-                        console.error(err.message)
-                        process.abort()
+                        TomgUtils.LogFatalError('Error connecting to MSSQL Server.',false,err.message)
                         reject(err)
                     }
                 });

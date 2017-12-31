@@ -3,6 +3,7 @@ import { DatabaseModel } from './models/DatabaseModel'
 import * as Handlebars from 'handlebars'
 import fs = require('fs');
 import path = require('path')
+import * as TomgUtils from './Utils'
 /**
  * Engine
  */
@@ -15,7 +16,7 @@ export class Engine {
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
         } else {
-            console.error('Tables not found in selected database. Skipping creation of typeorm model.');
+            TomgUtils.LogFatalError('Tables not found in selected database. Skipping creation of typeorm model.',false);
         }
         return true;
     }

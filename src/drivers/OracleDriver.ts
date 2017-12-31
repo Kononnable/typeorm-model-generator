@@ -5,6 +5,7 @@ import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
 import {promisify} from 'util'
 import { request } from 'https';
+import * as TomgUtils from './../Utils'
 
 
 /**
@@ -17,19 +18,18 @@ import { request } from 'https';
         try {
             this.Oracle= require('oracledb')
         } catch (error) {
-            console.error(error);
-            process.abort();
-            throw error;            
-        } 
-        
+            TomgUtils.LogFatalError('',false,error);
+            throw error;
+        }
+
     }
-    
+
 
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                console.error(`Table ${entity.EntityName} has no PK.`)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`,false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -37,12 +37,12 @@ import { request } from 'https';
             })
         });
     }
-    
-    
 
-    
+
+
+
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
-        
+
         let response :any[][] = ( await this.Connection.execute(` SELECT TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`)).rows!;
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach((val) => {
@@ -58,7 +58,7 @@ import { request } from 'https';
          let response :any[][] = ( await this.Connection.execute(`SELECT TABLE_NAME, COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
           DATA_PRECISION, DATA_SCALE, IDENTITY_COLUMN
          FROM USER_TAB_COLUMNS`)).rows!;
-       
+
          entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal[0] == ent.EntityName;
@@ -80,7 +80,7 @@ import { request } from 'https';
                         colInfo.char_max_lenght = resp[5] > 0 ? resp[5] : null;
                         break;
                     default:
-                        console.error("Unknown column type:" + resp[4]);
+                        TomgUtils.LogFatalError("Unknown column type:" + resp[4]);
                         break;
                 }
 
@@ -95,7 +95,7 @@ import { request } from 'https';
         JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
         LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
         ORDER BY col.INDEX_NAME ASC ,col.COLUMN_POSITION ASC`)).rows!;
-      
+
         entities.forEach((ent) => {
             response.filter((filterVal) => {
                 return filterVal[0] == ent.EntityName;
@@ -130,12 +130,12 @@ import { request } from 'https';
         child.TABLE_NAME,childCol.COLUMN_NAME,
         owner.DELETE_RULE,
         4,owner.CONSTRAINT_NAME
-        from user_constraints owner 
+        from user_constraints owner
         join user_constraints child on owner.r_constraint_name=child.CONSTRAINT_NAME and child.constraint_type in ('P','U')
         JOIN USER_CONS_COLUMNS ownCol ON owner.CONSTRAINT_NAME = ownCol.CONSTRAINT_NAME
         JOIN USER_CONS_COLUMNS childCol ON child.CONSTRAINT_NAME = childCol.CONSTRAINT_NAME AND ownCol.POSITION=childCol.POSITION
         ORDER BY ownTbl ASC, owner.CONSTRAINT_NAME ASC, ownCol.POSITION ASC`)).rows!;
-      
+
 
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
@@ -161,28 +161,28 @@ import { request } from 'https';
                 return entitity.EntityName == relationTmp.ownerTable;
             })
             if (!ownerEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
                 return;
             }
             let referencedEntity = entities.find((entitity) => {
                 return entitity.EntityName == relationTmp.referencedTable;
             })
             if (!referencedEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
                 return;
             }
             let ownerColumn = ownerEntity.Columns.find((column) => {
                 return column.name == relationTmp.ownerColumnsNames[0];
             })
             if (!ownerColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
                 return;
             }
             let relatedColumn = referencedEntity.Columns.find((column) => {
                 return column.name == relationTmp.referencedColumnsNames[0];
             })
             if (!relatedColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
                 return;
             }
             let ownColumn: ColumnInfo = ownerColumn;
@@ -282,9 +282,7 @@ import { request } from 'https';
                             resolve(true)
                         }
                         else {
-                            console.error('Error connecting to Oracle Server.')
-                            console.error(err.message)
-                            process.abort()
+                            TomgUtils.LogFatalError('Error connecting to Oracle Server.',false,err.message)
                             reject(err)
                         }
 
@@ -294,7 +292,7 @@ import { request } from 'https';
 
         await promise;
     }
-  
+
 
     async CreateDB(dbName: string) {
     }
