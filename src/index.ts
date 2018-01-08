@@ -29,7 +29,7 @@ var argv = Yargs
     .option('x', {
         alias: 'pass',
         describe: 'Password for database server.',
-        demand: true
+        default: ''
     })
     .option('p', {
         alias: 'port',
