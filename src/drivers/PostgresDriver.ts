@@ -117,7 +117,7 @@ export class PostgresDriver extends AbstractDriver {
                         break;
                     case "timestamp without time zone":
                         colInfo.ts_type = "Date"
-                        colInfo.sql_type = "datetime"
+                        colInfo.sql_type = "timestamp"
                         break;
                     case "timestamp with time zone":
                         colInfo.ts_type = "Date"
