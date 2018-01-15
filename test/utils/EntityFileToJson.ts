@@ -271,6 +271,20 @@ export class EntityFileToJson {
             console.log(`[EntityFileToJson:convert] Line not recognized in entity ${retVal.entityName}:`)
             console.log(`${trimmedLine}`)
         }
+
+        retVal.columns=retVal.columns.map(col=>{
+            if (col.columnName.endsWith('Id'))
+            col.columnName=col.columnName.substr(0,col.columnName.length-2)
+            return col;
+        })
+        retVal.indicies=retVal.indicies.map(ind=>{
+            ind.columnNames=ind.columnNames.map(colName=>{
+                if (colName.endsWith('Id'))
+                colName=colName.substr(0,colName.length-2)
+                return colName;
+            })
+            return ind;
+        })
         return retVal;
     }
     isPartOfMultilineStatement(statement: string) {

@@ -12,7 +12,7 @@ export class Engine {
     }
 
     public async createModelFromDatabase(): Promise<boolean> {
-        let dbModel = await this.getEntitiesInfo(this.Options.databaseName, this.Options.host, this.Options.port, this.Options.user, this.Options.password);
+        let dbModel = await this.getEntitiesInfo(this.Options.databaseName, this.Options.host, this.Options.port, this.Options.user, this.Options.password, this.Options.schemaName, this.Options.ssl);
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
         } else {
@@ -20,8 +20,8 @@ export class Engine {
         }
         return true;
     }
-    private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string): Promise<DatabaseModel> {
-        return await this.driver.GetDataFromServer(database, server, port, user, password)
+    private async getEntitiesInfo(database: string, server: string, port: number, user: string, password: string, schemaName:string, ssl:boolean): Promise<DatabaseModel> {
+        return await this.driver.GetDataFromServer(database, server, port, user, password,schemaName,ssl)
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
@@ -99,5 +99,7 @@ export interface EngineOptions {
     password: string,
     resultsPath: string,
     databaseType: string,
+    schemaName:string,
+    ssl:boolean,
     convertCase: boolean
 }

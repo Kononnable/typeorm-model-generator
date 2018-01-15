@@ -3,20 +3,19 @@ import "reflect-metadata";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import fs = require('fs-extra');
 import path = require('path')
-import { Engine } from "./../../src/Engine";
 import { expect } from "chai";
 import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');
 var chaiSubset = require('chai-subset');
-import * as yn from "yn"
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
+import { Engine } from "./../../src/Engine";
 
 chai.use(chaiSubset);
 
 
-describe("TypeOrm examples", async function () {
+describe("Platform specyfic types", async function () {
     this.timeout(20000)
     this.slow(5000)//compiling created models takes time
 
@@ -26,14 +25,15 @@ describe("TypeOrm examples", async function () {
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
 
-    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/examples')
-    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/examples')
+
+    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/entityTypes')
+    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/entityTypes')
     let files = fs.readdirSync(examplesPathTS)
 
     for (let folder of files) {
 
-        describe(folder, async function () {
-            for (let dbDriver of dbDrivers) {
+        for (let dbDriver of dbDrivers) {
+            if (dbDriver == folder) {
                 it(dbDriver, async function () {
 
                     let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
@@ -93,8 +93,7 @@ describe("TypeOrm examples", async function () {
                     });
                     expect(compileErrors, 'Errors detected while compiling generated model').to.be.false;
                 });
-
             }
-        })
+        }
     }
 })

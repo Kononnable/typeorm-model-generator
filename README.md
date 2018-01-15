@@ -1,4 +1,6 @@
 # typeorm-model-generator
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/Kononnable/typeorm-model-generator.svg)](https://greenkeeper.io/)
 [![Build Status](https://travis-ci.org/Kononnable/typeorm-model-generator.svg?branch=master)](https://travis-ci.org/Kononnable/typeorm-model-generator)
 [![npm version](https://badge.fury.io/js/typeorm-model-generator.svg)](https://badge.fury.io/js/typeorm-model-generator)
 [![codecov](https://codecov.io/gh/Kononnable/typeorm-model-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/Kononnable/typeorm-model-generator)
@@ -33,7 +35,8 @@ Options:
   -e, --engine    Database engine.
            [choices: "mssql", "postgres", "mysql", "mariadb"] [default: "mssql"]
   -o, --output    Where to place generated models.
-  -c, --case      Convert snake_case tables names to PascalCase entities and snake_case columns to camelCase properties
+  -s, --schema    Schema name to create model from. Only for mssql and postgres.
+  --ssl                                               [boolean] [default: false]
 ```
 ### Examples
 
@@ -46,12 +49,12 @@ Options:
       ```
       npx typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .\
       ````
-* Creating model from local Postgres database
+* Creating model from local Postgres database, public schema with ssl connection
    * Global module 
       ```
-      typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\
+      typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\ -s public --ssl
       ````
    * Npx Way  
       ```
-      npx typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\
+      npx typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\ -s public --ssl
       ````

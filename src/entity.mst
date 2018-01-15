@@ -22,7 +22,7 @@ import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName t
 {{/relations~}}
 
 {{~#relations}}	@{{relationType}}(type => {{toEntityName relatedTable}}, {{toPropertyName ../name}} => {{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}}{{else}}{{toPropertyName relatedColumn}}{{/if}}){{#isOwner}}
-	@JoinColumn(){{/isOwner}}
+	@JoinColumn({name: "{{../name}}"}){{/isOwner}}
 	{{#if isOneToMany}}{{toPropertyName ../name}}: {{toEntityName relatedTable}}[];{{else}}{{toPropertyName ../name}}: {{toEntityName relatedTable}};{{/if}}
 {{/relations~}}
 {{"\n"}}

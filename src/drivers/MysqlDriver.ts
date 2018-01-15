@@ -8,6 +8,8 @@ import { DatabaseModel } from './../models/DatabaseModel'
  * MysqlDriver
  */
 export class MysqlDriver extends AbstractDriver {
+    readonly EngineName: string = 'MySQL'
+
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
@@ -21,7 +23,7 @@ export class MysqlDriver extends AbstractDriver {
         });
     }
 
-    async GetAllTables(): Promise<EntityInfo[]> {
+    async GetAllTables(schema: string): Promise<EntityInfo[]> {
 
         let response = await this.ExecQuery<{ TABLE_SCHEMA: string, TABLE_NAME: string }>(`SELECT TABLE_SCHEMA, TABLE_NAME
             FROM information_schema.tables
@@ -37,7 +39,7 @@ export class MysqlDriver extends AbstractDriver {
         })
         return ret;
     }
-    async GetCoulmnsFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetCoulmnsFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
@@ -59,19 +61,16 @@ export class MysqlDriver extends AbstractDriver {
                     case "int":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "int"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "tinyint":
-                        if (resp.NUMERIC_PRECISION == 3) {
-                            colInfo.ts_type = "boolean"
-                            colInfo.sql_type = "boolean"
-                        } else {
-                            colInfo.ts_type = "number"
-                            colInfo.sql_type = "smallint"
-                        }
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "tinyint"
                         break;
                     case "smallint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "smallint"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "bit":
                         colInfo.ts_type = "boolean"
@@ -80,17 +79,19 @@ export class MysqlDriver extends AbstractDriver {
                     case "float":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "float"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "bigint":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "bigint"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "date":
-                        colInfo.ts_type = "Date"
+                        colInfo.ts_type = "string"
                         colInfo.sql_type = "date"
                         break;
                     case "time":
-                        colInfo.ts_type = "Date"
+                        colInfo.ts_type = "string"
                         colInfo.sql_type = "time"
                         break;
                     case "datetime":
@@ -113,13 +114,57 @@ export class MysqlDriver extends AbstractDriver {
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "text"
                         break;
+
+                    case "mediumint":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "mediumint"
+                        break;
+                    case "timestamp":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "timestamp"
+                        break;
+                    case "year":
+                        colInfo.ts_type = "number"
+                        colInfo.sql_type = "year"
+                        break;
+                    case "blob":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "blob"
+                        break;
+                    case "tinyblob":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "tinyblob"
+                        break;
+                    case "tinytext":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "tinytext"
+                        break;
+                    case "mediumblob":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "mediumblob"
+                        break;
+                    case "mediumtext":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "mediumtext"
+                        break;
+                    case "longblob":
+                        colInfo.ts_type = "Buffer"
+                        colInfo.sql_type = "longblob"
+                        break;
+                    case "longtext":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "longtext"
+                        break;
+
                     case "varchar":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
+                        colInfo.sql_type = "varchar"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "nvarchar":
                         colInfo.ts_type = "string"
-                        colInfo.sql_type = "string"
+                        colInfo.sql_type = "nvarchar"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "money":
                         colInfo.ts_type = "number"
@@ -128,32 +173,38 @@ export class MysqlDriver extends AbstractDriver {
                     case "real":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "double":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "double"
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "decimal":
                         colInfo.ts_type = "number"
                         colInfo.sql_type = "decimal"
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION
                         colInfo.numericScale = resp.NUMERIC_SCALE
+                        colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                         break;
                     case "xml":
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "text"
                         break;
+                    case "json":
+                        colInfo.ts_type = "Object"
+                        colInfo.sql_type = "json"
+                        break;
                     default:
                         console.error("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
-                colInfo.char_max_lenght = resp.CHARACTER_MAXIMUM_LENGTH > 0 ? resp.CHARACTER_MAXIMUM_LENGTH : null;
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
             })
         })
         return entities;
     }
-    async GetIndexesFromEntity(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetIndexesFromEntity(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
@@ -191,7 +242,7 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    async GetRelations(entities: EntityInfo[], schema: string): Promise<EntityInfo[]> {
         let response = await this.ExecQuery<{
             TableWithForeignKey: string, FK_PartNo: number, ForeignKeyColumn: string,
             TableReferenced: string, ForeignKeyColumnReferenced: string,
@@ -278,18 +329,29 @@ export class MysqlDriver extends AbstractDriver {
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo()
+            let columnName = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
+            if (referencedEntity.Columns.filter((filterVal) => {
+                return filterVal.name == columnName;
+            }).length > 0) {
+                for (let i=2;i<=ownerEntity.Columns.length;i++){
+                    columnName = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '') + i.toString();
+                    if (referencedEntity.Columns.filter((filterVal) => {
+                        return filterVal.name == columnName;
+                    }).length == 0) break;
+                }
+            }
             ownerRelation.actionOnDelete = relationTmp.actionOnDelete
             ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate
             ownerRelation.isOwner = true
             ownerRelation.relatedColumn = relatedColumn.name.toLowerCase()
             ownerRelation.relatedTable = relationTmp.referencedTable
             ownerRelation.ownerTable = relationTmp.ownerTable
-            ownerRelation.ownerColumn = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '')
+            ownerRelation.ownerColumn = columnName
             ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne"
             ownerColumn.relations.push(ownerRelation)
             if (isOneToMany) {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase() + 's'
+                col.name = columnName
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -303,7 +365,7 @@ export class MysqlDriver extends AbstractDriver {
                 referencedEntity.Columns.push(col)
             } else {
                 let col = new ColumnInfo()
-                col.name = ownerEntity.EntityName.toLowerCase()
+                col.name = columnName
                 let referencedRelation = new RelationInfo();
                 col.relations.push(referencedRelation)
                 referencedRelation.actionOnDelete = relationTmp.actionOnDelete
@@ -329,7 +391,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error disconnecting to MYSQL Server.')
+                        console.error(`Error disconnecting to ${this.EngineName} Server.`)
                         console.error(err.message)
                         process.abort()
                         reject(err)
@@ -343,14 +405,28 @@ export class MysqlDriver extends AbstractDriver {
 
     }
 
-    private Connection: MYSQL.IConnection;
-    async ConnectToServer(database: string, server: string, port: number, user: string, password: string) {
-        let config: MYSQL.IConnectionConfig = {
-            database: database,
-            host: server,
-            port: port,
-            user: user,
-            password: password,
+    private Connection: MYSQL.Connection;
+    async ConnectToServer(database: string, server: string, port: number, user: string, password: string, ssl: boolean) {
+        let config: MYSQL.ConnectionConfig
+        if (ssl) {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password,
+                ssl: {
+                    rejectUnauthorized: false
+                }
+            }
+        } else {
+            config = {
+                database: database,
+                host: server,
+                port: port,
+                user: user,
+                password: password
+            }
         }
 
 
@@ -364,7 +440,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error('Error connecting to MYSQL Server.')
+                        console.error(`Error connecting to ${this.EngineName} Server.`)
                         console.error(err.message)
                         process.abort()
                         reject(err)

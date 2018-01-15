@@ -3,8 +3,8 @@ services:
 
   # mysql
   mysql:
-    image: "mysql:5.7.10"
-    container_name: "typeorm-mysql"
+    image: "mysql:5.7.19"
+    container_name: "typeorm-mg-mysql"
     ports:
       - "3306:3306"
     environment:
@@ -12,8 +12,8 @@ services:
 
   # mariadb
   mariadb:
-    image: "mariadb:10.1.16"
-    container_name: "typeorm-mariadb"
+    image: "mariadb:10.2.9"
+    container_name: "typeorm-mg-mariadb"
     ports:
       - "3307:3306"
     environment:
@@ -21,19 +21,20 @@ services:
 
   # postgres
   postgres:
-    image: "postgres:9.6.1"
-    container_name: "typeorm-postgres"
+    image: "postgres:10.0"
+    container_name: "typeorm-mg-postgres"
     ports:
       - "5432:5432"
     environment:
       POSTGRES_PASSWORD: "!Passw0rd"
 
-  # mssql
-  mssql:
-    image: "microsoft/mssql-server-linux:ctp2-1"
-    container_name: "typeorm-mssql"
-    ports:
-      - "1433:1433"
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: "!Passw0rd"
+  # # mssql
+  # mssql:
+  #   image: "microsoft/mssql-server-linux:2017-GA"
+  #   container_name: "typeorm-mg-mssql"
+  #   ports:
+  #     - "1433:1433"
+  #   environment:
+  #     ACCEPT_EULA: "Y"
+  #     SA_PASSWORD: "!Passw0rd"
+  

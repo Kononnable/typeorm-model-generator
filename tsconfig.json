@@ -12,7 +12,8 @@
         "stripInternal": true,
         "strictNullChecks": true,
         "moduleResolution": "node",
-        "outDir": "dist"
+        "outDir": "dist",
+        "newLine": "LF"
     }, "include": [
         "src",
         "test"

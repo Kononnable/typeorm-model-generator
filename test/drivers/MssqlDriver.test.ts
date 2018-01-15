@@ -5,7 +5,21 @@ import * as MSSQL from 'mssql'
 import { EntityInfo } from './../../src/models/EntityInfo'
 import { ColumnInfo } from './../../src/models/ColumnInfo'
 import { RelationInfo } from './../../src/models/RelationInfo'
+import { Table, IColumnMetadata } from "mssql";
 
+ class fakeResponse implements MSSQL.IResult<any>  {
+     recordsets: MSSQL.IRecordSet<any>[];
+     recordset: MSSQL.IRecordSet<any>;
+     rowsAffected: number[];
+     output: { [key: string]: any; };
+     
+ }
+ class fakeRecordset extends Array<any> implements MSSQL.IRecordSet<any>{
+    columns: IColumnMetadata;
+    toTable(): Table{
+        return new Table();
+    }
+ }
 
 describe('MssqlDriver', function () {
     let driver: MssqlDriver
@@ -34,13 +48,16 @@ describe('MssqlDriver', function () {
             .returns(
             {
                 query: (q) => {
-                    let response = <{ TABLE_SCHEMA: string, TABLE_NAME: string }[]>[];
-                    response.push({ TABLE_SCHEMA: 'schema', TABLE_NAME: 'name' })
+                   
+                    let response=new fakeResponse();
+                    
+                    response.recordset=new fakeRecordset();
+                    response.recordset.push({ TABLE_SCHEMA: 'schema', TABLE_NAME: 'name' })
                     return response;
                 }
             }
             )
-        let result = await driver.GetAllTables()
+        let result = await driver.GetAllTables('schema')
         let expectedResult = <EntityInfo[]>[];
         let y = new EntityInfo();
         y.EntityName = 'name'
@@ -54,12 +71,9 @@ describe('MssqlDriver', function () {
             .returns(
             {
                 query: (q) => {
-                    let response = <{
-                        TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
-                        IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-                        NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity:number 
-                    }[]>[]
-                    response.push({
+                    let response=new fakeResponse();
+                    response.recordset=new fakeRecordset();
+                    response.recordset.push({
                         TABLE_NAME: 'name', CHARACTER_MAXIMUM_LENGTH: 0,
                         COLUMN_DEFAULT: 'a', COLUMN_NAME: 'name', DATA_TYPE: 'int',
                         IS_NULLABLE: 'YES', NUMERIC_PRECISION: 0, NUMERIC_SCALE: 0,
@@ -91,7 +105,7 @@ describe('MssqlDriver', function () {
             ts_type: 'number',
             relations: <RelationInfo[]>[]
         })
-        let result = await driver.GetCoulmnsFromEntity(entities);
+        let result = await driver.GetCoulmnsFromEntity(entities,'schema');
         expect(result).to.be.deep.equal(expected)
     })
     it('should find primary indexes')

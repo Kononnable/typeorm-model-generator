@@ -29,7 +29,7 @@ var argv = Yargs
     .option('x', {
         alias: 'pass',
         describe: 'Password for database server.',
-        demand: true
+        default: ''
     })
     .option('p', {
         alias: 'port',
@@ -46,6 +46,14 @@ var argv = Yargs
         describe: 'Where to place generated models.',
         default: path.resolve(process.cwd(), 'output')
     })
+    .option('s', {
+        alias: 'schema',
+        describe: 'Schema name to create model from. Only for mssql and postgres.'
+    })
+    .option('ssl',{
+        boolean:true,
+        default:false
+    })
     .option('c', {
         alias: 'case',
         describe: 'Convert snake_case tables names to PascalCase entities and snake_case columns to camelCase properties'
@@ -55,14 +63,17 @@ var argv = Yargs
 
 var driver: AbstractDriver;
 var standardPort: number;
+var standardSchema: string = '';
 switch (argv.e) {
     case 'mssql':
         driver = new MssqlDriver();
         standardPort = 1433;
+        standardSchema = 'dbo';
         break;
     case 'postgres':
         driver = new PostgresDriver();
         standardPort = 5432;
+        standardSchema = 'public';
         break;
     case 'mysql':
         driver = new MysqlDriver();
@@ -87,6 +98,8 @@ let engine = new Engine(
         password: argv.x,
         databaseType: argv.e,
         resultsPath: argv.o,
+        schemaName: argv.s || standardSchema,
+        ssl:argv.ssl,
         convertCase: !!argv.c
     });
 
