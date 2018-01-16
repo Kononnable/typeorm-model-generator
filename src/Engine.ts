@@ -30,14 +30,17 @@ export class Engine {
         let resultPath = this.Options.resultsPath
         if (!fs.existsSync(resultPath))
             fs.mkdirSync(resultPath);
-        this.createTsConfigFile(resultPath)
-        this.createTypeOrmConfig(resultPath)
-        let entitesPath = path.resolve(resultPath, './entities')
+        let entitesPath = resultPath
+        if (!this.Options.noConfigs) {
+            this.createTsConfigFile(resultPath)
+            this.createTypeOrmConfig(resultPath)
+            entitesPath = path.resolve(resultPath, './entities')
+            if (!fs.existsSync(entitesPath))
+                fs.mkdirSync(entitesPath);
+        }
         Handlebars.registerHelper('toLowerCase', function (str) {
             return str.toLowerCase();
         });
-        if (!fs.existsSync(entitesPath))
-            fs.mkdirSync(entitesPath);
         let compliedTemplate = Handlebars.compile(template, { noEscape: true })
         databaseModel.entities.forEach(element => {
             let resultFilePath = path.resolve(entitesPath, element.EntityName + '.ts');
@@ -45,7 +48,7 @@ export class Engine {
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }
-//TODO:Move to mustache template file
+    //TODO:Move to mustache template file
     private createTsConfigFile(resultPath) {
         fs.writeFileSync(path.resolve(resultPath, 'tsconfig.json'), `{"compilerOptions": {
         "lib": ["es5", "es6"],
@@ -107,5 +110,6 @@ export interface EngineOptions {
     resultsPath: string,
     databaseType: string,
     schemaName: string,
-    ssl: boolean
+    ssl: boolean,
+    noConfigs: boolean
 }

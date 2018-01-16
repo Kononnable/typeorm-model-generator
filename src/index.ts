@@ -56,6 +56,11 @@ var argv = Yargs
         boolean: true,
         default: false
     })
+    .option('noConfig', {
+        boolean: true,
+        describe: `Doesn't create tsconfig.json and ormconfig.json`,
+        default: false
+    })
     .argv;
 
 
@@ -100,7 +105,8 @@ let engine = new Engine(
         databaseType: argv.e,
         resultsPath: argv.o,
         schemaName: argv.s || standardSchema,
-        ssl: argv.ssl
+        ssl: argv.ssl,
+        noConfigs: argv.noConfig
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);
