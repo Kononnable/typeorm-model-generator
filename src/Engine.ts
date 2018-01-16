@@ -31,7 +31,7 @@ export class Engine {
         if (!fs.existsSync(resultPath))
             fs.mkdirSync(resultPath);
         this.createTsConfigFile(resultPath)
-        this.createTypeOrm(resultPath)
+        this.createTypeOrmConfig(resultPath)
         let entitesPath = path.resolve(resultPath, './entities')
         Handlebars.registerHelper('toLowerCase', function (str) {
             return str.toLowerCase();
@@ -45,6 +45,7 @@ export class Engine {
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }
+//TODO:Move to mustache template file
     private createTsConfigFile(resultPath) {
         fs.writeFileSync(path.resolve(resultPath, 'tsconfig.json'), `{"compilerOptions": {
         "lib": ["es5", "es6"],
@@ -56,8 +57,9 @@ export class Engine {
         "sourceMap": true
     }}`, { encoding: 'UTF-8', flag: 'w' });
     }
-    private createTypeOrm(resultPath) {
-        fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
+    private createTypeOrmConfig(resultPath) {
+        if (this.Options.schemaName == '') {
+            fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
   {
     "name": "default",
     "driver": {
@@ -73,7 +75,28 @@ export class Engine {
     ]
   }
 ]`, { encoding: 'UTF-8', flag: 'w' });
+        }
+        else {
+            fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
+  {
+    "name": "default",
+    "driver": {
+      "type": "${this.Options.databaseType}",
+      "host": "${this.Options.host}",
+      "port": ${this.Options.port},
+      "username": "${this.Options.user}",
+      "password": "${this.Options.password}",
+      "database": "${this.Options.databaseName}",
+      "schema": "${this.Options.schemaName}"
+    },
+    "entities": [
+      "entities/*.js"
+    ]
+  }
+]`, { encoding: 'UTF-8', flag: 'w' });
+        }
     }
+
 }
 export interface EngineOptions {
     host: string,
