@@ -40,7 +40,7 @@ var argv = Yargs
     .option('e', {
         alias: 'engine',
         describe: 'Database engine.',
-        choices: ['mssql', 'postgres', 'mysql', 'mariadb', 'oracle'],
+        choices: ['mssql', 'postgres', 'mysql', 'mariadb'],
         default: 'mssql'
     })
     .option('o', {
