@@ -1,4 +1,5 @@
-export class RelationInfo {    [x: string]: any;
+export class RelationInfo {
+    [x: string]: any;
 
     isOwner: boolean
     relationType: "OneToOne" | "OneToMany" | "ManyToOne"

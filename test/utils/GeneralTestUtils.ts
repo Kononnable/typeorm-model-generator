@@ -4,6 +4,7 @@ import { MssqlDriver } from "../../src/drivers/MssqlDriver";
 import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
+import { OracleDriver } from "../../src/drivers/OracleDriver";
 import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import * as yn from "yn"
@@ -48,7 +49,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             databaseType: 'mssql',
             resultsPath: resultsPath,
             schemaName: 'dbo',
-            ssl: yn(process.env.MSSQL_SSL)
+            ssl: yn(process.env.MSSQL_SSL),
+            noConfigs: false
         });
 
 
@@ -91,7 +93,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             databaseType: 'postgres',
             resultsPath: resultsPath,
             schemaName: 'public',
-            ssl: yn(process.env.POSTGRES_SSL)
+            ssl: yn(process.env.POSTGRES_SSL),
+            noConfigs: false
         });
 
 
@@ -135,7 +138,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             databaseType: 'mysql',
             resultsPath: resultsPath,
             schemaName: 'ignored',
-            ssl: yn(process.env.MYSQL_SSL)
+            ssl: yn(process.env.MYSQL_SSL),
+            noConfigs: false
         });
 
 
@@ -179,7 +183,55 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             databaseType: 'mariadb',
             resultsPath: resultsPath,
             schemaName: 'ignored',
-            ssl: yn(process.env.MARIADB_SSL)
+            ssl: yn(process.env.MARIADB_SSL),
+            noConfigs: false
+        });
+
+
+
+    return engine;
+}
+
+export async function createOracleDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new OracleDriver();
+    await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_Username), String(process.env.ORACLE_Password), yn(process.env.ORACLE_SSL));
+
+    if (! await driver.CheckIfDBExists(String(process.env.ORACLE_Database)))
+        await driver.CreateDB(String(process.env.ORACLE_Database));
+    await driver.DisconnectFromServer();
+
+    let connOpt: ConnectionOptions = {
+
+        database: String(process.env.ORACLE_Database),
+        sid: String(process.env.ORACLE_Database),
+        host: String(process.env.ORACLE_Host),
+        password: String(process.env.ORACLE_Password),
+        type: 'oracle',
+        username: String(process.env.ORACLE_Username),
+        port: Number(process.env.ORACLE_Port),
+        // dropSchema: true,
+        synchronize: true,
+        entities: [path.resolve(filesOrgPath, '*.js')],
+    }
+    let conn = await createConnection(connOpt)
+
+    if (conn.isConnected)
+        await conn.close()
+
+    driver = new OracleDriver();
+    let engine = new Engine(
+        driver, {
+            host: String(process.env.ORACLE_Host),
+            port: Number(process.env.ORACLE_Port),
+            databaseName: String(process.env.ORACLE_Database),
+            user: String(process.env.ORACLE_Username),
+            password: String(process.env.ORACLE_Password),
+            databaseType: 'oracle',
+            resultsPath: resultsPath,
+            schemaName: String(process.env.ORACLE_Username),
+            ssl: yn(process.env.ORACLE_SSL),
+            noConfigs: false
         });
 
 

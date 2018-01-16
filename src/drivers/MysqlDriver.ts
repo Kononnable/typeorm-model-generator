@@ -4,6 +4,7 @@ import { ColumnInfo } from './../models/ColumnInfo'
 import { EntityInfo } from './../models/EntityInfo'
 import { RelationInfo } from './../models/RelationInfo'
 import { DatabaseModel } from './../models/DatabaseModel'
+import * as TomgUtils from './../Utils'
 /**
  * MysqlDriver
  */
@@ -14,7 +15,7 @@ export class MysqlDriver extends AbstractDriver {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                console.error(`Table ${entity.EntityName} has no PK.`)
+                TomgUtils.LogFatalError(`Table ${entity.EntityName} has no PK.`, false)
                 return;
             }
             entity.Columns.forEach(col => {
@@ -196,7 +197,7 @@ export class MysqlDriver extends AbstractDriver {
                         colInfo.sql_type = "json"
                         break;
                     default:
-                        console.error("Unknown column type:" + resp.DATA_TYPE);
+                        TomgUtils.LogFatalError("Unknown column type:" + resp.DATA_TYPE);
                         break;
                 }
                 if (colInfo.sql_type) ent.Columns.push(colInfo);
@@ -208,7 +209,7 @@ export class MysqlDriver extends AbstractDriver {
         let response = await this.ExecQuery<{
             TableName: string, IndexName: string, ColumnName: string, is_unique: number,
             is_primary_key: number//, is_descending_key: number//, is_included_column: number
-        }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique, 
+        }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
             WHERE table_schema like DATABASE();
@@ -248,22 +249,22 @@ export class MysqlDriver extends AbstractDriver {
             TableReferenced: string, ForeignKeyColumnReferenced: string,
             onDelete: "RESTRICT" | "CASCADE" | "SET NULL",
             onUpdate: "RESTRICT" | "CASCADE" | "SET NULL", object_id: string
-        }>(`SELECT 
-            CU.TABLE_NAME TableWithForeignKey,   
+        }>(`SELECT
+            CU.TABLE_NAME TableWithForeignKey,
             CU.ORDINAL_POSITION FK_PartNo,
-            CU.COLUMN_NAME ForeignKeyColumn, 
-            CU.REFERENCED_TABLE_NAME TableReferenced,  
+            CU.COLUMN_NAME ForeignKeyColumn,
+            CU.REFERENCED_TABLE_NAME TableReferenced,
             CU.REFERENCED_COLUMN_NAME ForeignKeyColumnReferenced,
             RC.DELETE_RULE onDelete,
             RC.UPDATE_RULE onUpdate,
             CU.CONSTRAINT_NAME object_id
            FROM
             INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU
-           JOIN 
+           JOIN
             INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
           WHERE
-            TABLE_SCHEMA = SCHEMA()       
-            AND CU.REFERENCED_TABLE_NAME IS NOT NULL; 
+            TABLE_SCHEMA = SCHEMA()
+            AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach((resp) => {
@@ -289,28 +290,28 @@ export class MysqlDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.ownerTable;
             })
             if (!ownerEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`)
                 return;
             }
             let referencedEntity = entities.find((entitity) => {
                 return entitity.EntityName == relationTmp.referencedTable;
             })
             if (!referencedEntity) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`)
                 return;
             }
             let ownerColumn = ownerEntity.Columns.find((column) => {
                 return column.name == relationTmp.ownerColumnsNames[0];
             })
             if (!ownerColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`)
                 return;
             }
             let relatedColumn = referencedEntity.Columns.find((column) => {
                 return column.name == relationTmp.referencedColumnsNames[0];
             })
             if (!relatedColumn) {
-                console.error(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
+                TomgUtils.LogFatalError(`Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`)
                 return;
             }
             let ownColumn: ColumnInfo = ownerColumn;
@@ -333,7 +334,7 @@ export class MysqlDriver extends AbstractDriver {
             if (referencedEntity.Columns.filter((filterVal) => {
                 return filterVal.name == columnName;
             }).length > 0) {
-                for (let i=2;i<=ownerEntity.Columns.length;i++){
+                for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName = ownerEntity.EntityName.toLowerCase() + (isOneToMany ? 's' : '') + i.toString();
                     if (referencedEntity.Columns.filter((filterVal) => {
                         return filterVal.name == columnName;
@@ -391,9 +392,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error(`Error disconnecting to ${this.EngineName} Server.`)
-                        console.error(err.message)
-                        process.abort()
+                        TomgUtils.LogFatalError(`Error disconnecting to ${this.EngineName} Server.`, false, err.message)
                         reject(err)
                     }
                 });
@@ -440,9 +439,7 @@ export class MysqlDriver extends AbstractDriver {
                         resolve(true)
                     }
                     else {
-                        console.error(`Error connecting to ${this.EngineName} Server.`)
-                        console.error(err.message)
-                        process.abort()
+                        TomgUtils.LogFatalError(`Error connecting to ${this.EngineName} Server.`, false, err.message)
                         reject(err)
                     }
                 });

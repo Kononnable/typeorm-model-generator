@@ -1,4 +1,4 @@
-import {PrimaryGeneratedColumn, Column, Entity, OneToOne,JoinColumn} from "typeorm";
+import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn } from "typeorm";
 
 @Entity("PostCategory")
 export class PostCategory {

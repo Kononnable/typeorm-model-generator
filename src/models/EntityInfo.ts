@@ -8,23 +8,23 @@ export class EntityInfo {
     Indexes: IndexInfo[];
 
     relationImports(): any {
-            var returnString = "";
-            var imports: string[] = [];
-            this.Columns.forEach((column) => {
-                column.relations.forEach(
-                    (relation) => {
-                        if (this.EntityName!=relation.relatedTable)
+        var returnString = "";
+        var imports: string[] = [];
+        this.Columns.forEach((column) => {
+            column.relations.forEach(
+                (relation) => {
+                    if (this.EntityName != relation.relatedTable)
                         imports.push(relation.relatedTable);
-                    }
-                )
-            });
-            imports.filter(function (elem, index, self) {
-                return index == self.indexOf(elem);
-            }).forEach((imp)=>{
-                returnString+=`import {${imp}} from './${imp}'\n`
-            })
+                }
+            )
+        });
+        imports.filter(function (elem, index, self) {
+            return index == self.indexOf(elem);
+        }).forEach((imp) => {
+            returnString += `import {${imp}} from './${imp}'\n`
+        })
 
-            return returnString;
+        return returnString;
     }
-  
+
 }

@@ -30,9 +30,9 @@ describe("Platform specyfic types", async function () {
     let examplesPathTS = path.resolve(process.cwd(), 'test/integration/entityTypes')
     let files = fs.readdirSync(examplesPathTS)
 
-    for (let folder of files) {
+    for (let dbDriver of dbDrivers) {
 
-        for (let dbDriver of dbDrivers) {
+        for (let folder of files) {
             if (dbDriver == folder) {
                 it(dbDriver, async function () {
 
