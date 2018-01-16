@@ -14,7 +14,8 @@
         "moduleResolution": "node",
         "outDir": "dist",
         "newLine": "LF"
-    }, "include": [
+    },
+    "include": [
         "src",
         "test"
     ]

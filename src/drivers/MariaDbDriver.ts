@@ -9,6 +9,6 @@ import { MysqlDriver } from './MysqlDriver';
  * MariaDb
  */
 export class MariaDbDriver extends MysqlDriver {
-    readonly EngineName:string = 'MariaDb'
-    
+    readonly EngineName: string = 'MariaDb'
+
 }

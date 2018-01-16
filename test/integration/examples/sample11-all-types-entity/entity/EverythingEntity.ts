@@ -2,7 +2,7 @@ import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn, Index } f
 
 @Entity("EverythingEntity")
 export class EverythingEntity {
-    //TODO: change to check column types per database engine 
+    //TODO: change to check column types per database engine
     @PrimaryGeneratedColumn()
     id: number;
 

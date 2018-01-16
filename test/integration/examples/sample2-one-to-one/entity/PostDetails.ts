@@ -1,5 +1,5 @@
-import {PrimaryGeneratedColumn, Column, Entity, OneToOne,JoinColumn} from "typeorm";
-import {Post} from "./Post";
+import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn } from "typeorm";
+import { Post } from "./Post";
 
 @Entity("PostDetails")
 export class PostDetails {
@@ -15,11 +15,10 @@ export class PostDetails {
 
     @Column()
     metadata: string;
-    
+
     @OneToOne(type => Post, post => post.details, {
-        cascadeInsert: true,
-        cascadeUpdate: true,
-        cascadeRemove: true
+        // cascade: true,
+        onDelete: 'CASCADE'
     })
     post: Post;
 
