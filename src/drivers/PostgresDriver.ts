@@ -123,6 +123,10 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.ts_type = "Date"
                         colInfo.sql_type = "timestamp"
                         break;
+                    case "timestamp with time zone":
+                        colInfo.ts_type = "Date"
+                        colInfo.sql_type = "timestamp"
+                        break;
                     case "json":
                         colInfo.ts_type = "Object"
                         colInfo.sql_type = "json"
