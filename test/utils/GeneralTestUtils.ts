@@ -50,7 +50,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             resultsPath: resultsPath,
             schemaName: 'dbo',
             ssl: yn(process.env.MSSQL_SSL),
-            noConfigs: false
+            noConfigs: false,
+            convertCase:false
         });
 
 
@@ -94,7 +95,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             resultsPath: resultsPath,
             schemaName: 'public',
             ssl: yn(process.env.POSTGRES_SSL),
-            noConfigs: false
+            noConfigs: false,
+            convertCase: false
         });
 
 
@@ -139,7 +141,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             resultsPath: resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MYSQL_SSL),
-            noConfigs: false
+            noConfigs: false,
+            convertCase: false
         });
 
 
@@ -184,7 +187,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             resultsPath: resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MARIADB_SSL),
-            noConfigs: false
+            noConfigs: false,
+            convertCase: false
         });
 
 
@@ -231,7 +235,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             resultsPath: resultsPath,
             schemaName: String(process.env.ORACLE_Username),
             ssl: yn(process.env.ORACLE_SSL),
-            noConfigs: false
+            noConfigs: false,
+            convertCase: false
         });
 
 

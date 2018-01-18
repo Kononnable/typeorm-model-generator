@@ -44,6 +44,6 @@ services:
   #   container_name: "typeorm-mg-oracle"
   #   ports:
   #     - "1521:1521"
-   # environment:
-   #   DB_SID: "ORCLCDB"
-   #   SYS_PASSWORD: "Oradoc_db1"
+  # environment:
+  #   DB_SID: "ORCLCDB"
+  #   SYS_PASSWORD: "Oradoc_db1"

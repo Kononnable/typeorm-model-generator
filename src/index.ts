@@ -61,6 +61,10 @@ var argv = Yargs
         describe: `Doesn't create tsconfig.json and ormconfig.json`,
         default: false
     })
+    .option('c', {
+        alias: 'case',
+        describe: 'Convert snake_case tables names to PascalCase entities and snake_case columns to camelCase properties'
+    })
     .argv;
 
 
@@ -106,7 +110,8 @@ let engine = new Engine(
         resultsPath: argv.o,
         schemaName: argv.s || standardSchema,
         ssl: argv.ssl,
-        noConfigs: argv.noConfig
+        noConfigs: argv.noConfig,
+        convertCase: !!argv.c
     });
 
 console.log(`[${new Date().toLocaleTimeString()}] Starting creation of model classes.`);

@@ -1,10 +1,14 @@
 import { ColumnInfo } from './ColumnInfo'
+import * as Handlebars from 'handlebars'
+
 /**
  * EntityInfo
  */
 export class EntityInfo {
     EntityName: string;
     Columns: ColumnInfo[];
+    Imports: string[];
+    UniqueImports: string[];
     Indexes: IndexInfo[];
 
     relationImports(): any {
@@ -18,13 +22,9 @@ export class EntityInfo {
                 }
             )
         });
-        imports.filter(function (elem, index, self) {
+        this.UniqueImports=imports.filter(function (elem, index, self) {
             return index == self.indexOf(elem);
-        }).forEach((imp) => {
-            returnString += `import {${imp}} from './${imp}'\n`
         })
-
-        return returnString;
     }
 
 }
