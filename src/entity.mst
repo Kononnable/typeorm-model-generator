@@ -3,11 +3,10 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
 {{/each}}
 
 
-@Entity("{{toEntityName EntityName}}")
+@Entity("{{EntityName}}")
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
 {{#Columns}}
-
 
    {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
         generated:true,{{/is_generated}}{{#is_nullable}}
@@ -18,14 +17,14 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}}
+        name:"{{name}}"
         })
     {{toPropertyName name}}:{{ts_type}};
         {{/relations}}{{#relations}}
     @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../name}}=>{{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}}{{else}}{{toPropertyName relatedColumn}}{{/if}}){{#isOwner}}
-    @JoinColumn({ name:'{{toPropertyName ../name}}'}){{/isOwner}}
+    @JoinColumn({ name:'{{ ../name}}'}){{/isOwner}}
     {{#if isOneToMany}}{{toPropertyName ../name}}:{{toEntityName relatedTable}}[];
     {{else}}{{toPropertyName ../name}}:{{toEntityName relatedTable}};
     {{/if}}{{/relations}}
-    {{"\n"}}
     {{/Columns}}
 }

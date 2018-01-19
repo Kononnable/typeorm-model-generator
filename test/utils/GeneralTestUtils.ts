@@ -9,6 +9,7 @@ import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import * as yn from "yn"
 import path = require('path')
+import { noCase } from "change-case";
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
 
@@ -51,7 +52,9 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             schemaName: 'dbo',
             ssl: yn(process.env.MSSQL_SSL),
             noConfigs: false,
-            convertCase:false
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
         });
 
 
@@ -96,7 +99,9 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             schemaName: 'public',
             ssl: yn(process.env.POSTGRES_SSL),
             noConfigs: false,
-            convertCase: false
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
         });
 
 
@@ -142,7 +147,9 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             schemaName: 'ignored',
             ssl: yn(process.env.MYSQL_SSL),
             noConfigs: false,
-            convertCase: false
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
         });
 
 
@@ -188,7 +195,9 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             schemaName: 'ignored',
             ssl: yn(process.env.MARIADB_SSL),
             noConfigs: false,
-            convertCase: false
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
         });
 
 
@@ -236,7 +245,10 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             schemaName: String(process.env.ORACLE_Username),
             ssl: yn(process.env.ORACLE_SSL),
             noConfigs: false,
-            convertCase: false
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
+
         });
 
 

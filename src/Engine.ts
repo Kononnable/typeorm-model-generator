@@ -26,10 +26,7 @@ export class Engine {
 
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
-        Handlebars.registerHelper("curly", (open) => {return open ? "{" : "}";});
-        Handlebars.registerHelper("toEntityName", str => {return this.Options.convertCase ? changeCase.pascalCase(str) : str;});
-        Handlebars.registerHelper("toFileName", str => {return this.Options.convertCase ? changeCase.paramCase(str) : str;});
-        Handlebars.registerHelper("toPropertyName", str => {return this.Options.convertCase ? changeCase.camelCase(str) : str;});
+        this.createHandlebarsHelpers();
         let templatePath = path.resolve(__dirname, '../../src/entity.mst')
         let template = fs.readFileSync(templatePath, 'UTF-8');
         let resultPath = this.Options.resultsPath
@@ -43,28 +40,94 @@ export class Engine {
             if (!fs.existsSync(entitesPath))
                 fs.mkdirSync(entitesPath);
         }
-        Handlebars.registerHelper('toLowerCase', function (str) {
-            return str.toLowerCase();
-        });
         let compliedTemplate = Handlebars.compile(template, { noEscape: true })
         databaseModel.entities.forEach(element => {
             element.Imports = [];
             element.Columns.forEach((column) => {
                 column.relations.forEach(
                     (relation) => {
-                        if (element.EntityName !== relation.relatedTable)
-                        {element.Imports.push(relation.relatedTable);}
+                        if (element.EntityName !== relation.relatedTable) { element.Imports.push(relation.relatedTable); }
                     }
                 );
             });
             element.Imports.filter(function (elem, index, self) {
                 return index === self.indexOf(elem);
             });
-            let resultFilePath = path.resolve(entitesPath, (this.Options.convertCase ? changeCase.paramCase(element.EntityName) : element.EntityName) + '.ts');
-            let rendered =compliedTemplate(element)
+            let casedFileName = ''
+            switch (this.Options.convertCaseFile) {
+                case 'camel':
+                    casedFileName = changeCase.camelCase(element.EntityName);
+                    break;
+                case 'param':
+                    casedFileName = changeCase.paramCase(element.EntityName);
+                    break;
+                case 'pascal':
+                    casedFileName = changeCase.pascalCase(element.EntityName);
+                    break;
+                case 'none':
+                    casedFileName = element.EntityName;
+                    break;
+            }
+            let resultFilePath = path.resolve(entitesPath, (casedFileName) + '.ts');
+            let rendered = compliedTemplate(element)
             fs.writeFileSync(resultFilePath, rendered, { encoding: 'UTF-8', flag: 'w' })
         });
     }
+    private createHandlebarsHelpers() {
+        Handlebars.registerHelper("curly", (open) => { return open ? "{" : "}"; });
+        Handlebars.registerHelper("toEntityName", str => {
+            let retStr = ''
+            switch (this.Options.convertCaseEntity) {
+                case 'camel':
+                    retStr = changeCase.camelCase(str);
+                    break;
+                case 'pascal':
+                    retStr = changeCase.pascalCase(str);
+                    break;
+                case 'none':
+                    retStr = str;
+                    break;
+            }
+            return retStr;
+        });
+        Handlebars.registerHelper("toFileName", str => {
+                let retStr = ''
+                switch (this.Options.convertCaseFile) {
+                    case 'camel':
+                        retStr = changeCase.camelCase(str);
+                        break;
+                    case 'param':
+                        retStr = changeCase.paramCase(str);
+                        break;
+                    case 'pascal':
+                        retStr = changeCase.pascalCase(str);
+                        break;
+                    case 'none':
+                        retStr = str;
+                        break;
+                }
+                return retStr;
+        });
+        Handlebars.registerHelper("toPropertyName", str => {
+            let retStr = ''
+            switch (this.Options.convertCaseProperty) {
+                case 'camel':
+                    retStr = changeCase.camelCase(str);
+                    break;
+                case 'pascal':
+                    retStr = changeCase.pascalCase(str);
+                    break;
+                case 'none':
+                    retStr = str;
+                    break;
+            }
+            return retStr;
+        });
+        Handlebars.registerHelper('toLowerCase', str => {
+            return str.toLowerCase();
+        });
+    }
+
     //TODO:Move to mustache template file
     private createTsConfigFile(resultPath) {
         fs.writeFileSync(path.resolve(resultPath, 'tsconfig.json'), `{"compilerOptions": {
@@ -129,5 +192,8 @@ export interface EngineOptions {
     schemaName: string,
     ssl: boolean,
     noConfigs: boolean,
-    convertCase: boolean
+    convertCaseFile: 'pascal' | 'param' | 'camel' | 'none',
+    convertCaseEntity: 'pascal' | 'camel' | 'none',
+    convertCaseProperty: 'pascal' | 'camel' | 'none',
 }
+
