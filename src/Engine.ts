@@ -91,22 +91,22 @@ export class Engine {
             return retStr;
         });
         Handlebars.registerHelper("toFileName", str => {
-                let retStr = ''
-                switch (this.Options.convertCaseFile) {
-                    case 'camel':
-                        retStr = changeCase.camelCase(str);
-                        break;
-                    case 'param':
-                        retStr = changeCase.paramCase(str);
-                        break;
-                    case 'pascal':
-                        retStr = changeCase.pascalCase(str);
-                        break;
-                    case 'none':
-                        retStr = str;
-                        break;
-                }
-                return retStr;
+            let retStr = ''
+            switch (this.Options.convertCaseFile) {
+                case 'camel':
+                    retStr = changeCase.camelCase(str);
+                    break;
+                case 'param':
+                    retStr = changeCase.paramCase(str);
+                    break;
+                case 'pascal':
+                    retStr = changeCase.pascalCase(str);
+                    break;
+                case 'none':
+                    retStr = str;
+                    break;
+            }
+            return retStr;
         });
         Handlebars.registerHelper("toPropertyName", str => {
             let retStr = ''
@@ -145,14 +145,13 @@ export class Engine {
             fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
   {
     "name": "default",
-    "driver": {
-      "type": "${this.Options.databaseType}",
-      "host": "${this.Options.host}",
-      "port": ${this.Options.port},
-      "username": "${this.Options.user}",
-      "password": "${this.Options.password}",
-      "database": "${this.Options.databaseName}"
-    },
+    "type": "${this.Options.databaseType}",
+    "host": "${this.Options.host}",
+    "port": ${this.Options.port},
+    "username": "${this.Options.user}",
+    "password": "${this.Options.password}",
+    "database": "${this.Options.databaseName}",
+    "synchronize": false
     "entities": [
       "entities/*.js"
     ]
@@ -163,15 +162,14 @@ export class Engine {
             fs.writeFileSync(path.resolve(resultPath, 'ormconfig.json'), `[
   {
     "name": "default",
-    "driver": {
-      "type": "${this.Options.databaseType}",
-      "host": "${this.Options.host}",
-      "port": ${this.Options.port},
-      "username": "${this.Options.user}",
-      "password": "${this.Options.password}",
-      "database": "${this.Options.databaseName}",
-      "schema": "${this.Options.schemaName}"
-    },
+    "type": "${this.Options.databaseType}",
+    "host": "${this.Options.host}",
+    "port": ${this.Options.port},
+    "username": "${this.Options.user}",
+    "password": "${this.Options.password}",
+    "database": "${this.Options.databaseName}",
+    "schema": "${this.Options.schemaName}",
+    "synchronize": false,
     "entities": [
       "entities/*.js"
     ]
