@@ -39,6 +39,12 @@ Options:
   --ssl                                               [boolean] [default: false]
   --noConfig      Doesn't create tsconfig.json and ormconfig.json
                                                       [boolean] [default: false]
+  --cf, --case-file      Convert file names to specified case
+                 [choices: "pascal", "param", "camel", "none"] [default: "none"]
+  --ce, --case-entity    Convert class names to specified case
+                          [choices: "pascal", "camel", "none"] [default: "none"]
+  --cp, --case-property  Convert property names to specified case
+                          [choices: "pascal", "camel", "none"] [default: "none"]
 ```
 ### Examples
 
