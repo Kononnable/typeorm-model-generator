@@ -51,18 +51,18 @@ Options:
 * Creating model from local MSSQL database
    * Global module
       ```
-      typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .\
+      typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .
       ````
    * Npx Way
       ```
-      npx typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .\
+      npx typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .
       ````
 * Creating model from local Postgres database, public schema with ssl connection
    * Global module
       ```
-      typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\ -s public --ssl
+      typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o . -s public --ssl
       ````
    * Npx Way
       ```
-      npx typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o .\ -s public --ssl
+      npx typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o . -s public --ssl
       ````
