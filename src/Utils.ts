@@ -2,6 +2,7 @@
 import * as data from './../../package.json'
 export function LogFatalError(errText: string, isABug: boolean = true, errObject?: any) {
     let x = <any>data;
+    console.error(errText)
     console.error(`Fatal error occured.`)
     console.error(`${x.name}@${x.version}  node@${process.version}`)
     console.error(`Fatal error occured in typeorm-model-generator.`)
