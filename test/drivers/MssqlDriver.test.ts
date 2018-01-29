@@ -103,6 +103,7 @@ describe('MssqlDriver', function () {
             numericScale: null,
             sql_type: 'int',
             ts_type: 'number',
+            enumOptions: null,
             relations: <RelationInfo[]>[]
         })
         let result = await driver.GetCoulmnsFromEntity(entities, 'schema');

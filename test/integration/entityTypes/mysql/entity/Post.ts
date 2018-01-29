@@ -78,8 +78,8 @@ export class Post {
     @Column("longtext")
     longtext: string;
 
-    // @Column("enum", { enum: ["A", "B", "C"] })
-    // enum: string;
+    @Column("enum", { enum: ["A", "B", "C"] })
+    enum: string;
 
     // @Column("enum", { enum: FruitEnum })
     // classEnum1: FruitEnum;

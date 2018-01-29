@@ -16,7 +16,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         default:"{{.}}",{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#isPrimary}}
-        primary:{{isPrimary}},{{/isPrimary}}
+        primary:{{isPrimary}},{{/isPrimary}}{{#enumOptions}}
+        enum:[{{.}}],{{/enumOptions}}
         name:"{{name}}"
         })
     {{toPropertyName name}}:{{ts_type}};

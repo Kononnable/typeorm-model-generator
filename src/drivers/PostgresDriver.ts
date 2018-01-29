@@ -208,7 +208,6 @@ export class PostgresDriver extends AbstractDriver {
                         colInfo.ts_type = "string"
                         colInfo.sql_type = "xml"
                         break;
-
                     default:
                         TomgUtils.LogFatalError("Unknown column type:" + resp.data_type);
                         break;

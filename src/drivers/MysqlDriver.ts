@@ -44,10 +44,10 @@ export class MysqlDriver extends AbstractDriver {
         let response = await this.ExecQuery<{
             TABLE_NAME: string, COLUMN_NAME: string, COLUMN_DEFAULT: string,
             IS_NULLABLE: string, DATA_TYPE: string, CHARACTER_MAXIMUM_LENGTH: number,
-            NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity: number
+            NUMERIC_PRECISION: number, NUMERIC_SCALE: number, IsIdentity: number, column_type:string
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, column_type  FROM INFORMATION_SCHEMA.COLUMNS
              where TABLE_SCHEMA like DATABASE()`);
         entities.forEach((ent) => {
             response.filter((filterVal) => {
@@ -195,6 +195,11 @@ export class MysqlDriver extends AbstractDriver {
                     case "json":
                         colInfo.ts_type = "Object"
                         colInfo.sql_type = "json"
+                        break;
+                    case "enum":
+                        colInfo.ts_type = "string"
+                        colInfo.sql_type = "enum"
+                        colInfo.enumOptions = resp.column_type.substring(5, resp.column_type.length - 1).replace(/\'/gi,'"')
                         break;
                     default:
                         TomgUtils.LogFatalError("Unknown column type:" + resp.DATA_TYPE);

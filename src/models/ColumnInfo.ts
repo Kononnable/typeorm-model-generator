@@ -14,6 +14,7 @@ export class ColumnInfo {
     is_generated: boolean = false;
     numericPrecision: number | null = null;
     numericScale: number | null = null;
+    enumOptions: string | null = null;
     relations: RelationInfo[];
 
 
