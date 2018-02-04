@@ -1,13 +1,22 @@
-import { RelationInfo } from './RelationInfo'
-import { ColumnType } from 'typeorm';
+import { RelationInfo } from "./RelationInfo";
+import { ColumnType } from "typeorm";
 /**
  * ColumnInfo
  */
 export class ColumnInfo {
-    name: string = '';
+    name: string = "";
     default: string | null = null;
     is_nullable: boolean = false;
-    ts_type: 'number' | 'string' | 'boolean' | 'Date' | 'Buffer' | 'Object' | 'string | Object' | 'string | string[]' | 'any';
+    ts_type:
+        | "number"
+        | "string"
+        | "boolean"
+        | "Date"
+        | "Buffer"
+        | "Object"
+        | "string | Object"
+        | "string | string[]"
+        | "any";
     sql_type: ColumnType;
     char_max_lenght: number | null = null;
     isPrimary: boolean = false;
@@ -17,9 +26,7 @@ export class ColumnInfo {
     enumOptions: string | null = null;
     relations: RelationInfo[];
 
-
     constructor() {
         this.relations = [];
     }
-
 }
