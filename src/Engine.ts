@@ -144,6 +144,11 @@ export class Engine {
         });
         Handlebars.registerHelper("toPropertyName", str => {
             let retStr = "";
+
+            if (this.Options.removeIdSuffix && str.length > 3 && str.endsWith("_id")) {
+                str = str.substring(0, str.length - 3);
+            }
+
             switch (this.Options.convertCaseProperty) {
                 case "camel":
                     retStr = changeCase.camelCase(str);
@@ -237,4 +242,5 @@ export interface EngineOptions {
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
+    removeIdSuffix: boolean;
 }
