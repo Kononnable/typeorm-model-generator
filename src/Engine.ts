@@ -124,6 +124,9 @@ export class Engine {
             }
             return retStr;
         });
+        Handlebars.registerHelper("array", str => str + "[]");
+        Handlebars.registerHelper("makeLazy", str => this.Options.lazy ? `Promise<${str}>` : str);
+        Handlebars.registerHelper("addLazyParameter", () => this.Options.lazy ? `, { lazy: true }` : "");
         Handlebars.registerHelper("toFileName", str => {
             let retStr = "";
             switch (this.Options.convertCaseFile) {
@@ -243,4 +246,5 @@ export interface EngineOptions {
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
     removeIdSuffix: boolean;
+    lazy: boolean;
 }

@@ -83,6 +83,10 @@ var argv = Yargs.usage(
         alias: "remove-id",
         describe: "Remove _id suffix from fields",
         default: false
+    })
+    .option("lazy", {
+        describe: "Use lazy loads between fields with relationsips",
+        default: false
     }).argv;
 
 var driver: AbstractDriver;
@@ -130,7 +134,8 @@ let engine = new Engine(driver, {
     convertCaseFile: argv.cf,
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
-    removeIdSuffix: argv.ri
+    removeIdSuffix: argv.ri,
+    lazy: argv.lazy
 });
 
 console.log(
