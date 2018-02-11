@@ -17,7 +17,7 @@ export class ColumnInfo {
         | "string | Object"
         | "string | string[]"
         | "any";
-    sql_type: ColumnType;
+    sql_type: string;
     char_max_lenght: number | null = null;
     isPrimary: boolean = false;
     is_generated: boolean = false;

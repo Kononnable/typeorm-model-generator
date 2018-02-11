@@ -80,10 +80,10 @@ export class MssqlDriver extends AbstractDriver {
                         resp.IS_NULLABLE == "YES" ? true : false;
                     colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
                     colInfo.default = resp.COLUMN_DEFAULT;
+                    colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "int";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -91,7 +91,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "tinyint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallint";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -99,7 +98,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallint";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -107,11 +105,9 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "bit":
                             colInfo.ts_type = "boolean";
-                            colInfo.sql_type = "boolean";
                             break;
                         case "float":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "float";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -120,7 +116,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "bigint":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "bigint";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -128,19 +123,15 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "date":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "date";
                             break;
                         case "time":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "time";
                             break;
                         case "datetime":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "datetime";
                             break;
                         case "char":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "char";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -148,7 +139,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "nchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "nchar";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -156,19 +146,15 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "text":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "ntext":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "ntext";
                             break;
                         case "uniqueidentifier":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "uniqueidentifier";
                             break;
                         case "varchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "varchar";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -176,7 +162,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "binary":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "binary";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -184,7 +169,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "varbinary":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "varbinary";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -192,11 +176,9 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "image":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "image";
                             break;
                         case "nvarchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "nvarchar";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -204,15 +186,12 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "money":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "decimal";
                             break;
                         case "smallmoney":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallmoney";
                             break;
                         case "real":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "double";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -220,7 +199,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "decimal":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "decimal";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             colInfo.numericScale = resp.NUMERIC_SCALE;
                             colInfo.char_max_lenght =
@@ -230,7 +208,6 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "numeric":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "numeric";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             colInfo.numericScale = resp.NUMERIC_SCALE;
                             colInfo.char_max_lenght =
@@ -240,30 +217,25 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         case "datetime2":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "datetime2";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "time":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "time";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "datetimeoffset":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "datetimeoffset";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "smalldatetime":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "smalldatetime";
                             break;
                         case "xml":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                "Unknown column type:" + resp.DATA_TYPE
+                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }

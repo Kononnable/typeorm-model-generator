@@ -81,10 +81,10 @@ export class MysqlDriver extends AbstractDriver {
                         resp.IS_NULLABLE == "YES" ? true : false;
                     colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
                     colInfo.default = resp.COLUMN_DEFAULT;
+                    colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "int";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -92,11 +92,9 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "tinyint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "tinyint";
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallint";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -104,11 +102,9 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "bit":
                             colInfo.ts_type = "boolean";
-                            colInfo.sql_type = "boolean";
                             break;
                         case "float":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "float";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -116,7 +112,6 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "bigint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "bigint";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -124,77 +119,58 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "date":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "date";
                             break;
                         case "time":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "time";
                             break;
                         case "datetime":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "datetime";
                             break;
                         case "char":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "nchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "text":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "ntext":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
 
                         case "mediumint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "mediumint";
                             break;
                         case "timestamp":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "timestamp";
                             break;
                         case "year":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "year";
                             break;
                         case "blob":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "blob";
                             break;
                         case "tinyblob":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "tinyblob";
                             break;
                         case "tinytext":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "tinytext";
                             break;
                         case "mediumblob":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "mediumblob";
                             break;
                         case "mediumtext":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "mediumtext";
                             break;
                         case "longblob":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "longblob";
                             break;
                         case "longtext":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "longtext";
                             break;
-
                         case "varchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "varchar";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -202,7 +178,6 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "nvarchar":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "nvarchar";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -210,11 +185,9 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "money":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "decimal";
                             break;
                         case "real":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "double";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -222,7 +195,6 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "double":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "double";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -230,7 +202,6 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "decimal":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "decimal";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             colInfo.numericScale = resp.NUMERIC_SCALE;
                             colInfo.char_max_lenght =
@@ -240,22 +211,19 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "xml":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "json":
                             colInfo.ts_type = "Object";
-                            colInfo.sql_type = "json";
                             break;
                         case "enum":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "enum";
                             colInfo.enumOptions = resp.column_type
                                 .substring(5, resp.column_type.length - 1)
                                 .replace(/\'/gi, '"');
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                "Unknown column type:" + resp.DATA_TYPE
+                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }

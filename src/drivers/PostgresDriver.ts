@@ -86,14 +86,13 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.default = colInfo.is_generated
                         ? ""
                         : resp.column_default;
+                        colInfo.sql_type = resp.data_type;
                     switch (resp.data_type) {
                         case "integer":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "int";
                             break;
                         case "character varying":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "varchar";
                             colInfo.char_max_lenght =
                                 resp.character_maximum_length > 0
                                     ? resp.character_maximum_length
@@ -101,77 +100,60 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         case "text":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "text";
                             break;
                         case "uuid":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "uuid";
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallint";
                             break;
                         case "bigint":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "bigint";
                             break;
                         case "date":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "date";
                             break;
                         case "boolean":
                             colInfo.ts_type = "boolean";
-                            colInfo.sql_type = "boolean";
                             break;
                         case "double precision":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "double";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "real":
                             colInfo.ts_type = "number";
-                            colInfo.sql_type = "float";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "numeric":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "numeric";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "time without time zone":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "time without time zone";
                             break;
                         case "timestamp without time zone":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "timestamp";
                             break;
                         case "timestamp with time zone":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "timestamp";
                             break;
                         case "timestamp with time zone":
                             colInfo.ts_type = "Date";
-                            colInfo.sql_type = "timestamp";
                             break;
                         case "json":
                             colInfo.ts_type = "Object";
-                            colInfo.sql_type = "json";
                             break;
                         case "jsonb":
                             colInfo.ts_type = "Object";
-                            colInfo.sql_type = "jsonb";
                             break;
                         case "money":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "money";
                             break;
                         case "character":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "character";
                             colInfo.char_max_lenght =
                                 resp.character_maximum_length > 0
                                     ? resp.character_maximum_length
@@ -179,71 +161,55 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         case "bytea":
                             colInfo.ts_type = "Buffer";
-                            colInfo.sql_type = "bytea";
                             break;
                         case "interval":
                             colInfo.ts_type = "any";
-                            colInfo.sql_type = "interval";
                             break;
                         case "time with time zone":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "time with time zone";
                             break;
                         case "point":
                             colInfo.ts_type = "string | Object";
-                            colInfo.sql_type = "point";
                             break;
                         case "line":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "line";
                             break;
                         case "lseg":
                             colInfo.ts_type = "string | string[]";
-                            colInfo.sql_type = "lseg";
                             break;
                         case "box":
                             colInfo.ts_type = "string | Object";
-                            colInfo.sql_type = "box";
                             break;
                         case "path":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "path";
                             break;
                         case "polygon":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "polygon";
                             break;
                         case "circle":
                             colInfo.ts_type = "string | Object";
-                            colInfo.sql_type = "circle";
                             break;
                         case "cidr":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "cidr";
                             break;
                         case "inet":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "inet";
                             break;
                         case "macaddr":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "macaddr";
                             break;
                         case "bit":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "bit";
                             break;
                         case "bit varying":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "bit varying";
                             break;
                         case "xml":
                             colInfo.ts_type = "string";
-                            colInfo.sql_type = "xml";
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                "Unknown column type:" + resp.data_type
+                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                             break;
                     }
