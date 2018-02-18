@@ -130,6 +130,9 @@ export class MssqlDriver extends AbstractDriver {
                         case "datetime":
                             colInfo.ts_type = "Date";
                             break;
+                        case "timestamp":
+                            colInfo.ts_type = "Date";
+                            break;
                         case "char":
                             colInfo.ts_type = "string";
                             colInfo.char_max_lenght =

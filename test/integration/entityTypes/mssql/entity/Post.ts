@@ -105,6 +105,9 @@ export class Post {
     @Column("time")
     timeObj: Date;
 
+    @Column("timestamp")
+    timestamp: Date;
+
     // @Column("time")
     // time: string;
 
