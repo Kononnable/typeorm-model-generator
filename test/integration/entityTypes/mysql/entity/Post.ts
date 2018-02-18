@@ -90,4 +90,10 @@ export class Post {
     // @Column("simple-array")
     // simpleArray: string[];
 
+
+
+
+    @Column("tinyint",{length:1})
+    bool: boolean;
+
 }
