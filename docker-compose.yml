@@ -30,7 +30,7 @@ services:
 
   # mssql
   mssql:
-    image: "microsoft/mssql-server-linux:2017-GA"
+    image: "microsoft/mssql-server-linux:2017-CU4"
     container_name: "typeorm-mg-mssql"
     ports:
       - "1433:1433"
