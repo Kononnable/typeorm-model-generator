@@ -16,7 +16,9 @@ env:
             MYSQL_Password=!Passw0rd MYSQL_Database=typeorm_mg MYSQL_SSL=1
             MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
             MARIADB_Username=root MARIADB_Password=!Passw0rd
-            MARIADB_Database=typeorm_mg MARIADB_SSL=0
+            MARIADB_Database=typeorm_mg MARIADB_SSL=0 MSSQL_Skip=0
+            MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa
+            MSSQL_Password=!Passw0rd MSSQL_Database=typeorm_mg MSSQL_SSL=0
     global:
         secure: >-
             Xj6wO8aghAhi6nvBI/HTtW9mIq9xfigIQfCC7ZkgAcqS4Oe3ba+7A5pCJq6Fxndadc6Bg1bZ3BGCH3Upf/Yv3zCFybsk43LwwXPJoG9gCrva/me7Sd+ws30EcD2dsKbvjZqNYai/XdrhzJY+KlxWvS/g3N/puBNffcU5hteo1zllxakQIAiavJ64D4g+Th8LSytmb2qDDToSsCxXkzNSutaKgZSf6T8QCWzcl0NCZkl69s9kX7L5335HVBD9lR/EKFC4wqHQjryCDRAyNRvItZRNlTPqgOI8lvcTsH9zKozDwEz7h/zcLebbY/+YTsLB5pb2sa62tkQE0x24TG7bLxujQShEQZU8itkRSV+w6+0JpBHQPlSUppkQJBNGKao7GaO/Eix4mSyvHkeECmTWDtEpBGWERYLqCKGe2Nj3BfcA2Ue6pjz9CX8wnrCbx53j6be3M/g/gcx7fbJbX3P95yc1CWAaR+tJKlP38rTcyo+o+Db1Ft0pzRJyZGmkGGPnCj6LxWYSmVqumLYDyqAMBDcQYuVwaKaTsJtU/2OBb3+zjKmWivV+19SXBqILvFbLv9IYLavpMr9OAwDGcJu0+mF+VCjGkZTlBxWJ53PmCoIJ6Qx/5o67LsCYL4L/hugNETlOEEKwe/k1mBraYWB0jI3mBUCV0d8J5P+ZQhwIZo4=
