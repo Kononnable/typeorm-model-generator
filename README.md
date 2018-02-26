@@ -27,17 +27,21 @@ Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x
 [password] -e [engine]
 
 Options:
-  -h, --host      IP adress/Hostname for database server.             [required]
-  -d, --database  Database name.                                      [required]
-  -u, --user      Username for database server.                       [required]
-  -x, --pass      Password for database server.                       [required]
-  -p, --port      Port number for database server.
-  -e, --engine    Database engine.
+  --help                 Show help                                     [boolean]
+  --version              Show version number                           [boolean]
+  -h, --host             IP adress/Hostname for database server.      [required]
+  -d, --database         Database name.                               [required]
+  -u, --user             Username for database server.                [required]
+  -x, --pass             Password for database server.             [default: ""]
+  -p, --port             Port number for database server.
+  -e, --engine           Database engine.
            [choices: "mssql", "postgres", "mysql", "mariadb"] [default: "mssql"]
-  -o, --output    Where to place generated models.
-  -s, --schema    Schema name to create model from. Only for mssql and postgres.
+  -o, --output           Where to place generated models.
+                 [default: "/Users/bluepichu/git/zensors/typeorm-models/output"]
+  -s, --schema           Schema name to create model from. Only for mssql and
+                         postgres.
   --ssl                                               [boolean] [default: false]
-  --noConfig      Doesn't create tsconfig.json and ormconfig.json
+  --noConfig             Doesn't create tsconfig.json and ormconfig.json
                                                       [boolean] [default: false]
   --cf, --case-file      Convert file names to specified case
                  [choices: "pascal", "param", "camel", "none"] [default: "none"]
@@ -45,6 +49,9 @@ Options:
                           [choices: "pascal", "camel", "none"] [default: "none"]
   --cp, --case-property  Convert property names to specified case
                           [choices: "pascal", "camel", "none"] [default: "none"]
+  --ri, --remove-id      Remove _id suffix from fields          [default: false]
+  --lazy                 Use lazy loads between fields with relationsips
+                                                                [default: false]
 ```
 ### Examples
 

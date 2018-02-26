@@ -4,7 +4,7 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
 
 
 @Entity("{{EntityName}}")
-{{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
+{{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
 {{#Columns}}
 
@@ -20,12 +20,12 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Joi
         enum:[{{.}}],{{/enumOptions}}
         name:"{{name}}"
         })
-    {{toPropertyName name}}:{{ts_type}};
+    {{toPropertyName name}}: {{ts_type}};
         {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../name}}=>{{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}}{{else}}{{toPropertyName relatedColumn}}{{/if}}){{#isOwner}}
+    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../name}}=>{{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}}{{else}}{{toPropertyName relatedColumn}}{{/if}}{{addLazyParameter}}){{#isOwner}}
     @JoinColumn({ name:'{{ ../name}}'}){{/isOwner}}
-    {{#if isOneToMany}}{{toPropertyName ../name}}:{{toEntityName relatedTable}}[];
-    {{else}}{{toPropertyName ../name}}:{{toEntityName relatedTable}};
+    {{#if isOneToMany}}{{toPropertyName ../name}}: {{makeLazy (array (toEntityName relatedTable))}};
+    {{else}}{{toPropertyName ../name}}: {{makeLazy (toEntityName relatedTable)}};
     {{/if}}{{/relations}}
     {{/Columns}}
 }
