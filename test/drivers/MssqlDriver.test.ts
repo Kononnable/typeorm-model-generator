@@ -61,6 +61,7 @@ describe('MssqlDriver', function () {
         let expectedResult = <EntityInfo[]>[];
         let y = new EntityInfo();
         y.EntityName = 'name'
+        y.Schema='schema'
         y.Columns = <ColumnInfo[]>[];
         y.Indexes = <IndexInfo[]>[];
         expectedResult.push(y)

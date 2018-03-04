@@ -17,8 +17,9 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     driver = new MssqlDriver();
     await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password), yn(process.env.MSSQL_SSL));
 
-    if (! await driver.CheckIfDBExists(String(process.env.MSSQL_Database)))
-        await driver.CreateDB(String(process.env.MSSQL_Database));
+    if (await driver.CheckIfDBExists(String(process.env.MSSQL_Database)))
+        await driver.DropDB(String(process.env.MSSQL_Database));
+    await driver.CreateDB(String(process.env.MSSQL_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -49,7 +50,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             password: String(process.env.MSSQL_Password),
             databaseType: 'mssql',
             resultsPath: resultsPath,
-            schemaName: 'dbo',
+            schemaName: 'dbo,sch1,sch2',
             ssl: yn(process.env.MSSQL_SSL),
             noConfigs: false,
             convertCaseEntity: 'none',
@@ -66,8 +67,9 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
     driver = new PostgresDriver();
     await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password), yn(process.env.POSTGRES_SSL));
 
-    if (! await driver.CheckIfDBExists(String(process.env.POSTGRES_Database)))
-        await driver.CreateDB(String(process.env.POSTGRES_Database));
+    if (await driver.CheckIfDBExists(String(process.env.POSTGRES_Database)))
+        await driver.DropDB(String(process.env.POSTGRES_Database));
+    await driver.CreateDB(String(process.env.POSTGRES_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -96,7 +98,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             password: String(process.env.POSTGRES_Password),
             databaseType: 'postgres',
             resultsPath: resultsPath,
-            schemaName: 'public',
+            schemaName: 'public,sch1,sch2',
             ssl: yn(process.env.POSTGRES_SSL),
             noConfigs: false,
             convertCaseEntity: 'none',
@@ -114,8 +116,9 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
     driver = new MysqlDriver();
     await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password), yn(process.env.MYSQL_SSL));
 
-    if (! await driver.CheckIfDBExists(String(process.env.MYSQL_Database)))
-        await driver.CreateDB(String(process.env.MYSQL_Database));
+    if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database)))
+        await driver.DropDB(String(process.env.MYSQL_Database));
+    await driver.CreateDB(String(process.env.MYSQL_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -161,8 +164,9 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
     driver = new MariaDbDriver();
     await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password), yn(process.env.MARIADB_SSL));
 
-    if (! await driver.CheckIfDBExists(String(process.env.MARIADB_Database)))
-        await driver.CreateDB(String(process.env.MARIADB_Database));
+    if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database)))
+        await driver.DropDB(String(process.env.MARIADB_Database));
+    await driver.CreateDB(String(process.env.MARIADB_Database));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
