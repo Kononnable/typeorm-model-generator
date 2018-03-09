@@ -55,7 +55,7 @@
         "@types/handlebars": "^4.0.36",
         "@types/mocha": "^2.2.44",
         "@types/mssql": "^4.0.4",
-        "@types/mysql": "2.15.2",
+        "@types/mysql": "2.15.3",
         "@types/node": "^9.3.0",
         "@types/oracledb": "^1.11.34",
         "@types/pg": "^7.4.1",
