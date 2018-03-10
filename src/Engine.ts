@@ -1,228 +1,13 @@
-import { AbstractDriver } from "./drivers/AbstractDriver";
-import { DatabaseModel } from "./models/DatabaseModel";
-import * as Handlebars from "handlebars";
-import fs = require("fs");
-import path = require("path");
-import * as TomgUtils from "./Utils";
-import changeCase = require("change-case");
-/**
- * Engine
- */
-export class Engine {
-    constructor(
-        private driver: AbstractDriver,
-        public Options: EngineOptions
-    ) {}
+import fs = require('fs');
+import path = require('path');
+import changeCase = require('change-case');
+import {BaseEntity} from 'typeorm';
+import {AbstractDriver} from './drivers/AbstractDriver';
+import {DatabaseModel} from './models/DatabaseModel';
+import {EntityInfo} from './models/EntityInfo';
 
-    public async createModelFromDatabase(): Promise<boolean> {
-        let dbModel = await this.getEntitiesInfo(
-            this.Options.databaseName,
-            this.Options.host,
-            this.Options.port,
-            this.Options.user,
-            this.Options.password,
-            this.Options.schemaName,
-            this.Options.ssl
-        );
-        if (dbModel.entities.length > 0) {
-            this.createModelFromMetadata(dbModel);
-        } else {
-            TomgUtils.LogFatalError(
-                "Tables not found in selected database. Skipping creation of typeorm model.",
-                false
-            );
-        }
-        return true;
-    }
-    private async getEntitiesInfo(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        schemaName: string,
-        ssl: boolean
-    ): Promise<DatabaseModel> {
-        return await this.driver.GetDataFromServer(
-            database,
-            server,
-            port,
-            user,
-            password,
-            schemaName,
-            ssl
-        );
-    }
-    private createModelFromMetadata(databaseModel: DatabaseModel) {
-        this.createHandlebarsHelpers();
-        let templatePath = path.resolve(__dirname, "../../src/entity.mst");
-        let template = fs.readFileSync(templatePath, "UTF-8");
-        let resultPath = this.Options.resultsPath;
-        if (!fs.existsSync(resultPath)) fs.mkdirSync(resultPath);
-        let entitesPath = resultPath;
-        if (!this.Options.noConfigs) {
-            this.createTsConfigFile(resultPath);
-            this.createTypeOrmConfig(resultPath);
-            entitesPath = path.resolve(resultPath, "./entities");
-            if (!fs.existsSync(entitesPath)) fs.mkdirSync(entitesPath);
-        }
-        let compliedTemplate = Handlebars.compile(template, { noEscape: true });
-        databaseModel.entities.forEach(element => {
-            element.Imports = [];
-            element.Columns.forEach(column => {
-                column.relations.forEach(relation => {
-                    if (element.EntityName !== relation.relatedTable) {
-                        element.Imports.push(relation.relatedTable);
-                    }
-                });
-            });
-            element.Imports.filter(function(elem, index, self) {
-                return index === self.indexOf(elem);
-            });
-            let casedFileName = "";
-            switch (this.Options.convertCaseFile) {
-                case "camel":
-                    casedFileName = changeCase.camelCase(element.EntityName);
-                    break;
-                case "param":
-                    casedFileName = changeCase.paramCase(element.EntityName);
-                    break;
-                case "pascal":
-                    casedFileName = changeCase.pascalCase(element.EntityName);
-                    break;
-                case "none":
-                    casedFileName = element.EntityName;
-                    break;
-            }
-            let resultFilePath = path.resolve(
-                entitesPath,
-                casedFileName + ".ts"
-            );
-            let rendered = compliedTemplate(element);
-            fs.writeFileSync(resultFilePath, rendered, {
-                encoding: "UTF-8",
-                flag: "w"
-            });
-        });
-    }
-    private createHandlebarsHelpers() {
-        Handlebars.registerHelper("curly", open => {
-            return open ? "{" : "}";
-        });
-        Handlebars.registerHelper("toEntityName", str => {
-            let retStr = "";
-            switch (this.Options.convertCaseEntity) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper("toFileName", str => {
-            let retStr = "";
-            switch (this.Options.convertCaseFile) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "param":
-                    retStr = changeCase.paramCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper("toPropertyName", str => {
-            let retStr = "";
-            switch (this.Options.convertCaseProperty) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper("toLowerCase", str => {
-            return str.toLowerCase();
-        });
-    }
+const BaseEntityProps = Object.getOwnPropertyNames(BaseEntity.prototype);
 
-    //TODO:Move to mustache template file
-    private createTsConfigFile(resultPath) {
-        fs.writeFileSync(
-            path.resolve(resultPath, "tsconfig.json"),
-            `{"compilerOptions": {
-        "lib": ["es5", "es6"],
-        "target": "es6",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "sourceMap": true
-    }}`,
-            { encoding: "UTF-8", flag: "w" }
-        );
-    }
-    private createTypeOrmConfig(resultPath) {
-        if (this.Options.schemaName == "") {
-            fs.writeFileSync(
-                path.resolve(resultPath, "ormconfig.json"),
-                `[
-  {
-    "name": "default",
-    "type": "${this.Options.databaseType}",
-    "host": "${this.Options.host}",
-    "port": ${this.Options.port},
-    "username": "${this.Options.user}",
-    "password": "${this.Options.password}",
-    "database": "${this.Options.databaseName}",
-    "synchronize": false
-    "entities": [
-      "entities/*.js"
-    ]
-  }
-]`,
-                { encoding: "UTF-8", flag: "w" }
-            );
-        } else {
-            fs.writeFileSync(
-                path.resolve(resultPath, "ormconfig.json"),
-                `[
-  {
-    "name": "default",
-    "type": "${this.Options.databaseType}",
-    "host": "${this.Options.host}",
-    "port": ${this.Options.port},
-    "username": "${this.Options.user}",
-    "password": "${this.Options.password}",
-    "database": "${this.Options.databaseName}",
-    "schema": "${this.Options.schemaName}",
-    "synchronize": false,
-    "entities": [
-      "entities/*.js"
-    ]
-  }
-]`,
-                { encoding: "UTF-8", flag: "w" }
-            );
-        }
-    }
-}
 export interface EngineOptions {
     host: string;
     port: number;
@@ -233,8 +18,243 @@ export interface EngineOptions {
     databaseType: string;
     schemaName: string;
     ssl: boolean;
-    noConfigs: boolean;
-    convertCaseFile: "pascal" | "param" | "camel" | "none";
-    convertCaseEntity: "pascal" | "camel" | "none";
-    convertCaseProperty: "pascal" | "camel" | "none";
+    indent: 'tab' | number;
+    validator: boolean;
+    convertCaseFile: 'pascal' | 'param' | 'camel' | 'none';
+    convertCaseEntity: 'pascal' | 'camel' | 'none';
+    convertCaseProperty: 'pascal' | 'camel' | 'none';
+}
+
+export class Engine {
+    constructor(
+        private driver: AbstractDriver,
+        public Options: EngineOptions) {
+    }
+
+    private typeormImports = {};
+    private validateImports = {};
+
+    public async createModelFromDatabase(): Promise<EntityInfo[]> {
+        const database = await this.driver.GetDataFromServer(
+            this.Options.databaseName,
+            this.Options.host,
+            this.Options.port,
+            this.Options.user,
+            this.Options.password,
+            this.Options.schemaName,
+            this.Options.ssl
+        );
+
+        if (database.entities.length > 0) {
+            const resultPath = this.Options.resultsPath;
+            if (!fs.existsSync(resultPath)) {
+                fs.mkdirSync(resultPath);
+            }
+
+            const entitiesPath = path.resolve(resultPath, './entities');
+            if (!fs.existsSync(entitiesPath)) {
+                fs.mkdirSync(entitiesPath);
+            }
+
+            database.entities.forEach(this.writeModel.bind(this));
+            return database.entities;
+        }
+
+        return [];
+    }
+
+    private writeModel(data) {
+        data.Imports = [];
+        data.Columns.forEach(column => {
+            column.relations.forEach(relation => {
+                if (data.EntityName !== relation.relatedTable) {
+                    data.Imports.push(relation.relatedTable);
+                }
+            });
+        });
+        data.Imports.filter((e, i, s) => i === s.indexOf(e));
+
+        const fileName = this.convertCase(data.EntityName, this.Options.convertCaseFile);
+        const filePath = path.resolve(this.Options.resultsPath, `./entities/${fileName}.ts`);
+        const fileContents = this.serializeEntity(data);
+        fs.writeFileSync(filePath, fileContents, {encoding: 'UTF-8', flag: 'w'});
+    }
+
+    private serializeEntity(entity) {
+        this.typeormImports = {BaseEntity: true, Entity: true};
+        this.validateImports = {};
+        entity.relationImports();
+
+        const tableName = entity.EntityName;
+        const className = this.convertCase(tableName, this.Options.convertCaseEntity);
+        const eol = this.getEOL();
+        let content = '';
+
+        content += this.flatten(entity.UniqueImports, this.serializeEntityImports);
+        content += `${eol}@Entity('${tableName}')${eol}`;
+        content += this.flatten(entity.Indexes, this.serializeIndexes);
+        content += `export class ${className} extends BaseEntity {${eol}${eol}`;
+        content += this.flatten(entity.Columns, this.serializeColumn);
+        content += `}${eol}`;
+
+        return `${this.serializeImports()}${content}`;
+    }
+
+    private serializeImports() {
+        const ormClasses = Object.keys(this.typeormImports).join(', ');
+        const validateClasses = Object.keys(this.validateImports).join(', ');
+        const eol = this.getEOL();
+        let content = `import {${ormClasses}} from 'typeorm';${eol}`;
+        if (this.Options.validator)
+            content += `import {${validateClasses}} from 'class-validator';${eol}`;
+        return content;
+    }
+
+    private serializeEntityImports(name: string) {
+        const className = this.convertCase(name, this.Options.convertCaseEntity);
+        const fileName = this.convertCase(name, this.Options.convertCaseFile);
+        return `import {${className}} from './${fileName}';${this.getEOL()}`;
+    }
+
+    private serializeIndexes(index) {
+        if (index.isPrimaryKey) return null;
+        const tab = this.getTab();
+        const eol = this.getEOL();
+        const columns = index.columns.map(c => `'${c.name}'`).join(', ');
+        const props = this.serializeProps({
+            unique: index.isUnique ? true : undefined
+        });
+
+        this.typeormImports['Index'] = true;
+        return `@Index([${columns}]${props ? ', ' + props : ''})${eol}`;
+    }
+
+    private serializeColumn(column) {
+        const {columnType, name, isPrimary, tsType, sqlType, isDefaultType, isNullable, charMaxLength, enumOptions, numericScale, numericPrecision} = column;
+        const propName = this.propCase(name);
+        const options = this.serializeProps({
+            type: !isDefaultType ? sqlType : undefined,
+            length: charMaxLength ? charMaxLength : undefined,
+            enum: enumOptions ? enumOptions.split() : undefined,
+            precision: numericPrecision ? numericPrecision : undefined,
+            scale: numericScale ? numericScale : undefined,
+            nullable: isNullable ? isNullable : undefined,
+            name: propName !== name && !column.relations.length ? name : undefined
+        });
+
+        const tab = this.getTab();
+        const eol = this.getEOL();
+        const colType = columnType === 'Column' && isPrimary ? 'PrimaryColumn' : columnType;
+        const pluralType = sqlType == 'enum' ? `${tsType}[]` : tsType;
+        const propType = isNullable ? `?: ${pluralType} | null` : `: ${pluralType}`;
+        let contents = `${tab}@${colType}(${options})`;
+        if (this.Options.validator)
+            contents += this.serializeColumnValidation(column);
+        if (!column.relations.length)
+            contents += `${eol}${tab}public ${propName}${propType};${eol}${eol}`;
+        else
+            contents += eol;
+        contents += this.flatten(column.relations, c => this.serializeColumnRelation(column, c));
+
+        this.typeormImports[colType] = true;
+        return contents;
+    }
+
+    private serializeColumnValidation(column) {
+        const {name, tsType, sqlType, isNullable, enumOptions} = column;
+        const nl = this.getEOL() + this.getTab();
+        const validate = {};
+
+        if (isNullable)
+            validate['IsOptional'] = null;
+        if (name === 'email')
+            validate['IsEmail'] = null;
+        else if (sqlType === 'enum')
+            validate['IsIn'] = `[${enumOptions}]`;
+        else if (tsType === 'string')
+            validate['IsString'] = null;
+        else if (tsType === 'number')
+            validate['IsNumber'] = null;
+
+        return Object.keys(validate).map(m => {
+            this.validateImports[m] = true;
+            return `${nl}@${m}(${validate[m] || ''})`;
+        }).join('');
+    }
+
+    private serializeColumnRelation(column, relation) {
+        const eol = this.getEOL();
+        const tab = this.getTab();
+        const {relationType, relatedTable, isOwner, ownerColumn, relatedColumn} = relation;
+        const decorator = relation.relationType;
+        const joinTable = this.convertCase(relatedTable, this.Options.convertCaseEntity);
+        const contextProp = isOwner ? ownerColumn : relatedColumn;
+        const contextColumn = this.propCase(contextProp);
+        const propName = this.propCase(column.name);
+
+        this.typeormImports[decorator] = true;
+
+        let contents = `${tab}@${decorator}(t=>${joinTable}, r=>r.${contextColumn})${eol}`;
+
+        if (relation.isOwner) {
+            contents += `${tab}@JoinColumn({name:'${column.name}'})${eol}`;
+            this.typeormImports['JoinColumn'] = true;
+        }
+
+        contents += `${tab}public ${propName}: ${joinTable}`;
+        contents += relation.isOneToMany ? '[];' : ';';
+        contents += eol + eol;
+
+        return contents;
+    }
+
+    private serializeProps(props) {
+        const validProps = Object.keys(props).map(key => {
+            const value = props[key];
+            if (!value) return false;
+            switch (typeof value) {
+                case 'string':
+                    return `${key}:'${value.replace(/\'/g, '\\\'')}'`;
+                case 'object':
+                    return Array.isArray(value)
+                        ? `${key}:[${value.join()}]`
+                        : `${key}:${JSON.stringify(value)}`;
+                case 'number':
+                default:
+                    return `${key}:${value}`;
+            }
+        }).filter(Boolean);
+        return validProps.length ? `{${validProps.join(', ')}}` : '';
+    }
+
+    private flatten(entries, method) {
+        return entries ? entries.map(method.bind(this)).join('') : '';
+    }
+
+    private propCase(str: string) {
+        if (BaseEntityProps.indexOf(str) !== -1)
+            return this.convertCase(`${str}_attribute`, this.Options.convertCaseProperty);
+        return this.convertCase(str, this.Options.convertCaseProperty);
+    }
+
+    private convertCase(str: string, caseType: string) {
+        switch (caseType) {
+            case 'camel':
+                return changeCase.camelCase(str);
+            case 'param':
+                return changeCase.paramCase(str);
+            case 'pascal':
+                return changeCase.pascalCase(str);
+        }
+        return str;
+    }
+
+    private getTab() {
+        const indent = this.Options.indent || 2;
+        return indent !== 'tab' ? (' ').repeat(indent) : '\t';
+    }
+
+    private getEOL() {
+        return '\n';
+    }
 }

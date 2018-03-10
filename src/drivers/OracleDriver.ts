@@ -1,15 +1,12 @@
-import { AbstractDriver } from "./AbstractDriver";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import { RelationInfo } from "./../models/RelationInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-import { promisify } from "util";
-import { request } from "https";
-import * as TomgUtils from "./../Utils";
+import {request} from 'https';
+import {promisify} from 'util';
+import {AbstractDriver} from './AbstractDriver';
+import {ColumnInfo} from './../models/ColumnInfo';
+import {EntityInfo} from './../models/EntityInfo';
+import {RelationInfo} from './../models/RelationInfo';
+import {DatabaseModel} from './../models/DatabaseModel';
+import * as TomgUtils from './../Utils';
 
-/**
- * OracleDriver
- */
 export class OracleDriver extends AbstractDriver {
     Oracle: any;
     constructor() {
@@ -36,6 +33,7 @@ export class OracleDriver extends AbstractDriver {
         });
         return ret;
     }
+
     async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
@@ -53,20 +51,25 @@ export class OracleDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp[1];
-                    colInfo.is_nullable = resp[3] == "Y" ? true : false;
-                    colInfo.is_generated = resp[8] == "YES" ? true : false;
+                    colInfo.isNullable = resp[3] == "Y" ? true : false;
+                    colInfo.isGenerated = resp[8] == "YES" ? true : false;
+                    colInfo.columnType = colInfo.isGenerated
+                        ? "PrimaryGeneratedColumn"
+                        : "Column";
                     colInfo.default = resp[2];
+                    colInfo.isDefaultType = false;
                     switch (resp[4].toLowerCase()) {
                         case "number":
-                            colInfo.ts_type = "number";
-                            colInfo.sql_type = "int";
-                            colInfo.char_max_lenght =
+                            colInfo.isDefaultType = true;
+                            colInfo.tsType = "number";
+                            colInfo.sqlType = "int";
+                            colInfo.charMaxLength =
                                 resp[5] > 0 ? resp[5] : null;
                             break;
                         case "varchar2":
-                            colInfo.ts_type = "number";
-                            colInfo.sql_type = "smallint";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "number";
+                            colInfo.sqlType = "smallint";
+                            colInfo.charMaxLength =
                                 resp[5] > 0 ? resp[5] : null;
                             break;
                         default:
@@ -76,11 +79,12 @@ export class OracleDriver extends AbstractDriver {
                             break;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sqlType) ent.Columns.push(colInfo);
                 });
         });
         return entities;
     }
+
     async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
@@ -124,6 +128,7 @@ export class OracleDriver extends AbstractDriver {
 
         return entities;
     }
+
     async GetRelations(
         entities: EntityInfo[],
         schema: string
@@ -226,7 +231,7 @@ export class OracleDriver extends AbstractDriver {
             }
             let ownerRelation = new RelationInfo();
             let columnName =
-                ownerEntity.EntityName.toLowerCase() + (isOneToMany ? "s" : "");
+                ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
             if (
                 referencedEntity.Columns.filter(filterVal => {
                     return filterVal.name == columnName;
@@ -235,7 +240,7 @@ export class OracleDriver extends AbstractDriver {
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         ownerEntity.EntityName.toLowerCase() +
-                        (isOneToMany ? "s" : "") +
+                        /*(isOneToMany ? "s" : "")*/ +
                         i.toString();
                     if (
                         referencedEntity.Columns.filter(filterVal => {
@@ -287,6 +292,7 @@ export class OracleDriver extends AbstractDriver {
         });
         return entities;
     }
+
     async DisconnectFromServer() {
         if (this.Connection) await this.Connection.close();
     }

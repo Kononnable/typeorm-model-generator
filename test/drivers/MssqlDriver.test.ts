@@ -94,16 +94,18 @@ describe('MssqlDriver', function () {
         entities.push(y)
         var expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
         expected[0].Columns.push({
-            char_max_lenght: null,
+            charMaxLength: null,
+            columnType: 'PrimaryGeneratedColumn',
             default: 'a',
-            is_nullable: true,
+            isNullable: true,
             isPrimary: false,
-            is_generated: true,
+            isDefaultType: true,
+            isGenerated: true,
             name: 'name',
             numericPrecision: null,
             numericScale: null,
-            sql_type: 'int',
-            ts_type: 'number',
+            sqlType: 'int',
+            tsType: 'number',
             enumOptions: null,
             relations: <RelationInfo[]>[]
         })

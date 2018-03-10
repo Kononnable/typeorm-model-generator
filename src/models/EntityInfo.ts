@@ -1,9 +1,5 @@
-import { ColumnInfo } from "./ColumnInfo";
-import * as Handlebars from "handlebars";
+import {ColumnInfo} from './ColumnInfo';
 
-/**
- * EntityInfo
- */
 export class EntityInfo {
     EntityName: string;
     Columns: ColumnInfo[];
@@ -13,16 +9,14 @@ export class EntityInfo {
     Schema: string;
 
     relationImports(): any {
-        var returnString = "";
-        var imports: string[] = [];
+        const imports: string[] = [];
         this.Columns.forEach(column => {
             column.relations.forEach(relation => {
-                if (this.EntityName != relation.relatedTable)
+                if (this.EntityName != relation.relatedTable) {
                     imports.push(relation.relatedTable);
+                }
             });
         });
-        this.UniqueImports = imports.filter(function(elem, index, self) {
-            return index == self.indexOf(elem);
-        });
+        this.UniqueImports = imports.filter((e, i, s) => i === s.indexOf(e));
     }
 }

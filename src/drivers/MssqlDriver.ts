@@ -1,14 +1,11 @@
-import { AbstractDriver } from "./AbstractDriver";
-import * as MSSQL from "mssql";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import { RelationInfo } from "./../models/RelationInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-import * as TomgUtils from "./../Utils";
+import * as MSSQL from 'mssql';
+import {AbstractDriver} from './AbstractDriver';
+import {ColumnInfo} from './../models/ColumnInfo';
+import {EntityInfo} from './../models/EntityInfo';
+import {RelationInfo} from './../models/RelationInfo';
+import {DatabaseModel} from './../models/DatabaseModel';
+import * as TomgUtils from './../Utils';
 
-/**
- * MssqlDriver
- */
 export class MssqlDriver extends AbstractDriver {
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection);
@@ -29,6 +26,7 @@ export class MssqlDriver extends AbstractDriver {
         });
         return ret;
     }
+
     async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
@@ -56,165 +54,171 @@ export class MssqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.COLUMN_NAME;
-                    colInfo.is_nullable =
+                    colInfo.isNullable =
                         resp.IS_NULLABLE == "YES" ? true : false;
-                    colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
+                    colInfo.isGenerated = resp.IsIdentity == 1 ? true : false;
+                    colInfo.columnType = colInfo.isGenerated
+                        ? "PrimaryGeneratedColumn"
+                        : "Column";
                     colInfo.default = resp.COLUMN_DEFAULT;
-                    colInfo.sql_type = resp.DATA_TYPE;
+                    colInfo.sqlType = resp.DATA_TYPE;
+                    colInfo.isDefaultType = false;
                     switch (resp.DATA_TYPE) {
                         case "int":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.isDefaultType = true;
+                            colInfo.tsType = "number";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "tinyint":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "number";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "number";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "bit":
-                            colInfo.ts_type = "boolean";
+                            colInfo.tsType = "boolean";
                             break;
                         case "float":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "number";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "bigint":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "date":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "time":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "datetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "char":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "nchar":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "text":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "ntext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "uniqueidentifier":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "varchar":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.isDefaultType = true;
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "binary":
-                            colInfo.ts_type = "Buffer";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "Buffer";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "varbinary":
-                            colInfo.ts_type = "Buffer";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "Buffer";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "image":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "nvarchar":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "money":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "smallmoney":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "real":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "number";
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "decimal":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "numeric":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
+                            colInfo.charMaxLength =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "datetime2":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "time":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "datetimeoffset":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "smalldatetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "xml":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         default:
                             TomgUtils.LogFatalError(
@@ -227,7 +231,7 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sqlType) ent.Columns.push(colInfo);
                 });
         });
         return entities;
@@ -298,6 +302,7 @@ ORDER BY
 
         return entities;
     }
+
     async GetRelations(
         entities: EntityInfo[],
         schema: string
@@ -425,7 +430,7 @@ order by
             }
             let ownerRelation = new RelationInfo();
             let columnName =
-                ownerEntity.EntityName.toLowerCase() + (isOneToMany ? "s" : "");
+                ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
             if (
                 referencedEntity.Columns.filter(filterVal => {
                     return filterVal.name == columnName;
@@ -434,7 +439,7 @@ order by
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         ownerEntity.EntityName.toLowerCase() +
-                        (isOneToMany ? "s" : "") +
+                        /*(isOneToMany ? "s" : "")*/ +
                         i.toString();
                     if (
                         referencedEntity.Columns.filter(filterVal => {
@@ -486,6 +491,7 @@ order by
         });
         return entities;
     }
+
     async DisconnectFromServer() {
         if (this.Connection) await this.Connection.close();
     }
@@ -529,18 +535,22 @@ order by
 
         await promise;
     }
+
     async CreateDB(dbName: string) {
         let request = new MSSQL.Request(this.Connection);
         let resp = await request.query(`CREATE DATABASE ${dbName}; `);
     }
+
     async UseDB(dbName: string) {
         let request = new MSSQL.Request(this.Connection);
         let resp = await request.query(`USE ${dbName}; `);
     }
+
     async DropDB(dbName: string) {
         let request = new MSSQL.Request(this.Connection);
         let resp = await request.query(`DROP DATABASE ${dbName}; `);
     }
+
     async CheckIfDBExists(dbName: string): Promise<boolean> {
         let request = new MSSQL.Request(this.Connection);
         let resp = await request.query(

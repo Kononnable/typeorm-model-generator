@@ -1,5 +1,5 @@
 interface IndexColumnInfo {
     name: string;
-    //isDescending:boolean,
-    // isIncludedColumn:boolean
+    // isDescending: boolean,
+    // isIncludedColumn: boolean
 }
