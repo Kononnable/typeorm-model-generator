@@ -1,18 +1,17 @@
-import * as ts from "typescript";
-import { AbstractDriver } from "../../src/drivers/AbstractDriver";
-import { MssqlDriver } from "../../src/drivers/MssqlDriver";
-import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
-import { MysqlDriver } from "../../src/drivers/MysqlDriver";
-import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
-import { OracleDriver } from "../../src/drivers/OracleDriver";
-import { Engine } from "../../src/Engine";
-import { createConnection, ConnectionOptions, Connection } from "typeorm";
-import * as yn from "yn"
-import path = require('path')
-import { noCase } from "change-case";
+import path = require('path');
+import {createConnection, ConnectionOptions, Connection} from 'typeorm';
+import {noCase} from 'change-case';
+import * as ts from 'typescript';
+import * as yn from 'yn';
+import {AbstractDriver} from '../../src/drivers/AbstractDriver';
+import {MssqlDriver} from '../../src/drivers/MssqlDriver';
+import {PostgresDriver} from './../../src/drivers/PostgresDriver';
+import {MysqlDriver} from '../../src/drivers/MysqlDriver';
+import {MariaDbDriver} from '../../src/drivers/MariaDbDriver';
+import {OracleDriver} from '../../src/drivers/OracleDriver';
+import {Engine} from '../../src/Engine';
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
-
     let driver: AbstractDriver;
     driver = new MssqlDriver();
     await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password), yn(process.env.MSSQL_SSL));
@@ -51,7 +50,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             resultsPath: resultsPath,
             schemaName: 'dbo',
             ssl: yn(process.env.MSSQL_SSL),
-            noConfigs: false,
+            validator: true,
+            indent: 2,
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
@@ -98,7 +98,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             resultsPath: resultsPath,
             schemaName: 'public',
             ssl: yn(process.env.POSTGRES_SSL),
-            noConfigs: false,
+            validator: true,
+            indent: 2,
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
@@ -146,7 +147,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             resultsPath: resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MYSQL_SSL),
-            noConfigs: false,
+            validator: true,
+            indent: 2,
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
@@ -194,7 +196,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             resultsPath: resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MARIADB_SSL),
-            noConfigs: false,
+            validator: true,
+            indent: 2,
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
@@ -244,7 +247,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             resultsPath: resultsPath,
             schemaName: String(process.env.ORACLE_Username),
             ssl: yn(process.env.ORACLE_SSL),
-            noConfigs: false,
+            validator: true,
+            indent: 2,
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',

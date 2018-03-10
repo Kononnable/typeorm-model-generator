@@ -1,8 +1,6 @@
-import { EntityInfo } from "./../models/EntityInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-/**
- * AbstractDriver
- */
+import {EntityInfo} from './../models/EntityInfo';
+import {DatabaseModel} from './../models/DatabaseModel';
+
 export abstract class AbstractDriver {
     async GetDataFromServer(
         database: string,
@@ -13,7 +11,7 @@ export abstract class AbstractDriver {
         schema: string,
         ssl: boolean
     ): Promise<DatabaseModel> {
-        let dbModel = <DatabaseModel>{};
+        const dbModel = <DatabaseModel>{};
         await this.ConnectToServer(database, server, port, user, password, ssl);
         dbModel.entities = await this.GetAllTables(schema);
         await this.GetCoulmnsFromEntity(dbModel.entities, schema);
@@ -23,6 +21,7 @@ export abstract class AbstractDriver {
         this.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
     }
+
     abstract async ConnectToServer(
         database: string,
         server: string,
@@ -31,19 +30,23 @@ export abstract class AbstractDriver {
         password: string,
         ssl: boolean
     );
+
     abstract async GetAllTables(schema: string): Promise<EntityInfo[]>;
     abstract async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
+    
     abstract async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
+
     abstract async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
+
     abstract async FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel);
     abstract async DisconnectFromServer();
 

@@ -1,6 +1,3 @@
-/**
- * IndexInfo
- */
 interface IndexInfo {
     name: string;
     columns: IndexColumnInfo[];

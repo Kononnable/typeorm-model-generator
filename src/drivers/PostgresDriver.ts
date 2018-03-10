@@ -1,13 +1,11 @@
-import { AbstractDriver } from "./AbstractDriver";
-import * as PG from "pg";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import { RelationInfo } from "./../models/RelationInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-import * as TomgUtils from "./../Utils";
-/**
- * PostgresDriver
- */
+import * as PG from 'pg';
+import {AbstractDriver} from './AbstractDriver';
+import {ColumnInfo} from './../models/ColumnInfo';
+import {EntityInfo} from './../models/EntityInfo';
+import {RelationInfo} from './../models/RelationInfo';
+import {DatabaseModel} from './../models/DatabaseModel';
+import * as TomgUtils from './../Utils';
+
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
 
@@ -58,14 +56,14 @@ export class PostgresDriver extends AbstractDriver {
             table_name: string;
             column_name: string;
             column_default: string;
-            is_nullable: string;
+            isNullable: string;
             data_type: string;
             character_maximum_length: number;
             numeric_precision: number;
             numeric_scale: number;
             isidentity: string;
         }[] = (await this.Connection
-            .query(`SELECT table_name,column_name,column_default,is_nullable,
+            .query(`SELECT table_name,column_name,column_default,isNullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale
             --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity
            , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
@@ -79,133 +77,139 @@ export class PostgresDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.column_name;
-                    colInfo.is_nullable =
-                        resp.is_nullable == "YES" ? true : false;
-                    colInfo.is_generated =
+                    colInfo.isNullable =
+                        resp.isNullable == "YES" ? true : false;
+                    colInfo.isGenerated =
                         resp.isidentity == "YES" ? true : false;
-                    colInfo.default = colInfo.is_generated
+                    colInfo.columnType = colInfo.isGenerated
+                        ? "PrimaryGeneratedColumn"
+                        : "Column";
+                    colInfo.default = colInfo.isGenerated
                         ? ""
                         : resp.column_default;
-                        colInfo.sql_type = resp.data_type;
+                        colInfo.sqlType = resp.data_type;
+                    colInfo.isDefaultType = false;
                     switch (resp.data_type) {
                         case "integer":
-                            colInfo.ts_type = "number";
+                            colInfo.isDefaultType = true;
+                            colInfo.tsType = "number";
                             break;
                         case "character varying":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.isDefaultType = true;
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.character_maximum_length > 0
                                     ? resp.character_maximum_length
                                     : null;
                             break;
                         case "text":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "uuid":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "bigint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "date":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "boolean":
-                            colInfo.ts_type = "boolean";
+                            colInfo.tsType = "boolean";
                             break;
                         case "double precision":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "real":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "numeric":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "time without time zone":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "timestamp without time zone":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "json":
-                            colInfo.ts_type = "Object";
+                            colInfo.tsType = "Object";
                             break;
                         case "jsonb":
-                            colInfo.ts_type = "Object";
+                            colInfo.tsType = "Object";
                             break;
                         case "money":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "character":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
+                            colInfo.tsType = "string";
+                            colInfo.charMaxLength =
                                 resp.character_maximum_length > 0
                                     ? resp.character_maximum_length
                                     : null;
                             break;
                         case "bytea":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "interval":
-                            colInfo.ts_type = "any";
+                            colInfo.tsType = "any";
                             break;
                         case "time with time zone":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "point":
-                            colInfo.ts_type = "string | Object";
+                            colInfo.tsType = "string | Object";
                             break;
                         case "line":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "lseg":
-                            colInfo.ts_type = "string | string[]";
+                            colInfo.tsType = "string | string[]";
                             break;
                         case "box":
-                            colInfo.ts_type = "string | Object";
+                            colInfo.tsType = "string | Object";
                             break;
                         case "path":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "polygon":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "circle":
-                            colInfo.ts_type = "string | Object";
+                            colInfo.tsType = "string | Object";
                             break;
                         case "cidr":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "inet":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "macaddr":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "bit":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "bit varying":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "xml":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         default:
                             TomgUtils.LogFatalError(
@@ -214,7 +218,7 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sqlType) ent.Columns.push(colInfo);
                 });
         });
         return entities;
@@ -491,6 +495,7 @@ export class PostgresDriver extends AbstractDriver {
         });
         return entities;
     }
+
     async DisconnectFromServer() {
         if (this.Connection) {
             let promise = new Promise<boolean>((resolve, reject) => {
