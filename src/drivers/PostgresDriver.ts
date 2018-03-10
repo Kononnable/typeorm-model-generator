@@ -35,13 +35,14 @@ export class PostgresDriver extends AbstractDriver {
             table_schema: string;
             table_name: string;
         }[] = (await this.Connection.query(
-            `SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema = '${schema}' `
+            `SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
         )).rows;
 
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach(val => {
             let ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.table_name;
+            ent.Schema=val.table_schema;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -67,7 +68,7 @@ export class PostgresDriver extends AbstractDriver {
             data_type,character_maximum_length,numeric_precision,numeric_scale
             --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity
            , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
-            FROM INFORMATION_SCHEMA.COLUMNS where table_schema ='${schema}'`))
+            FROM INFORMATION_SCHEMA.COLUMNS where table_schema in (${schema})`))
             .rows;
         entities.forEach(ent => {
             response
@@ -85,7 +86,7 @@ export class PostgresDriver extends AbstractDriver {
                         ? "PrimaryGeneratedColumn"
                         : "Column";
                     colInfo.default = colInfo.isGenerated
-                        ? ""
+                        ? null
                         : resp.column_default;
                         colInfo.sqlType = resp.data_type;
                     colInfo.isDefaultType = false;
@@ -256,7 +257,7 @@ export class PostgresDriver extends AbstractDriver {
             LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
 
             WHERE c.relkind = 'r'::char
-            AND n.nspname = '${schema}'
+            AND n.nspname in (${schema})
             --AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
             AND f.attnum > 0
             AND i.oid<>0
@@ -335,7 +336,7 @@ export class PostgresDriver extends AbstractDriver {
                      con1.contype = 'f'::"char"
                      AND cl_1.relnamespace = ns.oid
                      AND con1.conrelid = cl_1.oid
-                     and nspname='${schema}'
+                     and nspname in (${schema})
               ) con,
                 pg_attribute att,
                 pg_class cl,

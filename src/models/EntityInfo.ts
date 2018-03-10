@@ -6,6 +6,7 @@ export class EntityInfo {
     Imports: string[];
     UniqueImports: string[];
     Indexes: IndexInfo[];
+    Schema:string;
 
     relationImports(): any {
         const imports: string[] = [];

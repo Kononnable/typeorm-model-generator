@@ -34,12 +34,13 @@ export class MssqlDriver extends AbstractDriver {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
         }[] = (await request.query(
-            `SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA='${schema}'`
+            `SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema})`
         )).recordset;
         let ret: EntityInfo[] = <EntityInfo[]>[];
         response.forEach(val => {
             let ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.TABLE_NAME;
+            ent.Schema=val.TABLE_SCHEMA;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -64,7 +65,7 @@ export class MssqlDriver extends AbstractDriver {
             IsIdentity: number;
         }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS  where TABLE_SCHEMA='${schema}'`))
+   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS  where TABLE_SCHEMA in (${schema})`))
             .recordset;
         entities.forEach(ent => {
             response
@@ -282,7 +283,7 @@ INNER JOIN
 INNER JOIN
      sys.schemas s on s.schema_id=t.schema_id
 WHERE
-     t.is_ms_shipped = 0 and s.name='${schema}'
+     t.is_ms_shipped = 0 and s.name in (${schema})
 ORDER BY
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach(ent => {
@@ -357,7 +358,7 @@ inner join
 inner join
 	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
 where
-    fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name='${schema}'
+    fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
 order by
     TableWithForeignKey, FK_PartNo`)).recordset;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];

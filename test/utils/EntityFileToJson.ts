@@ -1,4 +1,21 @@
+import { debug } from "util";
+
 export class EntityFileToJson {
+    getEntityOptions(trimmedLine: string, ent: EntityJson) {
+        let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
+
+        if (decoratorParameters.length > 0) {
+                if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
+
+                } else {
+                    let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
+                    if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
+                        badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
+                    }
+                     ent.entityOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+                }
+        }
+    }
     getColumnOptionsAndType(trimmedLine: string, col: EntityColumn) {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
 
@@ -104,7 +121,15 @@ export class EntityFileToJson {
                 if (trimmedLine.startsWith('import')) {
                     continue; //import statement is not part of entity definition
                 } else if (trimmedLine.startsWith('@Entity')) {
-                    continue; //TODO:entity options
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        let options = trimmedLine.substring(trimmedLine.lastIndexOf('{'), trimmedLine.lastIndexOf('}')+1).trim().toLowerCase()
+                        this.getEntityOptions(trimmedLine,retVal);
+                        continue;
+                    }
                 } else if (trimmedLine.startsWith('export class')) {
                     retVal.entityName = trimmedLine.substring(trimmedLine.indexOf('class') + 5, trimmedLine.lastIndexOf('{')).trim().toLowerCase()
                     isInClassBody = true;

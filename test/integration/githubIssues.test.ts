@@ -34,6 +34,16 @@ describe("GitHub issues", async function () {
 
         describe(`#${folder}`, async function () {
             for (let dbDriver of dbDrivers) {
+
+                switch (folder) {
+                    case '39':
+                        if (dbDriver =='mysql' || dbDriver=='mariadb')
+                            continue;
+                        break;
+                    default:
+                        break;
+                }
+
                 it(dbDriver, async function () {
 
                     let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
