@@ -110,16 +110,17 @@ switch (argv.e) {
         TomgUtils.LogFatalError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
 }
+console.log(argv.s ? argv.s.toString() : standardSchema)
 
 let engine = new Engine(driver, {
     host: argv.h,
     port: parseInt(argv.p) || standardPort,
-    databaseName: argv.d.toString(),
-    user: argv.u.toString(),
-    password: argv.x.toString(),
+    databaseName: argv.d ? argv.d.toString() : null,
+    user: argv.u ? argv.u.toString() : null,
+    password: argv.x ? argv.x.toString() : null,
     databaseType: argv.e,
-    resultsPath: argv.o.toString(),
-    schemaName: argv.s.toString() || standardSchema,
+    resultsPath: argv.o ? argv.o.toString() : null,
+    schemaName: argv.s ? argv.s.toString() : standardSchema,
     ssl: argv.ssl,
     noConfigs: argv.noConfig,
     convertCaseFile: argv.cf,
