@@ -91,8 +91,8 @@ export class MysqlDriver extends AbstractDriver {
                                     : null;
                             break;
                         case "tinyint":
-                            if (resp.column_type == 'tinyint(1)') {
-                                colInfo.char_max_lenght = 1
+                            if (resp.column_type == "tinyint(1)") {
+                                colInfo.char_max_lenght = 1;
                                 colInfo.ts_type = "boolean";
                             } else {
                                 colInfo.char_max_lenght =
@@ -232,7 +232,11 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
+                                `Unknown column type: ${
+                                    resp.DATA_TYPE
+                                }  table name: ${
+                                    resp.TABLE_NAME
+                                } column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }
@@ -345,7 +349,7 @@ export class MysqlDriver extends AbstractDriver {
             if (!ownerEntity) {
                 TomgUtils.LogFatalError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
-                    relationTmp.referencedTable
+                        relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.ownerTable}.`
                 );
                 return;
@@ -356,7 +360,7 @@ export class MysqlDriver extends AbstractDriver {
             if (!referencedEntity) {
                 TomgUtils.LogFatalError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
-                    relationTmp.referencedTable
+                        relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.referencedTable}.`
                 );
                 return;
@@ -367,9 +371,9 @@ export class MysqlDriver extends AbstractDriver {
             if (!ownerColumn) {
                 TomgUtils.LogFatalError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
-                    relationTmp.referencedTable
+                        relationTmp.referencedTable
                     } didn't found entity column ${
-                    relationTmp.ownerTable
+                        relationTmp.ownerTable
                     }.${ownerColumn}.`
                 );
                 return;
@@ -380,9 +384,9 @@ export class MysqlDriver extends AbstractDriver {
             if (!relatedColumn) {
                 TomgUtils.LogFatalError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
-                    relationTmp.referencedTable
+                        relationTmp.referencedTable
                     } didn't found entity column ${
-                    relationTmp.referencedTable
+                        relationTmp.referencedTable
                     }.${relatedColumn}.`
                 );
                 return;

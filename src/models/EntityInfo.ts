@@ -10,7 +10,7 @@ export class EntityInfo {
     Imports: string[];
     UniqueImports: string[];
     Indexes: IndexInfo[];
-    Schema:string;
+    Schema: string;
 
     relationImports(): any {
         var returnString = "";

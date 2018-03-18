@@ -43,7 +43,7 @@ export class MssqlDriver extends AbstractDriver {
         response.forEach(val => {
             let ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.TABLE_NAME;
-            ent.Schema=val.TABLE_SCHEMA;
+            ent.Schema = val.TABLE_SCHEMA;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -239,7 +239,11 @@ export class MssqlDriver extends AbstractDriver {
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
+                                `Unknown column type: ${
+                                    resp.DATA_TYPE
+                                }  table name: ${
+                                    resp.TABLE_NAME
+                                } column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }

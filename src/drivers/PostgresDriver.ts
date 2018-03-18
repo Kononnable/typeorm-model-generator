@@ -44,7 +44,7 @@ export class PostgresDriver extends AbstractDriver {
         response.forEach(val => {
             let ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.table_name;
-            ent.Schema=val.table_schema;
+            ent.Schema = val.table_schema;
             ent.Columns = <ColumnInfo[]>[];
             ent.Indexes = <IndexInfo[]>[];
             ret.push(ent);
@@ -87,7 +87,7 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.default = colInfo.is_generated
                         ? null
                         : resp.column_default;
-                        colInfo.sql_type = resp.data_type;
+                    colInfo.sql_type = resp.data_type;
                     switch (resp.data_type) {
                         case "integer":
                             colInfo.ts_type = "number";
@@ -210,7 +210,11 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         default:
                             TomgUtils.LogFatalError(
-                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
+                                `Unknown column type: ${
+                                    resp.data_type
+                                }  table name: ${
+                                    resp.table_name
+                                } column name: ${resp.column_name}`
                             );
                             break;
                     }

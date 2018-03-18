@@ -24,7 +24,7 @@ gulp.task('clean', function () {
 gulp.task('prettier', function () {
     return gulp.src('.prettierrc')
         .pipe(shell(['prettier ./src/**/*.ts --write']))
-        .pipe(shell(['prettier ./test/**/*.ts --write']))
+        // .pipe(shell(['prettier ./test/**/*.ts --write']))
 });
 
 gulp.task('pre-commit', ['prettier'], function () {

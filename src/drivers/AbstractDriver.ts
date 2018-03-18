@@ -15,11 +15,14 @@ export abstract class AbstractDriver {
     ): Promise<DatabaseModel> {
         let dbModel = <DatabaseModel>{};
         await this.ConnectToServer(database, server, port, user, password, ssl);
-        let sqlEscapedSchema='\''+ schema.split(',').join('\',\'')+'\''
+        let sqlEscapedSchema = "'" + schema.split(",").join("','") + "'";
         dbModel.entities = await this.GetAllTables(sqlEscapedSchema);
         await this.GetCoulmnsFromEntity(dbModel.entities, sqlEscapedSchema);
         await this.GetIndexesFromEntity(dbModel.entities, sqlEscapedSchema);
-        dbModel.entities = await this.GetRelations(dbModel.entities, sqlEscapedSchema);
+        dbModel.entities = await this.GetRelations(
+            dbModel.entities,
+            sqlEscapedSchema
+        );
         await this.DisconnectFromServer();
         this.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
