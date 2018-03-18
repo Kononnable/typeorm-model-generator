@@ -9,8 +9,10 @@ output/**/*.*
 coverage/
 .env
 *.tgz
-
-
+.editorconfig
+.prettierrc
+docker-compose.yml
+gulpfile.js
 !src/
 src/*
 !src/*.mst
