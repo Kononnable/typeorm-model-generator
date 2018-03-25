@@ -1,5 +1,6 @@
 import { EntityInfo } from "./../models/EntityInfo";
 import { DatabaseModel } from "./../models/DatabaseModel";
+import * as TomgUtils from "./../Utils";
 /**
  * AbstractDriver
  */
@@ -48,7 +49,27 @@ export abstract class AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
-    abstract async FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel);
+
+    FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
+        dbModel.entities.forEach(entity => {
+            let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
+            if (!primaryIndex) {
+                TomgUtils.LogFatalError(
+                    `Table ${entity.EntityName} has no PK.`,
+                    false
+                );
+                return;
+            }
+            entity.Columns.forEach(col => {
+                if (
+                    primaryIndex!.columns.some(
+                        cIndex => cIndex.name == col.name
+                    )
+                )
+                    col.isPrimary = true;
+            });
+        });
+    }
     abstract async DisconnectFromServer();
 
     abstract async CreateDB(dbName: string);

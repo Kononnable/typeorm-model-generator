@@ -11,27 +11,6 @@ import * as TomgUtils from "./../Utils";
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
 
-    FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
-        dbModel.entities.forEach(entity => {
-            let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            if (!primaryIndex) {
-                TomgUtils.LogFatalError(
-                    `Table ${entity.EntityName} has no PK.`,
-                    false
-                );
-                return;
-            }
-            entity.Columns.forEach(col => {
-                if (
-                    primaryIndex!.columns.some(
-                        cIndex => cIndex.name == col.name
-                    )
-                )
-                    col.isPrimary = true;
-            });
-        });
-    }
-
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
         let response: {
             table_schema: string;
