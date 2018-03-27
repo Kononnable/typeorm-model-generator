@@ -17,7 +17,7 @@ export class OracleDriver extends AbstractDriver {
         try {
             this.Oracle = require("oracledb");
         } catch (error) {
-            TomgUtils.LogFatalError("", false, error);
+            TomgUtils.LogError("", false, error);
             throw error;
         }
     }
@@ -70,7 +70,7 @@ export class OracleDriver extends AbstractDriver {
                                 resp[5] > 0 ? resp[5] : null;
                             break;
                         default:
-                            TomgUtils.LogFatalError(
+                            TomgUtils.LogError(
                                 "Unknown column type:" + resp[4]
                             );
                             break;
@@ -164,7 +164,7 @@ export class OracleDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.ownerTable;
             });
             if (!ownerEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.ownerTable}.`
@@ -175,7 +175,7 @@ export class OracleDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.referencedTable;
             });
             if (!referencedEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.referencedTable}.`
@@ -186,7 +186,7 @@ export class OracleDriver extends AbstractDriver {
                 return column.name == relationTmp.ownerColumnsNames[0];
             });
             if (!ownerColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -199,7 +199,7 @@ export class OracleDriver extends AbstractDriver {
                 return column.name == relationTmp.referencedColumnsNames[0];
             });
             if (!relatedColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -316,7 +316,7 @@ export class OracleDriver extends AbstractDriver {
                     that.Connection = connection;
                     resolve(true);
                 } else {
-                    TomgUtils.LogFatalError(
+                    TomgUtils.LogError(
                         "Error connecting to Oracle Server.",
                         false,
                         err.message

@@ -116,7 +116,7 @@ export abstract class AbstractDriver {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             if (!primaryIndex) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Table ${entity.EntityName} has no PK.`,
                     false
                 );

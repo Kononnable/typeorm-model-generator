@@ -27,7 +27,7 @@ export class Engine {
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
         } else {
-            TomgUtils.LogFatalError(
+            TomgUtils.LogError(
                 "Tables not found in selected database. Skipping creation of typeorm model.",
                 false
             );

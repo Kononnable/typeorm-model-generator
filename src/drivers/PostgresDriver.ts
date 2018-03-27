@@ -188,7 +188,7 @@ export class PostgresDriver extends AbstractDriver {
                             colInfo.ts_type = "string";
                             break;
                         default:
-                            TomgUtils.LogFatalError(
+                            TomgUtils.LogError(
                                 `Unknown column type: ${
                                     resp.data_type
                                 }  table name: ${
@@ -350,7 +350,7 @@ export class PostgresDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.ownerTable;
             });
             if (!ownerEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.ownerTable}.`
@@ -361,7 +361,7 @@ export class PostgresDriver extends AbstractDriver {
                 return entitity.EntityName == relationTmp.referencedTable;
             });
             if (!referencedEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.referencedTable}.`
@@ -372,7 +372,7 @@ export class PostgresDriver extends AbstractDriver {
                 return column.name == relationTmp.ownerColumnsNames[0];
             });
             if (!ownerColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -385,7 +385,7 @@ export class PostgresDriver extends AbstractDriver {
                 return column.name == relationTmp.referencedColumnsNames[0];
             });
             if (!relatedColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -481,7 +481,7 @@ export class PostgresDriver extends AbstractDriver {
                         //Connection successfull
                         resolve(true);
                     } else {
-                        TomgUtils.LogFatalError(
+                        TomgUtils.LogError(
                             "Error connecting to Postgres Server.",
                             false,
                             err.message
@@ -517,7 +517,7 @@ export class PostgresDriver extends AbstractDriver {
                     //Connection successfull
                     resolve(true);
                 } else {
-                    TomgUtils.LogFatalError(
+                    TomgUtils.LogError(
                         "Error connecting to Postgres Server.",
                         false,
                         err.message
