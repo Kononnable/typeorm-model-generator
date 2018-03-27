@@ -31,13 +31,13 @@ export abstract class AbstractDriver {
                     v => v.EntityName == relations[0].relatedTable
                 )[0];
                 relatedTable1.Columns = relatedTable1.Columns.filter(
-                    v => v.name != entity.EntityName
+                    v => v.name.toLowerCase() != entity.EntityName.toLowerCase()
                 );
                 let relatedTable2 = dbModel.entities.filter(
                     v => v.EntityName == relations[1].relatedTable
                 )[0];
                 relatedTable2.Columns = relatedTable2.Columns.filter(
-                    v => v.name != entity.EntityName
+                    v => v.name.toLowerCase() != entity.EntityName.toLowerCase()
                 );
                 dbModel.entities = dbModel.entities.filter(ent => {
                     return ent.EntityName != entity.EntityName;
