@@ -1,10 +1,10 @@
-import * as PG from 'pg';
-import {AbstractDriver} from './AbstractDriver';
-import {ColumnInfo} from './../models/ColumnInfo';
-import {EntityInfo} from './../models/EntityInfo';
-import {RelationInfo} from './../models/RelationInfo';
-import {DatabaseModel} from './../models/DatabaseModel';
-import * as TomgUtils from './../Utils';
+import * as PG from "pg";
+import { AbstractDriver } from "./AbstractDriver";
+import { ColumnInfo } from "./../models/ColumnInfo";
+import { EntityInfo } from "./../models/EntityInfo";
+import { RelationInfo } from "./../models/RelationInfo";
+import { DatabaseModel } from "./../models/DatabaseModel";
+import * as TomgUtils from "./../Utils";
 
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
@@ -67,7 +67,7 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.default = colInfo.isGenerated
                         ? null
                         : resp.column_default;
-                        colInfo.sqlType = resp.data_type;
+                    colInfo.sqlType = resp.data_type;
                     colInfo.isDefaultType = false;
                     switch (resp.data_type) {
                         case "integer":

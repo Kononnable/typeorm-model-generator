@@ -1,4 +1,4 @@
-import {ColumnInfo} from './ColumnInfo';
+import { ColumnInfo } from "./ColumnInfo";
 
 export class EntityInfo {
     EntityName: string;

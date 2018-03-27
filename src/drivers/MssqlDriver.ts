@@ -1,10 +1,10 @@
-import * as MSSQL from 'mssql';
-import {AbstractDriver} from './AbstractDriver';
-import {ColumnInfo} from './../models/ColumnInfo';
-import {EntityInfo} from './../models/EntityInfo';
-import {RelationInfo} from './../models/RelationInfo';
-import {DatabaseModel} from './../models/DatabaseModel';
-import * as TomgUtils from './../Utils';
+import * as MSSQL from "mssql";
+import { AbstractDriver } from "./AbstractDriver";
+import { ColumnInfo } from "./../models/ColumnInfo";
+import { EntityInfo } from "./../models/EntityInfo";
+import { RelationInfo } from "./../models/RelationInfo";
+import { DatabaseModel } from "./../models/DatabaseModel";
+import * as TomgUtils from "./../Utils";
 
 export class MssqlDriver extends AbstractDriver {
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
@@ -429,8 +429,7 @@ order by
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo();
-            let columnName =
-                ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
+            let columnName = ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
             if (
                 referencedEntity.Columns.filter(filterVal => {
                     return filterVal.name == columnName;
@@ -439,8 +438,7 @@ order by
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         ownerEntity.EntityName.toLowerCase() +
-                        /*(isOneToMany ? "s" : "")*/ +
-                        i.toString();
+                        /*(isOneToMany ? "s" : "")*/ +i.toString();
                     if (
                         referencedEntity.Columns.filter(filterVal => {
                             return filterVal.name == columnName;

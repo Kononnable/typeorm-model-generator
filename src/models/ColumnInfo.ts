@@ -1,21 +1,21 @@
-import {ColumnType} from 'typeorm';
-import {RelationInfo} from './RelationInfo';
+import { ColumnType } from "typeorm";
+import { RelationInfo } from "./RelationInfo";
 
 export class ColumnInfo {
-    name: string = '';
+    name: string = "";
     default: string | null = null;
-    columnType: string = 'Column';
+    columnType: string = "Column";
     isNullable: boolean = false;
     tsType:
-        | 'number'
-        | 'string'
-        | 'boolean'
-        | 'Date'
-        | 'Buffer'
-        | 'Object'
-        | 'string | Object'
-        | 'string | string[]'
-        | 'any';
+        | "number"
+        | "string"
+        | "boolean"
+        | "Date"
+        | "Buffer"
+        | "Object"
+        | "string | Object"
+        | "string | string[]"
+        | "any";
     sqlType: string;
     charMaxLength: number | null = null;
     isPrimary: boolean = false;

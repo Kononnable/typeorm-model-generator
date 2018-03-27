@@ -1,11 +1,11 @@
-import {request} from 'https';
-import {promisify} from 'util';
-import {AbstractDriver} from './AbstractDriver';
-import {ColumnInfo} from './../models/ColumnInfo';
-import {EntityInfo} from './../models/EntityInfo';
-import {RelationInfo} from './../models/RelationInfo';
-import {DatabaseModel} from './../models/DatabaseModel';
-import * as TomgUtils from './../Utils';
+import { request } from "https";
+import { promisify } from "util";
+import { AbstractDriver } from "./AbstractDriver";
+import { ColumnInfo } from "./../models/ColumnInfo";
+import { EntityInfo } from "./../models/EntityInfo";
+import { RelationInfo } from "./../models/RelationInfo";
+import { DatabaseModel } from "./../models/DatabaseModel";
+import * as TomgUtils from "./../Utils";
 
 export class OracleDriver extends AbstractDriver {
     Oracle: any;
@@ -230,8 +230,7 @@ export class OracleDriver extends AbstractDriver {
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo();
-            let columnName =
-                ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
+            let columnName = ownerEntity.EntityName.toLowerCase() /* + (isOneToMany ? "s" : "")*/;
             if (
                 referencedEntity.Columns.filter(filterVal => {
                     return filterVal.name == columnName;
@@ -240,8 +239,7 @@ export class OracleDriver extends AbstractDriver {
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         ownerEntity.EntityName.toLowerCase() +
-                        /*(isOneToMany ? "s" : "")*/ +
-                        i.toString();
+                        /*(isOneToMany ? "s" : "")*/ +i.toString();
                     if (
                         referencedEntity.Columns.filter(filterVal => {
                             return filterVal.name == columnName;

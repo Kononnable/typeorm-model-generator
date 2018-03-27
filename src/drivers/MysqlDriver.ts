@@ -1,10 +1,10 @@
-import * as MYSQL from 'mysql';
-import {AbstractDriver} from './AbstractDriver';
-import {ColumnInfo} from './../models/ColumnInfo';
-import {EntityInfo} from './../models/EntityInfo';
-import {RelationInfo} from './../models/RelationInfo';
-import {DatabaseModel} from './../models/DatabaseModel';
-import * as TomgUtils from './../Utils';
+import * as MYSQL from "mysql";
+import { AbstractDriver } from "./AbstractDriver";
+import { ColumnInfo } from "./../models/ColumnInfo";
+import { EntityInfo } from "./../models/EntityInfo";
+import { RelationInfo } from "./../models/RelationInfo";
+import { DatabaseModel } from "./../models/DatabaseModel";
+import * as TomgUtils from "./../Utils";
 
 export class MysqlDriver extends AbstractDriver {
     readonly EngineName: string = "MySQL";
@@ -55,7 +55,8 @@ export class MysqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.COLUMN_NAME;
-                    colInfo.isNullable = resp.IS_NULLABLE == "YES" ? true : false;
+                    colInfo.isNullable =
+                        resp.IS_NULLABLE == "YES" ? true : false;
                     colInfo.isGenerated = resp.IsIdentity == 1 ? true : false;
                     colInfo.columnType = colInfo.isGenerated
                         ? "PrimaryGeneratedColumn"
@@ -73,7 +74,7 @@ export class MysqlDriver extends AbstractDriver {
                                     : null;
                             break;
                         case "tinyint":
-                            if (resp.COLUMN_TYPE == 'tinyint(1)') {
+                            if (resp.COLUMN_TYPE == "tinyint(1)") {
                                 colInfo.charMaxLength = 1;
                                 colInfo.tsType = "boolean";
                             } else {
@@ -213,9 +214,10 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "enum":
                             colInfo.tsType = "string";
-                            colInfo.enumOptions = resp.COLUMN_TYPE
-                                .substring(5, resp.COLUMN_TYPE.length - 1)
-                                .replace(/\'/gi, '"');
+                            colInfo.enumOptions = resp.COLUMN_TYPE.substring(
+                                5,
+                                resp.COLUMN_TYPE.length - 1
+                            ).replace(/\'/gi, '"');
                             break;
                         default:
                             TomgUtils.LogFatalError(
@@ -397,8 +399,7 @@ export class MysqlDriver extends AbstractDriver {
                 isOneToMany = false;
             }
             let ownerRelation = new RelationInfo();
-            let columnName =
-                ownerEntity.EntityName.toLowerCase() /*(isOneToMany ? "s" : "")*/;
+            let columnName = ownerEntity.EntityName.toLowerCase() /*(isOneToMany ? "s" : "")*/;
             if (
                 referencedEntity.Columns.filter(filterVal => {
                     return filterVal.name == columnName;
@@ -407,8 +408,7 @@ export class MysqlDriver extends AbstractDriver {
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         ownerEntity.EntityName.toLowerCase() +
-                        /*(isOneToMany ? "s" : "")*/ +
-                        i.toString();
+                        /*(isOneToMany ? "s" : "")*/ +i.toString();
                     if (
                         referencedEntity.Columns.filter(filterVal => {
                             return filterVal.name == columnName;
