@@ -1,13 +1,12 @@
-import { RelationInfo } from "./RelationInfo";
 import { ColumnType } from "typeorm";
-/**
- * ColumnInfo
- */
+import { RelationInfo } from "./RelationInfo";
+
 export class ColumnInfo {
     name: string = "";
     default: string | null = null;
-    is_nullable: boolean = false;
-    ts_type:
+    columnType: string = "Column";
+    isNullable: boolean = false;
+    tsType:
         | "number"
         | "string"
         | "boolean"
@@ -17,10 +16,11 @@ export class ColumnInfo {
         | "string | Object"
         | "string | string[]"
         | "any";
-    sql_type: string;
-    char_max_lenght: number | null = null;
+    sqlType: string;
+    charMaxLength: number | null = null;
     isPrimary: boolean = false;
-    is_generated: boolean = false;
+    isGenerated: boolean = false;
+    isDefaultType: boolean = false;
     numericPrecision: number | null = null;
     numericScale: number | null = null;
     enumOptions: string | null = null;

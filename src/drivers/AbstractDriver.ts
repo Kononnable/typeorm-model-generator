@@ -14,7 +14,7 @@ export abstract class AbstractDriver {
         schema: string,
         ssl: boolean
     ): Promise<DatabaseModel> {
-        let dbModel = <DatabaseModel>{};
+        const dbModel = <DatabaseModel>{};
         await this.ConnectToServer(database, server, port, user, password, ssl);
         let sqlEscapedSchema = "'" + schema.split(",").join("','") + "'";
         dbModel.entities = await this.GetAllTables(sqlEscapedSchema);
@@ -28,6 +28,7 @@ export abstract class AbstractDriver {
         this.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
     }
+
     abstract async ConnectToServer(
         database: string,
         server: string,
@@ -36,15 +37,18 @@ export abstract class AbstractDriver {
         password: string,
         ssl: boolean
     );
+
     abstract async GetAllTables(schema: string): Promise<EntityInfo[]>;
     abstract async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
+
     abstract async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]>;
+
     abstract async GetRelations(
         entities: EntityInfo[],
         schema: string
