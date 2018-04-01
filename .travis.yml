@@ -1,34 +1,32 @@
 language: node_js
 node_js:
-    - stable
-    - 8
-    - 6
+- stable
+- 8
+- 6
 sudo: required
 services:
-    - docker
+- docker
 env:
-    matrix:
-        - >-
-            POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432
-            POSTGRES_Username=postgres POSTGRES_Password=!Passw0rd
-            POSTGRES_Database=typeorm_mg POSTGRES_SSL=0  MYSQL_Skip=0
-            MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root
-            MYSQL_Password=!Passw0rd MYSQL_Database=typeorm_mg MYSQL_SSL=1
-            MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
-            MARIADB_Username=root MARIADB_Password=!Passw0rd
-            MARIADB_Database=typeorm_mg MARIADB_SSL=0 MSSQL_Skip=0
-            MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa
-            MSSQL_Password=!Passw0rd MSSQL_Database=typeorm_mg MSSQL_SSL=0
+  matrix:
+  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres
+    POSTGRES_Password=!Passw0rd POSTGRES_Database=typeorm_mg POSTGRES_SSL=0  MYSQL_Skip=0
+    MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root MYSQL_Password=!Passw0rd
+    MYSQL_Database=typeorm_mg MYSQL_SSL=1 MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
+    MARIADB_Username=root MARIADB_Password=!Passw0rd MARIADB_Database=typeorm_mg MARIADB_SSL=0
+    MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd
+    MSSQL_Database=typeorm_mg MSSQL_SSL=0
 before_install:
-    - sudo service mysql stop
-    - sudo service postgresql stop
-    - docker-compose up -d
-    - npm install -g npm@5
-    - npm install -g greenkeeper-lockfile@1
+- sudo service mysql stop
+- sudo service postgresql stop
+- docker-compose up -d
+- npm install -g npm@5
+- npm install -g greenkeeper-lockfile@1
 before_script:
-    - greenkeeper-lockfile-update
-    - typings install
-    - npm link typescript
-    - tsc
+- greenkeeper-lockfile-update
+- typings install
+- npm link typescript
+- tsc
 after_script:
-    - greenkeeper-lockfile-upload
+- greenkeeper-lockfile-upload
+dd:
+  secure: lONUbDz2a1LWId+Z2tTaxajK7MilX/XbQ875FYD6EE09DQ0xcoPdq2/KW5/pxuN1tz4QzTG7izMwra3XWtkBySxqFwJDUOibsgYVgn+EMMuPWNMNnQgXqTTmHbtbm1L1aSMHu4bCu4cJkJBX6503R0Kv4Hbdr2LFnSUI/9KqrevA1cVyksN71BlNBdRtvnHInwB5wNNvGULSLT+DR6qGytLGjq4ZF+pW7dH3A1LNGfDY4ivGPHt9eAWGHcVuESmudO1ADmf6XTZAJVdKqDy5eJguK48XyAqRmTc1vBxDJmCNDaU/mV6fkUoEkCjn9XfG5nJLOKviycc1j/OCuuWuqojmTlRInPGV8GDT8lNivwqLBMzvKoKgSQQROEVus4xzo64M808dFbUS30et3++O589X/7P9Wjmt+6HawcEsSq5TQfEutyB+tM9OwedTkB5Fwwmymuqx23zCAJ2orP7WoIG/ApmnKu6LmpoM340UxxSGkurztQP1OqFrf4u8kDVp9/xzqnd7qSfEd8iKvvb1bOykWGxx6dhyThCdSNyT5GQL3aub3LV6g0UB37lbhB+BVSrOAhN0r1cIWT2wr2mRxwoepObmrcNQ+AOUUXE/RcONsiEQr+STsEIjJb7bTANljRYMKpiPdsAdhvDaUZRyu8KBArTCDPotanzwQFERcw8=
