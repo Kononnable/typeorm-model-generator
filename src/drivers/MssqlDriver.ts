@@ -10,27 +10,6 @@ import * as TomgUtils from "./../Utils";
  * MssqlDriver
  */
 export class MssqlDriver extends AbstractDriver {
-    FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
-        dbModel.entities.forEach(entity => {
-            let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            if (!primaryIndex) {
-                TomgUtils.LogFatalError(
-                    `Table ${entity.EntityName} has no PK.`,
-                    false
-                );
-                return;
-            }
-            entity.Columns.forEach(col => {
-                if (
-                    primaryIndex!.columns.some(
-                        cIndex => cIndex.name == col.name
-                    )
-                )
-                    col.isPrimary = true;
-            });
-        });
-    }
-
     async GetAllTables(schema: string): Promise<EntityInfo[]> {
         let request = new MSSQL.Request(this.Connection);
         let response: {
@@ -238,7 +217,7 @@ export class MssqlDriver extends AbstractDriver {
                             colInfo.ts_type = "string";
                             break;
                         default:
-                            TomgUtils.LogFatalError(
+                            TomgUtils.LogError(
                                 `Unknown column type: ${
                                     resp.DATA_TYPE
                                 }  table name: ${
@@ -384,7 +363,7 @@ order by
                 return entitity.EntityName == relationTmp.ownerTable;
             });
             if (!ownerEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.ownerTable}.`
@@ -395,7 +374,7 @@ order by
                 return entitity.EntityName == relationTmp.referencedTable;
             });
             if (!referencedEntity) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity model ${relationTmp.referencedTable}.`
@@ -406,7 +385,7 @@ order by
                 return column.name == relationTmp.ownerColumnsNames[0];
             });
             if (!ownerColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -419,7 +398,7 @@ order by
                 return column.name == relationTmp.referencedColumnsNames[0];
             });
             if (!relatedColumn) {
-                TomgUtils.LogFatalError(
+                TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
                         relationTmp.referencedTable
                     } didn't found entity column ${
@@ -538,7 +517,7 @@ order by
                     //Connection successfull
                     resolve(true);
                 } else {
-                    TomgUtils.LogFatalError(
+                    TomgUtils.LogError(
                         "Error connecting to MSSQL Server.",
                         false,
                         err.message

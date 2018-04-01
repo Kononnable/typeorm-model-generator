@@ -2,7 +2,7 @@ export class RelationInfo {
     [x: string]: any;
 
     isOwner: boolean;
-    relationType: "OneToOne" | "OneToMany" | "ManyToOne";
+    relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
     relatedTable: string;
     relatedColumn: string;
     ownerTable: string;
@@ -12,5 +12,8 @@ export class RelationInfo {
 
     get isOneToMany(): boolean {
         return this.relationType == "OneToMany";
+    }
+    get isManyToMany(): boolean {
+        return this.relationType == "ManyToMany";
     }
 }
