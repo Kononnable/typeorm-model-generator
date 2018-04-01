@@ -5,15 +5,15 @@ export class EntityFileToJson {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
 
         if (decoratorParameters.length > 0) {
-                if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
+            if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
 
-                } else {
-                    let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
-                    if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
-                        badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
-                    }
-                     ent.entityOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+            } else {
+                let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
+                if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
+                    badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                 }
+                ent.entityOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+            }
         }
     }
     getColumnOptionsAndType(trimmedLine: string, col: EntityColumn) {
@@ -126,8 +126,8 @@ export class EntityFileToJson {
                         priorPartOfMultilineStatement = trimmedLine;
                         continue;
                     } else {
-                        let options = trimmedLine.substring(trimmedLine.lastIndexOf('{'), trimmedLine.lastIndexOf('}')+1).trim().toLowerCase()
-                        this.getEntityOptions(trimmedLine,retVal);
+                        let options = trimmedLine.substring(trimmedLine.lastIndexOf('{'), trimmedLine.lastIndexOf('}') + 1).trim().toLowerCase()
+                        this.getEntityOptions(trimmedLine, retVal);
                         continue;
                     }
                 } else if (trimmedLine.startsWith('export class')) {
@@ -225,6 +225,18 @@ export class EntityFileToJson {
                         column.relationType = "OneToMany"
                         continue;
                     }
+                } else if (trimmedLine.startsWith('@ManyToMany')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        let column = new EntityColumn()
+                        retVal.columns.push(column)
+                        column.relationType = "ManyToMany"
+                        continue;
+                    }
                 } else if (trimmedLine.startsWith('@OneToOne')) {
                     if (this.isPartOfMultilineStatement(trimmedLine)) {
                         isMultilineStatement = true;
@@ -238,6 +250,16 @@ export class EntityFileToJson {
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@JoinColumn')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        retVal.columns[retVal.columns.length - 1].isOwnerOfRelation = true;
+                        continue;
+                    }
+                } else if (trimmedLine.startsWith('@JoinTable')) {
                     if (this.isPartOfMultilineStatement(trimmedLine)) {
                         isMultilineStatement = true;
                         priorPartOfMultilineStatement = trimmedLine;
@@ -332,7 +354,7 @@ class EntityColumn {
     columnName: string
     columnTypes: string[] = []
     columnOptions: any = {}
-    relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "None" = "None"
+    relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany" | "None" = "None"
     isOwnerOfRelation: boolean = false;
 }
 class EntityIndex {
