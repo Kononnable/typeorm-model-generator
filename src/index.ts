@@ -107,7 +107,7 @@ switch (argv.e) {
         standardPort = 1521;
         break;
     default:
-        TomgUtils.LogFatalError("Database engine not recognized.", false);
+        TomgUtils.LogError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
 }
 
