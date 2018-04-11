@@ -31,10 +31,17 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
         username: String(process.env.MSSQL_Username),
         port: Number(process.env.MSSQL_Port),
         dropSchema: true,
-        synchronize: true,
+        synchronize: false,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
+
+    let schemas = 'dbo,sch1,sch2'
     let conn = await createConnection(connOpt)
+    let queryRunner = conn.createQueryRunner()
+    for (const sch of schemas.split(',')) {
+        await queryRunner.createSchema(sch, true);
+    }
+    await conn.synchronize();
 
     if (conn.isConnected)
         await conn.close()
@@ -58,6 +65,14 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseProperty: 'none',
         });
 
+    conn = await createConnection(connOpt)
+    queryRunner = conn.createQueryRunner()
+    for (const sch of schemas.split(',')) {
+        await queryRunner.createSchema(sch, true);
+    }
+    await conn.synchronize();
+    if (conn.isConnected)
+        await conn.close()
 
     return engine;
 }
@@ -80,10 +95,17 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
         username: String(process.env.POSTGRES_Username),
         port: Number(process.env.POSTGRES_Port),
         dropSchema: true,
-        synchronize: true,
+        synchronize: false,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
+
+    let schemas = 'public,sch1,sch2'
     let conn = await createConnection(connOpt)
+    let queryRunner = conn.createQueryRunner()
+    for (const sch of schemas.split(',')) {
+        await queryRunner.createSchema(sch, true);
+    }
+    await conn.synchronize();
 
     if (conn.isConnected)
         await conn.close()
@@ -106,7 +128,14 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseProperty: 'none',
         });
 
-
+    conn = await createConnection(connOpt)
+    queryRunner = conn.createQueryRunner()
+    for (const sch of schemas.split(',')) {
+        await queryRunner.createSchema(sch, true);
+    }
+    await conn.synchronize();
+    if (conn.isConnected)
+        await conn.close()
 
     return engine;
 }

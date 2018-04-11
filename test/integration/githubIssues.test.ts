@@ -37,9 +37,9 @@ describe("GitHub issues", async function () {
 
                 switch (folder) {
                     case '39':
-                        if (dbDriver =='mysql' || dbDriver=='mariadb')
+                        if (dbDriver == 'mysql' || dbDriver == 'mariadb')
                             continue;
-                        break;
+                         break;
                     default:
                         break;
                 }

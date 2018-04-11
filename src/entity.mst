@@ -12,7 +12,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
         generated:true,{{/is_generated}}{{#is_nullable}}
         nullable:true,{{/is_nullable}}{{^is_nullable}}
         nullable:false,{{/is_nullable}}{{#char_max_lenght}}
-        length:{{.}},{{/char_max_lenght}}{{#default}}
+        length:{{.}},{{/char_max_lenght}}{{#width}}
+        width:{{.}},{{/width}}{{#default}}
         default:"{{.}}",{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#isPrimary}}

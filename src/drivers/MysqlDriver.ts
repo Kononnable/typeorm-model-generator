@@ -64,17 +64,17 @@ export class MysqlDriver extends AbstractDriver {
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.width =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
                         case "tinyint":
                             if (resp.column_type == "tinyint(1)") {
-                                colInfo.char_max_lenght = 1;
+                                colInfo.width = 1;
                                 colInfo.ts_type = "boolean";
                             } else {
-                                colInfo.char_max_lenght =
+                                colInfo.width =
                                     resp.CHARACTER_MAXIMUM_LENGTH > 0
                                         ? resp.CHARACTER_MAXIMUM_LENGTH
                                         : null;
@@ -83,7 +83,7 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.width =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
@@ -100,7 +100,7 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "bigint":
                             colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
+                            colInfo.width =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
@@ -129,6 +129,10 @@ export class MysqlDriver extends AbstractDriver {
 
                         case "mediumint":
                             colInfo.ts_type = "number";
+                            colInfo.width =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
                             break;
                         case "timestamp":
                             colInfo.ts_type = "Date";

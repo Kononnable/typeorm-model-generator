@@ -102,6 +102,7 @@ describe('MssqlDriver', function () {
             name: 'name',
             numericPrecision: null,
             numericScale: null,
+            width: null,
             sql_type: 'int',
             ts_type: 'number',
             enumOptions: null,

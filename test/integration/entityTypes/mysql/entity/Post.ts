@@ -93,7 +93,7 @@ export class Post {
 
 
 
-    @Column("tinyint",{length:1})
+    @Column("tinyint",{width:1})
     bool: boolean;
 
 }
