@@ -60,14 +60,12 @@ export class OracleDriver extends AbstractDriver {
                         case "number":
                             colInfo.ts_type = "number";
                             colInfo.sql_type = "int";
-                            colInfo.char_max_lenght =
-                                resp[5] > 0 ? resp[5] : null;
+                            colInfo.lenght = resp[5] > 0 ? resp[5] : null;
                             break;
                         case "varchar2":
                             colInfo.ts_type = "number";
                             colInfo.sql_type = "smallint";
-                            colInfo.char_max_lenght =
-                                resp[5] > 0 ? resp[5] : null;
+                            colInfo.lenght = resp[5] > 0 ? resp[5] : null;
                             break;
                         default:
                             TomgUtils.LogError(

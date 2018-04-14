@@ -64,66 +64,32 @@ export class MysqlDriver extends AbstractDriver {
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.ts_type = "number";
-                            colInfo.width =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "tinyint":
                             if (resp.column_type == "tinyint(1)") {
                                 colInfo.width = 1;
                                 colInfo.ts_type = "boolean";
                             } else {
-                                colInfo.width =
-                                    resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                        ? resp.CHARACTER_MAXIMUM_LENGTH
-                                        : null;
                                 colInfo.ts_type = "number";
                             }
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
-                            colInfo.width =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "mediumint":
                             colInfo.ts_type = "number";
-                            colInfo.width =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "bigint":
                             colInfo.ts_type = "string";
-                            colInfo.width =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "float":
                             colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "double":
                             colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "decimal":
                             colInfo.ts_type = "string";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "date":
                             colInfo.ts_type = "string";
@@ -145,10 +111,6 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "varchar":
                             colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "blob":
                             colInfo.ts_type = "Buffer";
@@ -220,6 +182,37 @@ export class MysqlDriver extends AbstractDriver {
                             );
                             break;
                     }
+                    if (
+                        this.ColumnTypesWithPrecision.some(
+                            v => v == colInfo.sql_type
+                        )
+                    ) {
+                        colInfo.numericPrecision = resp.NUMERIC_PRECISION;
+                        colInfo.numericScale = resp.NUMERIC_SCALE;
+                    }
+                    if (
+                        this.ColumnTypesWithLength.some(
+                            v => v == colInfo.sql_type
+                        )
+                    ) {
+                        colInfo.lenght =
+                            resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                ? resp.CHARACTER_MAXIMUM_LENGTH
+                                : null;
+                    }
+                    if (
+                        this.ColumnTypesWithWidth.some(
+                            v =>
+                                v == colInfo.sql_type &&
+                                colInfo.ts_type != "boolean"
+                        )
+                    ) {
+                        colInfo.width =
+                            resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                ? resp.CHARACTER_MAXIMUM_LENGTH
+                                : null;
+                    }
+
                     if (colInfo.sql_type) ent.Columns.push(colInfo);
                 });
         });

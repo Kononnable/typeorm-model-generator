@@ -11,8 +11,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
    {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
         generated:true,{{/is_generated}}{{#is_nullable}}
         nullable:true,{{/is_nullable}}{{^is_nullable}}
-        nullable:false,{{/is_nullable}}{{#char_max_lenght}}
-        length:{{.}},{{/char_max_lenght}}{{#width}}
+        nullable:false,{{/is_nullable}}{{#lenght}}
+        length:{{.}},{{/lenght}}{{#width}}
         width:{{.}},{{/width}}{{#default}}
         default:"{{.}}",{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}

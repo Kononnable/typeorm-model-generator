@@ -4,10 +4,59 @@ import * as TomgUtils from "./../Utils";
 import { RelationInfo } from "../models/RelationInfo";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { ManyToMany } from "typeorm";
+import {
+    WithWidthColumnType,
+    WithPrecisionColumnType,
+    WithLengthColumnType
+} from "./../../node_modules/typeorm/driver/types/ColumnTypes";
+
 /**
  * AbstractDriver
  */
 export abstract class AbstractDriver {
+    ColumnTypesWithWidth: WithWidthColumnType[] = [
+        "tinyint",
+        "smallint",
+        "mediumint",
+        "int",
+        "bigint"
+    ];
+    ColumnTypesWithPrecision: WithPrecisionColumnType[] = [
+        "float",
+        "double",
+        "dec",
+        "decimal",
+        "numeric",
+        "real",
+        "double precision",
+        "number",
+        "datetime",
+        "datetime2",
+        "datetimeoffset",
+        "time",
+        "time with time zone",
+        "time without time zone",
+        "timestamp",
+        "timestamp without time zone",
+        "timestamp with time zone",
+        "timestamp with local time zone"
+    ];
+    ColumnTypesWithLength: WithLengthColumnType[] = [
+        "character varying",
+        "varying character",
+        "nvarchar",
+        "character",
+        "native character",
+        "varchar",
+        "char",
+        "nchar",
+        "varchar2",
+        "nvarchar2",
+        "raw",
+        "binary",
+        "varbinary"
+    ];
+
     FindManyToManyRelations(dbModel: DatabaseModel) {
         let manyToManyEntities = dbModel.entities.filter(entity => {
             return (

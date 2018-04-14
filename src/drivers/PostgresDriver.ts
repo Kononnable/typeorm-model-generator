@@ -91,13 +91,9 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         case "numeric":
                             colInfo.ts_type = "string";
-                            colInfo.numericPrecision = resp.numeric_precision;
-                            colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "real":
                             colInfo.ts_type = "number";
-                            colInfo.numericPrecision = resp.numeric_precision;
-                            colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "float":
                             colInfo.ts_type = "number";
@@ -110,35 +106,21 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         case "double precision":
                             colInfo.ts_type = "number";
-                            colInfo.numericPrecision = resp.numeric_precision;
-                            colInfo.numericScale = resp.numeric_scale;
                             break;
                         case "money":
                             colInfo.ts_type = "string";
                             break;
                         case "character varying":
                             colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.character_maximum_length > 0
-                                    ? resp.character_maximum_length
-                                    : null;
                             break;
                         case "varchar":
                             colInfo.ts_type = "string";
                             break;
                         case "character":
                             colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.character_maximum_length > 0
-                                    ? resp.character_maximum_length
-                                    : null;
                             break;
                         case "char":
                             colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.character_maximum_length > 0
-                                    ? resp.character_maximum_length
-                                    : null;
                             break;
                         case "text":
                             colInfo.ts_type = "string";
@@ -278,6 +260,34 @@ export class PostgresDriver extends AbstractDriver {
                                 } column name: ${resp.column_name}`
                             );
                             break;
+                    }
+                    if (
+                        this.ColumnTypesWithPrecision.some(
+                            v => v == colInfo.sql_type
+                        )
+                    ) {
+                        colInfo.numericPrecision = resp.numeric_precision;
+                        colInfo.numericScale = resp.numeric_scale;
+                    }
+                    if (
+                        this.ColumnTypesWithLength.some(
+                            v => v == colInfo.sql_type
+                        )
+                    ) {
+                        colInfo.lenght =
+                            resp.character_maximum_length > 0
+                                ? resp.character_maximum_length
+                                : null;
+                    }
+                    if (
+                        this.ColumnTypesWithWidth.some(
+                            v => v == colInfo.sql_type
+                        )
+                    ) {
+                        colInfo.width =
+                            resp.character_maximum_length > 0
+                                ? resp.character_maximum_length
+                                : null;
                     }
 
                     if (colInfo.sql_type) ent.Columns.push(colInfo);
