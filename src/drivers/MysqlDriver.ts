@@ -88,8 +88,19 @@ export class MysqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "bit":
-                            colInfo.ts_type = "boolean";
+                        case "mediumint":
+                            colInfo.ts_type = "number";
+                            colInfo.width =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
+                        case "bigint":
+                            colInfo.ts_type = "string";
+                            colInfo.width =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
                             break;
                         case "float":
                             colInfo.ts_type = "number";
@@ -98,9 +109,18 @@ export class MysqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "bigint":
+                        case "double":
                             colInfo.ts_type = "number";
-                            colInfo.width =
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
+                        case "decimal":
+                            colInfo.ts_type = "string";
+                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
+                            colInfo.numericScale = resp.NUMERIC_SCALE;
+                            colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
@@ -108,40 +128,33 @@ export class MysqlDriver extends AbstractDriver {
                         case "date":
                             colInfo.ts_type = "string";
                             break;
-                        case "time":
-                            colInfo.ts_type = "string";
-                            break;
                         case "datetime":
                             colInfo.ts_type = "Date";
-                            break;
-                        case "char":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "nchar":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "text":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "ntext":
-                            colInfo.ts_type = "string";
-                            break;
-
-                        case "mediumint":
-                            colInfo.ts_type = "number";
-                            colInfo.width =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
                         case "timestamp":
                             colInfo.ts_type = "Date";
                             break;
+                        case "time":
+                            colInfo.ts_type = "string";
+                            break;
                         case "year":
                             colInfo.ts_type = "number";
                             break;
+                        case "char":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "varchar":
+                            colInfo.ts_type = "string";
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
                         case "blob":
                             colInfo.ts_type = "Buffer";
+                            break;
+                        case "text":
+                            colInfo.ts_type = "string";
                             break;
                         case "tinyblob":
                             colInfo.ts_type = "Buffer";
@@ -161,57 +174,41 @@ export class MysqlDriver extends AbstractDriver {
                         case "longtext":
                             colInfo.ts_type = "string";
                             break;
-                        case "varchar":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "nvarchar":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "money":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "real":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "double":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "decimal":
-                            colInfo.ts_type = "number";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "xml":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "json":
-                            colInfo.ts_type = "Object";
-                            break;
                         case "enum":
                             colInfo.ts_type = "string";
                             colInfo.enumOptions = resp.column_type
                                 .substring(5, resp.column_type.length - 1)
                                 .replace(/\'/gi, '"');
+                            break;
+                        case "json":
+                            colInfo.ts_type = "Object";
+                            break;
+                        case "binary":
+                            colInfo.ts_type = "Buffer";
+                            break;
+                        case "geometry":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "point":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "linestring":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "polygon":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "multipoint":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "multilinestring":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "multipolygon":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "geometrycollection":
+                            colInfo.ts_type = "string";
                             break;
                         default:
                             TomgUtils.LogError(

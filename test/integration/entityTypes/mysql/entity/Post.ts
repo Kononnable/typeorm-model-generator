@@ -15,6 +15,9 @@ export class Post {
     @Column("tinyint")
     tinyint: number;
 
+    @Column("tinyint",{width:1})
+    boolean: boolean;
+
     @Column("smallint")
     smallint: number;
 
@@ -22,7 +25,7 @@ export class Post {
     mediumint: number;
 
     @Column("bigint")
-    bigint: number;
+    bigint: string;
 
     @Column("float")
     float: number;
@@ -31,7 +34,7 @@ export class Post {
     double: number;
 
     @Column("decimal")
-    decimal: number;
+    decimal: string;
 
     @Column("date")
     date: string;
@@ -81,19 +84,34 @@ export class Post {
     @Column("enum", { enum: ["A", "B", "C"] })
     enum: string;
 
-    // @Column("enum", { enum: FruitEnum })
-    // classEnum1: FruitEnum;
-
     @Column("json")
     json: Object;
 
-    // @Column("simple-array")
-    // simpleArray: string[];
+    @Column("binary")
+    binary: Buffer;
 
+    @Column("geometry")
+    geometry: string;
 
+    @Column("point")
+    point: string;
 
+    @Column("linestring")
+    linestring: string;
 
-    @Column("tinyint",{width:1})
-    bool: boolean;
+    @Column("polygon")
+    polygon: string;
+
+    @Column("multipoint")
+    multipoint: string;
+
+    @Column("multilinestring")
+    multilinestring: string;
+
+    @Column("multipolygon")
+    multipolygon: string;
+
+    @Column("geometrycollection")
+    geometrycollection: string;
 
 }

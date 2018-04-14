@@ -9,33 +9,32 @@ export class Post {
     @Column()
     name: string;
 
-    // -------------------------------------------------------------------------
-    // Numeric Types
-    // -------------------------------------------------------------------------
+    @Column("bigint")
+    bigint: string;
 
     @Column("bit")
     bit: boolean;
 
-    @Column("tinyint")
-    tinyint: number;
-
-    @Column("smallint")
-    smallint: number;
+    @Column("decimal")
+    decimal: number;
 
     @Column("int")
     int: number;
 
-    @Column("bigint")
-    bigint: string;
-
-    @Column("decimal")
-    decimal: number;
-
-    @Column("dec")
-    dec: number;
+    @Column("money")
+    money: number;
 
     @Column("numeric")
     numeric: number;
+
+    @Column("smallint")
+    smallint: number;
+
+    @Column("smallmoney")
+    smallmoney: number;
+
+    @Column("tinyint")
+    tinyint: number;
 
     @Column("float")
     float: number;
@@ -43,61 +42,17 @@ export class Post {
     @Column("real")
     real: number;
 
-    @Column("smallmoney")
-    smallmoney: number;
-
-    @Column("money")
-    money: number;
-
-    // -------------------------------------------------------------------------
-    // Character Types
-    // -------------------------------------------------------------------------
-
-    @Column("uniqueidentifier")
-    uniqueidentifier: string;
-
-    @Column("char")
-    char: string;
-
-    @Column("varchar")
-    varchar: string;
-
-    @Column("text")
-    text: string;
-
-    @Column("nchar")
-    nchar: string;
-
-    @Column("nvarchar")
-    nvarchar: string;
-
-    @Column("ntext")
-    ntext: string;
-
-    @Column("binary")
-    binary: Buffer;
-
-    @Column("varbinary")
-    varbinary: Buffer;
-
-    @Column("image")
-    image: Buffer;
-
-    // -------------------------------------------------------------------------
-    // Date Types
-    // -------------------------------------------------------------------------
-
     @Column("date")
     dateObj: Date;
 
-    // @Column("date")
-    // date: string;
+    @Column("datetime2")
+    datetime2: Date;
 
     @Column("datetime")
     datetime: Date;
 
-    @Column("datetime2")
-    datetime2: Date;
+    @Column("datetimeoffset")
+    datetimeoffset: Date;
 
     @Column("smalldatetime")
     smalldatetime: Date;
@@ -105,20 +60,52 @@ export class Post {
     @Column("time")
     timeObj: Date;
 
+    @Column("char")
+    char: string;
+
+    @Column("text")
+    text: string;
+
+    @Column("varchar")
+    varchar: string;
+
+    @Column("nchar")
+    nchar: string;
+
+    @Column("ntext")
+    ntext: string;
+
+    @Column("nvarchar")
+    nvarchar: string;
+
+    @Column("binary")
+    binary: Buffer;
+
+    @Column("image")
+    image: Buffer;
+
+    @Column("varbinary")
+    varbinary: Buffer;
+
+    @Column("hierarchyid")
+    hierarchyid: string;
+
+    @Column("sql_variant")
+    sql_variant: string;
+
     @Column("timestamp")
     timestamp: Date;
 
-    // @Column("time")
-    // time: string;
+    @Column("uniqueidentifier")
+    uniqueidentifier: string;
 
-    @Column("datetimeoffset")
-    datetimeoffset: Date;
+    @Column("xml")
+    xml: string;
 
-    // -------------------------------------------------------------------------
-    // TypeOrm Specific Type
-    // -------------------------------------------------------------------------
+    @Column("geometry")
+    geometry: string;
 
-    // @Column("simple-array")
-    // simpleArray: string[];
+    @Column("geography")
+    geography: string;
 
 }

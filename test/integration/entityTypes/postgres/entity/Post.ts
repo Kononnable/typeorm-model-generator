@@ -9,89 +9,59 @@ export class Post {
     @Column()
     name: string;
 
-    // -------------------------------------------------------------------------
-    // Numeric Types
-    // -------------------------------------------------------------------------
-
-    @Column("integer")
-    integer: number;
+    @Column("int2")
+    int2: number;
 
     @Column("int4")
     int4: number;
 
-    @Column("int")
-    int: number;
+    @Column("int8")
+    int8: string;
 
     @Column("smallint")
     smallint: number;
 
-    @Column("int2")
-    int2: number;
+    @Column("integer")
+    integer: number;
 
     @Column("bigint")
     bigint: string;
 
-    @Column("int8")
-    int8: string;
-
-    // @Column("serial")
-    // serial: number;
-
-    // @Column("serial4")
-    // serial4: number;
-
-    // @Column("smallserial")
-    // smallserial: number;
-
-    // @Column("serial2")
-    // serial2: number;
-
-    // @Column("bigserial")
-    // bigserial: number;
-
-    // @Column("serial8")
-    // serial8: number;
+    @Column("decimal")
+    decimal: string;
 
     @Column("numeric")
     numeric: string;
 
-    @Column("decimal")
-    decimal: string;
-
-    @Column("double precision")
-    doublePrecision: number;
-
-    @Column("float8")
-    float8: number;
-
     @Column("real")
     real: number;
+
+    @Column("float")
+    float: number;
 
     @Column("float4")
     float4: number;
 
-    // -------------------------------------------------------------------------
-    // Monetary Types
-    // -------------------------------------------------------------------------
+    @Column("float8")
+    float8: number;
+
+    @Column("double precision")
+    doublePrecision: number;
 
     @Column("money")
     money: string;
 
-    // -------------------------------------------------------------------------
-    // Character Types
-    // -------------------------------------------------------------------------
-
-    @Column("char")
-    char: string;
-
-    @Column("character")
-    character: string;
+    @Column("character varying")
+    characterVarying: string;
 
     @Column("varchar")
     varchar: string;
 
-    @Column("character varying")
-    characterVarying: string;
+    @Column("character")
+    character: string;
+
+    @Column("char")
+    char: string;
 
     @Column("text")
     text: string;
@@ -99,61 +69,58 @@ export class Post {
     // @Column("citext")
     // citext: string;
 
-    // -------------------------------------------------------------------------
-    // Binary Data Types
-    // -------------------------------------------------------------------------
+    // @Column("hstore")
+    // hstore: string;
 
     @Column("bytea")
     bytea: Buffer;
 
-    // -------------------------------------------------------------------------
-    // Date/Time Types
-    // -------------------------------------------------------------------------
+    @Column("bit")
+    bit: string;
 
-    @Column("date")
-    date: string;
+    @Column("varbit")
+    varbit: string;
 
-    @Column("interval")
-    interval: any;
-
-    @Column("time")
-    time: string;
-
-    @Column("time with time zone")
-    timeWithTimeZone: string;
+    @Column("bit varying")
+    bit_varying: string;
 
     @Column("timetz")
     timetz: string;
 
-    @Column("timestamp")
-    timestamp: Date;
-
-    @Column("timestamp with time zone")
-    timestampWithTimeZone: Date;
-
     @Column("timestamptz")
     timestamptz: Date;
 
-    // -------------------------------------------------------------------------
-    // Boolean Type
-    // -------------------------------------------------------------------------
+    @Column("timestamp")
+    timestamp: Date;
 
-    @Column("boolean")
-    boolean: boolean;
+    @Column("timestamp without time zone")
+    timestamp_without_time_zone: Date;
+
+    @Column("timestamp with time zone")
+    timestamp_with_time_zone: Date;
+
+    @Column("date")
+    date: string;
+
+    @Column("time")
+    time: string;
+    @Column("time without time zone")
+    time_without_time_zone: string;
+
+    @Column("time with time zone")
+    time_with_time_zone: string;
+
+    @Column("interval")
+    interval: any;
 
     @Column("bool")
     bool: boolean;
 
-    // -------------------------------------------------------------------------
-    // Enumerated Type
-    // -------------------------------------------------------------------------
+    @Column("boolean")
+    boolean: boolean;
 
-    // @Column("enum", { enum: ["A", "B", "C"] })
+    // @Column("enum")
     // enum: string;
-
-    // -------------------------------------------------------------------------
-    // Geometric Type
-    // -------------------------------------------------------------------------
 
     @Column("point")
     point: string | Object;
@@ -176,10 +143,6 @@ export class Post {
     @Column("circle")
     circle: string | Object;
 
-    // -------------------------------------------------------------------------
-    // Network Address Type
-    // -------------------------------------------------------------------------
-
     @Column("cidr")
     cidr: string;
 
@@ -189,52 +152,40 @@ export class Post {
     @Column("macaddr")
     macaddr: string;
 
-    // -------------------------------------------------------------------------
-    // Bit String Type
-    // -------------------------------------------------------------------------
+    @Column("tsvector")
+    tsvector: string;
 
-    @Column("bit")
-    bit: string;
-
-    @Column("varbit")
-    varbit: string;
-
-    @Column("bit varying")
-    bitVarying: string;
-
-    // -------------------------------------------------------------------------
-    // UUID Type
-    // -------------------------------------------------------------------------
+    @Column("tsquery")
+    tsquery: string;
 
     @Column("uuid")
     uuid: string;
 
-    // -------------------------------------------------------------------------
-    // XML Type
-    // -------------------------------------------------------------------------
-
     @Column("xml")
     xml: string;
-
-    // -------------------------------------------------------------------------
-    // JSON Type
-    // -------------------------------------------------------------------------
 
     @Column("json")
     json: Object;
 
-    // -------------------------------------------------------------------------
-    // Array Type
-    // -------------------------------------------------------------------------
+    @Column("jsonb")
+    jsonb: Object;
 
-    // @Column("int", { isArray: true })
-    // array: number[];
+    @Column("int4range")
+    int4range: string;
 
-    // // -------------------------------------------------------------------------
-    // // TypeOrm Specific Type
-    // // -------------------------------------------------------------------------
+    @Column("int8range")
+    int8range: string;
 
-    // @Column("simple-array")
-    // simpleArray: string[];
+    @Column("numrange")
+    numrange: string;
+
+    @Column("tsrange")
+    tsrange: string;
+
+    @Column("tstzrange")
+    tstzrange: string;
+
+    @Column("daterange")
+    daterange: string;
 
 }

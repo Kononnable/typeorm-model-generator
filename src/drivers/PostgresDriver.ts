@@ -68,36 +68,29 @@ export class PostgresDriver extends AbstractDriver {
                         : resp.column_default;
                     colInfo.sql_type = resp.data_type;
                     switch (resp.data_type) {
-                        case "integer":
+                        case "int2":
                             colInfo.ts_type = "number";
                             break;
-                        case "character varying":
-                            colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.character_maximum_length > 0
-                                    ? resp.character_maximum_length
-                                    : null;
+                        case "int4":
+                            colInfo.ts_type = "number";
                             break;
-                        case "text":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "uuid":
+                        case "int8":
                             colInfo.ts_type = "string";
                             break;
                         case "smallint":
                             colInfo.ts_type = "number";
                             break;
+                        case "integer":
+                            colInfo.ts_type = "number";
+                            break;
                         case "bigint":
                             colInfo.ts_type = "string";
                             break;
-                        case "date":
+                        case "decimal":
                             colInfo.ts_type = "string";
                             break;
-                        case "boolean":
-                            colInfo.ts_type = "boolean";
-                            break;
-                        case "double precision":
-                            colInfo.ts_type = "number";
+                        case "numeric":
+                            colInfo.ts_type = "string";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
@@ -106,30 +99,31 @@ export class PostgresDriver extends AbstractDriver {
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
-                        case "numeric":
-                            colInfo.ts_type = "string";
+                        case "float":
+                            colInfo.ts_type = "number";
+                            break;
+                        case "float4":
+                            colInfo.ts_type = "number";
+                            break;
+                        case "float8":
+                            colInfo.ts_type = "number";
+                            break;
+                        case "double precision":
+                            colInfo.ts_type = "number";
                             colInfo.numericPrecision = resp.numeric_precision;
                             colInfo.numericScale = resp.numeric_scale;
                             break;
-                        case "time without time zone":
+                        case "money":
                             colInfo.ts_type = "string";
                             break;
-                        case "timestamp without time zone":
-                            colInfo.ts_type = "Date";
+                        case "character varying":
+                            colInfo.ts_type = "string";
+                            colInfo.char_max_lenght =
+                                resp.character_maximum_length > 0
+                                    ? resp.character_maximum_length
+                                    : null;
                             break;
-                        case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
-                            break;
-                        case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
-                            break;
-                        case "json":
-                            colInfo.ts_type = "Object";
-                            break;
-                        case "jsonb":
-                            colInfo.ts_type = "Object";
-                            break;
-                        case "money":
+                        case "varchar":
                             colInfo.ts_type = "string";
                             break;
                         case "character":
@@ -139,15 +133,75 @@ export class PostgresDriver extends AbstractDriver {
                                     ? resp.character_maximum_length
                                     : null;
                             break;
+                        case "char":
+                            colInfo.ts_type = "string";
+                            colInfo.char_max_lenght =
+                                resp.character_maximum_length > 0
+                                    ? resp.character_maximum_length
+                                    : null;
+                            break;
+                        case "text":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "citext":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "hstore":
+                            colInfo.ts_type = "string";
+                            break;
                         case "bytea":
                             colInfo.ts_type = "Buffer";
                             break;
-                        case "interval":
-                            colInfo.ts_type = "any";
+                        case "bit":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "varbit":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "bit varying":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "timetz":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "timestamptz":
+                            colInfo.ts_type = "Date";
+                            break;
+                        case "timestamp":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "timestamp without time zone":
+                            colInfo.ts_type = "Date";
+                            break;
+                        case "timestamp with time zone":
+                            colInfo.ts_type = "Date";
+                            break;
+                        case "date":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "time":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "time without time zone":
+                            colInfo.ts_type = "string";
                             break;
                         case "time with time zone":
                             colInfo.ts_type = "string";
                             break;
+                        case "interval":
+                            colInfo.ts_type = "any";
+                            break;
+                        case "bool":
+                            colInfo.ts_type = "boolean";
+                            break;
+                        case "boolean":
+                            colInfo.ts_type = "boolean";
+                            break;
+                        /* */
+                        case "enum":
+                            colInfo.ts_type = "string";
+                            break;
+                        /* */
                         case "point":
                             colInfo.ts_type = "string | Object";
                             break;
@@ -178,13 +232,41 @@ export class PostgresDriver extends AbstractDriver {
                         case "macaddr":
                             colInfo.ts_type = "string";
                             break;
-                        case "bit":
+
+                        case "tsvector":
                             colInfo.ts_type = "string";
                             break;
-                        case "bit varying":
+                        case "tsquery":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "uuid":
                             colInfo.ts_type = "string";
                             break;
                         case "xml":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "json":
+                            colInfo.ts_type = "Object";
+                            break;
+                        case "jsonb":
+                            colInfo.ts_type = "Object";
+                            break;
+                        case "int4range":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "int8range":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "numrange":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "tsrange":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "tstzrange":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "daterange":
                             colInfo.ts_type = "string";
                             break;
                         default:

@@ -62,6 +62,25 @@ export class MssqlDriver extends AbstractDriver {
                     colInfo.default = resp.COLUMN_DEFAULT;
                     colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
+                        case "bigint":
+                            colInfo.ts_type = "string";
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
+                        case "bit":
+                            colInfo.ts_type = "boolean";
+                            break;
+                        case "decimal":
+                            colInfo.ts_type = "number";
+                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
+                            colInfo.numericScale = resp.NUMERIC_SCALE;
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
                         case "int":
                             colInfo.ts_type = "number";
                             colInfo.char_max_lenght =
@@ -69,8 +88,13 @@ export class MssqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "tinyint":
+                        case "money":
                             colInfo.ts_type = "number";
+                            break;
+                        case "numeric":
+                            colInfo.ts_type = "number";
+                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
+                            colInfo.numericScale = resp.NUMERIC_SCALE;
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -83,8 +107,15 @@ export class MssqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "bit":
-                            colInfo.ts_type = "boolean";
+                        case "smallmoney":
+                            colInfo.ts_type = "number";
+                            break;
+                        case "tinyint":
+                            colInfo.ts_type = "number";
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
                             break;
                         case "float":
                             colInfo.ts_type = "number";
@@ -94,8 +125,8 @@ export class MssqlDriver extends AbstractDriver {
                                     : null;
                             colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
-                        case "bigint":
-                            colInfo.ts_type = "string";
+                        case "real":
+                            colInfo.ts_type = "number";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
@@ -104,16 +135,34 @@ export class MssqlDriver extends AbstractDriver {
                         case "date":
                             colInfo.ts_type = "Date";
                             break;
-                        case "time":
+                        case "datetime2":
                             colInfo.ts_type = "Date";
+                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
                         case "datetime":
                             colInfo.ts_type = "Date";
                             break;
-                        case "timestamp":
+                        case "datetimeoffset":
+                            colInfo.ts_type = "Date";
+                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
+                            break;
+                        case "smalldatetime":
+                            colInfo.ts_type = "Date";
+                            break;
+                        case "time":
                             colInfo.ts_type = "Date";
                             break;
                         case "char":
+                            colInfo.ts_type = "string";
+                            colInfo.char_max_lenght =
+                                resp.CHARACTER_MAXIMUM_LENGTH > 0
+                                    ? resp.CHARACTER_MAXIMUM_LENGTH
+                                    : null;
+                            break;
+                        case "text":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "varchar":
                             colInfo.ts_type = "string";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
@@ -127,16 +176,10 @@ export class MssqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "text":
-                            colInfo.ts_type = "string";
-                            break;
                         case "ntext":
                             colInfo.ts_type = "string";
                             break;
-                        case "uniqueidentifier":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "varchar":
+                        case "nvarchar":
                             colInfo.ts_type = "string";
                             colInfo.char_max_lenght =
                                 resp.CHARACTER_MAXIMUM_LENGTH > 0
@@ -150,6 +193,9 @@ export class MssqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
+                        case "image":
+                            colInfo.ts_type = "Buffer";
+                            break;
                         case "varbinary":
                             colInfo.ts_type = "Buffer";
                             colInfo.char_max_lenght =
@@ -157,63 +203,25 @@ export class MssqlDriver extends AbstractDriver {
                                     ? resp.CHARACTER_MAXIMUM_LENGTH
                                     : null;
                             break;
-                        case "image":
-                            colInfo.ts_type = "Buffer";
-                            break;
-                        case "nvarchar":
+                        case "hierarchyid":
                             colInfo.ts_type = "string";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
                             break;
-                        case "money":
-                            colInfo.ts_type = "number";
+                        case "sql_variant":
+                            colInfo.ts_type = "string";
                             break;
-                        case "smallmoney":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "real":
-                            colInfo.ts_type = "number";
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "decimal":
-                            colInfo.ts_type = "number";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "numeric":
-                            colInfo.ts_type = "number";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            colInfo.numericScale = resp.NUMERIC_SCALE;
-                            colInfo.char_max_lenght =
-                                resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                    ? resp.CHARACTER_MAXIMUM_LENGTH
-                                    : null;
-                            break;
-                        case "datetime2":
+                        case "timestamp":
                             colInfo.ts_type = "Date";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
                             break;
-                        case "time":
-                            colInfo.ts_type = "Date";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            break;
-                        case "datetimeoffset":
-                            colInfo.ts_type = "Date";
-                            colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                            break;
-                        case "smalldatetime":
-                            colInfo.ts_type = "Date";
+                        case "uniqueidentifier":
+                            colInfo.ts_type = "string";
                             break;
                         case "xml":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "geometry":
+                            colInfo.ts_type = "string";
+                            break;
+                        case "geography":
                             colInfo.ts_type = "string";
                             break;
                         default:
