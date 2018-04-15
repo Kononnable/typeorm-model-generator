@@ -241,10 +241,11 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
 export async function createOracleDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new OracleDriver();
-    await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_Username), String(process.env.ORACLE_Password), yn(process.env.ORACLE_SSL));
+    await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_UsernameSys), String(process.env.ORACLE_PasswordSys), yn(process.env.ORACLE_SSL));
 
-    if (! await driver.CheckIfDBExists(String(process.env.ORACLE_Database)))
-        await driver.CreateDB(String(process.env.ORACLE_Database));
+    if (await driver.CheckIfDBExists(String(process.env.ORACLE_Username)))
+        await driver.DropDB(String(process.env.ORACLE_Username));
+    await driver.CreateDB(String(process.env.ORACLE_Username));
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
@@ -281,10 +282,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-
         });
-
-
 
     return engine;
 }

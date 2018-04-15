@@ -45,5 +45,5 @@ services:
 #     ports:
 #       - "1521:1521"
 #     environment:
-#         DB_SID: "ORCLCDB"
-#         SYS_PASSWORD: "Oradoc_db1"
+#         DB_SID: "sys"
+#         SYS_PASSWORD: "ORCLCDB"

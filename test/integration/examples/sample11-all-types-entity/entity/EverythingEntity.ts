@@ -9,8 +9,8 @@ export class EverythingEntity {
     @Column()
     name: string;
 
-    @Column("text")
-    text: string;
+    // @Column("text")
+    // text: string;
 
     @Column({ length: 32 })
     shortTextColumn: string;

@@ -13,7 +13,10 @@
         "strictNullChecks": true,
         "moduleResolution": "node",
         "outDir": "dist",
-        "newLine": "LF"
+        "newLine": "LF",
+        "lib": [
+            "es2017"
+        ]
     },
     "include": [
         "src",

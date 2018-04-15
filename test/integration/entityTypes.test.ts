@@ -24,6 +24,7 @@ describe("Platform specyfic types", async function () {
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
+    if (process.env.ORACLE_Skip == '0') dbDrivers.push('oracle')
 
 
     let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/entityTypes')
@@ -54,6 +55,9 @@ describe("Platform specyfic types", async function () {
                             break;
                         case 'mariadb':
                             engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'oracle':
+                            engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
                             break;
 
                         default:

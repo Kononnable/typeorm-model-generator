@@ -24,7 +24,7 @@ export class Post {
         onDelete: 'CASCADE'
     })
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     category: PostCategory;
 
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
@@ -33,7 +33,7 @@ export class Post {
         cascade: true
     })
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     details: PostDetails;
 
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
@@ -42,7 +42,7 @@ export class Post {
         cascade: true,
     })
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     image: PostImage;
 
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
@@ -51,7 +51,7 @@ export class Post {
         onDelete: 'CASCADE'
     })
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     metadata: PostMetadata | null;
 
     // post has relation with details. full cascades here
@@ -60,13 +60,13 @@ export class Post {
         onDelete: 'CASCADE'
     })
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     information: PostInformation;
 
     // post has relation with details. not cascades here. means cannot be persisted, updated or removed
     @OneToOne(type => PostAuthor, author => author.post)
     @JoinColumn()
-    @Index({ unique: true })
+    // @Index({ unique: true })
     author: PostAuthor;
 
 }

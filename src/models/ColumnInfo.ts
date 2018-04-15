@@ -7,6 +7,7 @@ export class ColumnInfo {
     name: string = "";
     default: string | null = null;
     is_nullable: boolean = false;
+    is_unique: boolean = false;
     ts_type:
         | "number"
         | "string"
