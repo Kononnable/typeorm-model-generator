@@ -15,6 +15,15 @@ env:
     MARIADB_Username=root MARIADB_Password=!Passw0rd MARIADB_Database=typeorm_mg MARIADB_SSL=0
     MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd
     MSSQL_Database=typeorm_mg MSSQL_SSL=0
+    ORACLE_Skip=0
+    ORACLE_Host=localhost
+    ORACLE_Port=1521
+    ORACLE_SSL=0
+    ORACLE_UsernameSys=sys
+    ORACLE_PasswordSys=Oradoc_db1
+    ORACLE_Database=orclpdb1.localdomain
+    ORACLE_Username=typeorm_mg
+    ORACLE_Password=Passw0rd
 before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
