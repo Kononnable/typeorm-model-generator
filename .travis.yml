@@ -27,6 +27,7 @@ env:
 before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
+- docker login
 - docker-compose up -d
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1
