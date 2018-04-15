@@ -301,11 +301,6 @@ export class EntityFileToJson {
                     if (retVal.indicies.length > 0 && retVal.indicies[retVal.indicies.length - 1].columnNames.length == 0) {
                         retVal.indicies[retVal.indicies.length - 1].columnNames.push(retVal.columns[retVal.columns.length - 1].columnName)
                     }
-                    retVal.indicies.forEach(ind => {
-                        if (ind.isUnique && ind.columnNames.length == 1 && ind.columnNames[0] == retVal.columns[retVal.columns.length - 1].columnName) {
-                            retVal.columns[retVal.columns.length - 1].columnOptions['unique'] = true
-                        }
-                    })
                     continue
                 } else if (trimmedLine == '}') {
                     isInClassBody = false;

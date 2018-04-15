@@ -44,10 +44,11 @@ export class MysqlDriver extends AbstractDriver {
             NUMERIC_SCALE: number;
             IsIdentity: number;
             column_type: string;
+            column_key: string;
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, column_type  FROM INFORMATION_SCHEMA.COLUMNS
-             where TABLE_SCHEMA like DATABASE()`);
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, column_type, column_key
+            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
@@ -56,9 +57,9 @@ export class MysqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.COLUMN_NAME;
-                    colInfo.is_nullable =
-                        resp.IS_NULLABLE == "YES" ? true : false;
-                    colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
+                    colInfo.is_nullable = resp.IS_NULLABLE == "YES";
+                    colInfo.is_generated = resp.IsIdentity == 1;
+                    colInfo.is_unique = resp.column_key == "UNI";
                     colInfo.default = resp.COLUMN_DEFAULT;
                     colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {

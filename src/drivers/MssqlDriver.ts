@@ -44,9 +44,20 @@ export class MssqlDriver extends AbstractDriver {
             NUMERIC_PRECISION: number;
             NUMERIC_SCALE: number;
             IsIdentity: number;
+            IsUnique: number;
         }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity  FROM INFORMATION_SCHEMA.COLUMNS  where TABLE_SCHEMA in (${schema})`))
+   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
+   (SELECT count(*)
+    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+    where
+        tc.CONSTRAINT_TYPE = 'UNIQUE'
+        and tc.TABLE_NAME = c.TABLE_NAME
+        and cu.COLUMN_NAME = c.COLUMN_NAME
+        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+   FROM INFORMATION_SCHEMA.COLUMNS c where TABLE_SCHEMA in (${schema})`))
             .recordset;
         entities.forEach(ent => {
             response
@@ -56,9 +67,9 @@ export class MssqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.COLUMN_NAME;
-                    colInfo.is_nullable =
-                        resp.IS_NULLABLE == "YES" ? true : false;
-                    colInfo.is_generated = resp.IsIdentity == 1 ? true : false;
+                    colInfo.is_nullable = resp.IS_NULLABLE == "YES";
+                    colInfo.is_generated = resp.IsIdentity == 1;
+                    colInfo.is_unique = resp.IsUnique == 1;
                     colInfo.default = resp.COLUMN_DEFAULT;
                     colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {

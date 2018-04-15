@@ -44,12 +44,21 @@ export class PostgresDriver extends AbstractDriver {
             numeric_precision: number;
             numeric_scale: number;
             isidentity: string;
+            isunique: number;
         }[] = (await this.Connection
             .query(`SELECT table_name,column_name,column_default,is_nullable,
-            data_type,character_maximum_length,numeric_precision,numeric_scale
-            --,COLUMNPROPERTY(object_id(table_name), column_name, 'isidentity') isidentity
-           , case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity
-            FROM INFORMATION_SCHEMA.COLUMNS where table_schema in (${schema})`))
+            data_type,character_maximum_length,numeric_precision,numeric_scale,
+            case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+			(SELECT count(*)
+    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+    where
+        tc.CONSTRAINT_TYPE = 'UNIQUE'
+        and tc.TABLE_NAME = c.TABLE_NAME
+        and cu.COLUMN_NAME = c.COLUMN_NAME
+        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+            FROM INFORMATION_SCHEMA.COLUMNS c where table_schema in (${schema})`))
             .rows;
         entities.forEach(ent => {
             response
@@ -59,10 +68,9 @@ export class PostgresDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.column_name;
-                    colInfo.is_nullable =
-                        resp.is_nullable == "YES" ? true : false;
-                    colInfo.is_generated =
-                        resp.isidentity == "YES" ? true : false;
+                    colInfo.is_nullable = resp.is_nullable == "YES";
+                    colInfo.is_generated = resp.isidentity == "YES";
+                    colInfo.is_unique = resp.isunique == 1;
                     colInfo.default = colInfo.is_generated
                         ? null
                         : resp.column_default;
