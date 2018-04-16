@@ -29,7 +29,7 @@ before_install:
 - sudo service postgresql stop
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - docker-compose up -d
-- md /opt/oracle
+- mkdir /opt/oracle
 - docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm install -g npm@5
