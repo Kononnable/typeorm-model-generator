@@ -47,3 +47,8 @@ services:
     environment:
         DB_SID: "sys"
         SYS_PASSWORD: "ORCLCDB"
+
+  oracle_client:
+    image: "store/oracle/database-instantclient:12.2.0.1"
+    container_name: "typeorm-mg-oracle-client"
+
