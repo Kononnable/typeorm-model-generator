@@ -11,7 +11,7 @@ Suported db engines:
 * PostgreSQL
 * MySQL
 * MariaDB
-
+* Oracle Database
 
 
 ## Installation
@@ -33,7 +33,8 @@ Options:
   -x, --pass      Password for database server.                       [required]
   -p, --port      Port number for database server.
   -e, --engine    Database engine.
-           [choices: "mssql", "postgres", "mysql", "mariadb"] [default: "mssql"]
+           [choices: "mssql", "postgres", "mysql", "mariadb", "oracle"]
+                                                     [default: "mssql"]
   -o, --output    Where to place generated models.
   -s, --schema    Schema name to create model from. Only for mssql and postgres.
   --ssl                                               [boolean] [default: false]
