@@ -4,6 +4,7 @@
     "description": "Generates models for TypeORM from existing databases.",
     "bin": "bin/typeorm-model-generator",
     "scripts": {
+        "prepare-ci": "gulp prepare-ci",
         "setup": "npm install  && typings install",
         "start": " node ./dist/src/index.js",
         "test": "gulp test-coverage",
@@ -22,6 +23,7 @@
     "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
     "dependencies": {
         "change-case": "^3.0.1",
+        "gulp-rename": "^1.2.2",
         "handlebars": "^4.0.11",
         "mssql": "^4.0.4",
         "mysql": "^2.15.0",

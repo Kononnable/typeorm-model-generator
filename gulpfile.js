@@ -5,6 +5,7 @@ const clean = require("gulp-clean");
 const shell = require('gulp-shell');
 const istanbul = require('gulp-istanbul');
 const mocha = require('gulp-mocha');
+const rename = require('gulp-rename');
 const remapIstanbul = require('remap-istanbul/lib/gulpRemapIstanbul');
 
 gulp.task('compile', ['clean'], function () {
@@ -17,14 +18,14 @@ gulp.task('compile', ['clean'], function () {
 });
 
 gulp.task('clean', function () {
-    return gulp.src(['dist','coverage','output'], { read: false })
+    return gulp.src(['dist', 'coverage', 'output'], { read: false })
         .pipe(clean());
 });
 
 gulp.task('prettier', function () {
     return gulp.src('.prettierrc')
         .pipe(shell(['prettier ./src/**/*.ts --write']))
-        // .pipe(shell(['prettier ./test/**/*.ts --write']))
+    // .pipe(shell(['prettier ./test/**/*.ts --write']))
 });
 
 gulp.task('pre-commit', ['prettier'], function () {
@@ -74,3 +75,12 @@ gulp.task('test-coverage', ['test'], function () {
     }
     return GulpStream;
 })
+gulp.task('prepare-ci', function () {
+    var GulpStream = gulp.src('docker-compose-without-login.yml')
+    if (process.env.CI == 'true' && process.env.OCKER_USERNAME==undefined ) {
+        var GulpStream = gulp.src('docker-compose-without-login.yml')
+            .pipe(rename('docker-compose.yml'))
+            .pipe(gulp.dest('.', { overwrite: true }));
+    }
+    return GulpStream;
+});

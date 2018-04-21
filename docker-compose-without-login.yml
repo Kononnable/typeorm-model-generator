@@ -1,0 +1,54 @@
+version: '2'
+services:
+
+  # mysql
+  mysql:
+    image: "mysql:5.7.19"
+    container_name: "typeorm-mg-mysql"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "!Passw0rd"
+
+  # mariadb
+  mariadb:
+    image: "mariadb:10.2.9"
+    container_name: "typeorm-mg-mariadb"
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "!Passw0rd"
+
+  # postgres
+  postgres:
+    image: "postgres:10.0"
+    container_name: "typeorm-mg-postgres"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "!Passw0rd"
+
+  # mssql
+  mssql:
+    image: "microsoft/mssql-server-linux:2017-CU4"
+    container_name: "typeorm-mg-mssql"
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "!Passw0rd"
+
+  # oracle
+#   oracle:
+#     image: "store/oracle/database-enterprise:12.2.0.1-slim"
+#     container_name: "typeorm-mg-oracle"
+#     ports:
+#       - "1521:1521"
+#     environment:
+#         DB_SID: "sys"
+#         SYS_PASSWORD: "ORCLCDB"
+
+#   oracle_client:
+#     image: "store/oracle/database-instantclient:12.2.0.1"
+#     container_name: "typeorm-mg-oracle-client"
+
