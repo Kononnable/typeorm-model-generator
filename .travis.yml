@@ -40,7 +40,6 @@ before_script:
 - typings install
 - npm link typescript
 - tsc
-- sleep 180
 after_script:
 - greenkeeper-lockfile-upload
 dd:
