@@ -81,8 +81,7 @@ gulp.task('prepare-ci', function () {
     if (buildWithOracle) {
         var GulpStream = GulpStream
             .pipe(rename('docker-compose.yml'))
-            .pipe(gulp.dest('.', { overwrite: true }))
-            .pipe(shell(['echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin']));
+            .pipe(gulp.dest('.', { overwrite: true }));
     }
     return GulpStream;
 

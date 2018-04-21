@@ -33,6 +33,7 @@ before_script:
 - mkdir /opt/oracle
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm run prepare-ci
+- if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - docker-compose up -d
 - npm run prepare-ci2
 - greenkeeper-lockfile-update
