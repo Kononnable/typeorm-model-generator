@@ -27,7 +27,6 @@ env:
 before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
-- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1
 before_script:

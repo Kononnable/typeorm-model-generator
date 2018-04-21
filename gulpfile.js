@@ -78,12 +78,11 @@ gulp.task('test-coverage', ['test'], function () {
 gulp.task('prepare-ci', function () {
     var GulpStream = gulp.src('docker-compose-without-login.yml')
     var buildWithOracle = process.env.CI == 'true' && process.env.DOCKER_USERNAME == undefined
-    console.log(process.env.CI)
-    console.log(process.env.DOCKER_USERNAME)
     if (buildWithOracle) {
         var GulpStream = GulpStream
             .pipe(rename('docker-compose.yml'))
-            .pipe(gulp.dest('.', { overwrite: true }));
+            .pipe(gulp.dest('.', { overwrite: true }))
+            .pipe(shell(['echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin']));
     }
     GulpStream = GulpStream
         .pipe(shell(['docker-compose up -d']));
@@ -91,7 +90,8 @@ gulp.task('prepare-ci', function () {
         GulpStream = GulpStream
             .pipe(shell(['mkdir /opt/oracle']))
             .pipe(shell(['docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2']))
-            .pipe(shell(['export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH']));
+            .pipe(shell(['export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH']))
+            .pipe(shell(['echo "$LD_LIBRARY_PATH"']));
     }
     return GulpStream;
 
