@@ -6,7 +6,7 @@
     "scripts": {
         "setup": "npm install  && typings install",
         "start": " node ./dist/src/index.js",
-        "test": "gulp test-coverage",
+        "test": "gulp coverageRemap",
         "compile": "gulp compile",
         "precommit": "gulp pre-commit"
     },

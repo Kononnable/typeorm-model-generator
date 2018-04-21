@@ -69,7 +69,7 @@ gulp.task('coveragePost', ['test'], function () {
         .pipe(istanbul.writeReports())
 });
 
-gulp.task('test-coverage', ['coveragePost'], function () {
+gulp.task('coverageRemap', ['coveragePost'], function () {
     var GulpStream = gulp.src('coverage/coverage-final.json')
         .pipe(remapIstanbul())
         .pipe(gulp.dest('coverage/remapped'));
