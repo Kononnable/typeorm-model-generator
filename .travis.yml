@@ -28,10 +28,10 @@ before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
-- if [ -z "$DOCKER_USERNAME" ]; then echo  else mv docker-compose-without-login.yml docker-compose.yml; fi
+- if [ -n "$DOCKER_USERNAME" ]; then mv docker-compose-without-login.yml docker-compose.yml; fi
 - docker-compose up -d
 - mkdir /opt/oracle
-- if [ -z "$DOCKER_USERNAME" ]; then else docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
+- if [ -n "$DOCKER_USERNAME" ]; then  docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1
