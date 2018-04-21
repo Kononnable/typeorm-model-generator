@@ -33,6 +33,8 @@ before_script:
 - mkdir /opt/oracle
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm run prepare-ci
+- docker-compose up -d
+- npm run prepare-ci2
 - greenkeeper-lockfile-update
 - typings install
 - npm link typescript
