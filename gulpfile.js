@@ -62,16 +62,19 @@ gulp.task('pre-test', function () {
 gulp.task('test', ['pre-test'], function () {
     return gulp.src(['dist/test/**/*.test.js'], { read: false })
         .pipe(mocha())
-        .pipe(istanbul.writeReports())
-
 });
 
-gulp.task('test-coverage', ['test'], function () {
+gulp.task('coveragePost', ['test'], function () {
+    return gulp.src(['dist/test/**/*.test.js'], { read: false })
+        .pipe(istanbul.writeReports())
+});
+
+gulp.task('test-coverage', ['coveragePost'], function () {
     var GulpStream = gulp.src('coverage/coverage-final.json')
         .pipe(remapIstanbul())
         .pipe(gulp.dest('coverage/remapped'));
-    // if ((process.env.CI == 'true')) {
-    //     GulpStream = GulpStream.pipe(shell(['codecov --file=./coverage/remapped/coverage-final.json ']));
-    // }
+    if ((process.env.CI == 'true')) {
+        GulpStream = GulpStream.pipe(shell(['codecov --file=./coverage/remapped/coverage-final.json ']));
+    }
     return GulpStream;
 })
