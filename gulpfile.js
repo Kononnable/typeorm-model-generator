@@ -5,7 +5,6 @@ const clean = require("gulp-clean");
 const shell = require('gulp-shell');
 const istanbul = require('gulp-istanbul');
 const mocha = require('gulp-mocha');
-const rename = require('gulp-rename');
 const remapIstanbul = require('remap-istanbul/lib/gulpRemapIstanbul');
 
 gulp.task('compile', ['clean'], function () {
@@ -25,7 +24,6 @@ gulp.task('clean', function () {
 gulp.task('prettier', function () {
     return gulp.src('.prettierrc')
         .pipe(shell(['prettier ./src/**/*.ts --write']))
-    // .pipe(shell(['prettier ./test/**/*.ts --write']))
 });
 
 gulp.task('pre-commit', ['prettier'], function () {
