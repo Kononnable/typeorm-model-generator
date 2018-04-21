@@ -32,10 +32,6 @@ before_install:
 - npm install -g greenkeeper-lockfile@1
 before_script:
 - npm run prepare-ci
-- docker-compose up -d
-- mkdir /opt/oracle
-- docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2
-- export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - greenkeeper-lockfile-update
 - typings install
 - npm link typescript
