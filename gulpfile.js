@@ -88,10 +88,7 @@ gulp.task('prepare-ci', function () {
         .pipe(shell(['docker-compose up -d']));
     if (buildWithOracle) {
         GulpStream = GulpStream
-            .pipe(shell(['mkdir /opt/oracle']))
             .pipe(shell(['docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2']))
-            .pipe(shell(['export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH']))
-            .pipe(shell(['echo "$LD_LIBRARY_PATH"']));
     }
     return GulpStream;
 
