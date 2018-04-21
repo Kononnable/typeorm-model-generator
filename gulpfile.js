@@ -86,13 +86,4 @@ gulp.task('prepare-ci', function () {
     return GulpStream;
 
 });
-gulp.task('prepare-ci2', function () {
-    var GulpStream = gulp.src('docker-compose-without-login.yml')
-    var buildWithOracle = process.env.CI == 'true' && process.env.DOCKER_USERNAME == undefined
-    if (buildWithOracle) {
-        GulpStream = GulpStream
-            .pipe(shell(['docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2']))
-    }
-    return GulpStream;
 
-});

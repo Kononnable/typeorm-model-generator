@@ -4,8 +4,6 @@
     "description": "Generates models for TypeORM from existing databases.",
     "bin": "bin/typeorm-model-generator",
     "scripts": {
-        "prepare-ci": "gulp prepare-ci",
-        "prepare-ci2": "gulp prepare-ci2",
         "setup": "npm install  && typings install",
         "start": " node ./dist/src/index.js",
         "test": "gulp test-coverage",
