@@ -20,8 +20,8 @@ export class Post {
 
     // post has relation with category, however inverse relation is not set (category does not have relation with post set)
     @OneToOne(type => PostCategory, {
-        cascade: true,
-        onDelete: 'CASCADE'
+        // cascade: true,
+        // onDelete: 'CASCADE'
     })
     @JoinColumn()
     // @Index({ unique: true })
@@ -30,7 +30,7 @@ export class Post {
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
     // relation it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostDetails, details => details.post, {
-        cascade: true
+        // cascade: true
     })
     @JoinColumn()
     // @Index({ unique: true })
@@ -39,7 +39,7 @@ export class Post {
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostImage, image => image.post, {
-        cascade: true,
+        // cascade: true,
     })
     @JoinColumn()
     // @Index({ unique: true })
@@ -48,7 +48,7 @@ export class Post {
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
     @OneToOne(type => PostMetadata, metadata => metadata.post, {
-        onDelete: 'CASCADE'
+        // onDelete: 'CASCADE'
     })
     @JoinColumn()
     // @Index({ unique: true })
@@ -56,8 +56,8 @@ export class Post {
 
     // post has relation with details. full cascades here
     @OneToOne(type => PostInformation, information => information.post, {
-        cascade: true,
-        onDelete: 'CASCADE'
+        // cascade: true,
+        // onDelete: 'CASCADE'
     })
     @JoinColumn()
     // @Index({ unique: true })

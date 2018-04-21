@@ -1,4 +1,5 @@
 import { debug } from "util";
+import { param } from "change-case";
 
 export class EntityFileToJson {
     getEntityOptions(trimmedLine: string, ent: EntityJson) {
@@ -48,6 +49,21 @@ export class EntityFileToJson {
                     }
                     col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 }
+            }
+        }
+    }
+    getRelationOptions(trimmedLine:string, col:EntityColumn){
+        let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
+         if (decoratorParameters.length > 0) {
+             let params = decoratorParameters.match(/(,)(?!([^{]*}))/g)
+            if ( params && params.length == 2) {
+                let badJSON = decoratorParameters.substring( decoratorParameters.lastIndexOf('{'),decoratorParameters.lastIndexOf('}')+1).trim()
+                if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
+                    badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
+                }
+                col.columnOptions = JSON.parse(badJSON.replace(/(')/g,`"`).replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
+            } else {
+
             }
         }
     }
@@ -247,6 +263,7 @@ export class EntityFileToJson {
                         let column = new EntityColumn()
                         retVal.columns.push(column)
                         column.relationType = "OneToOne"
+                        this.getRelationOptions(trimmedLine,column);
                         continue;
                     }
                 } else if (trimmedLine.startsWith('@JoinColumn')) {

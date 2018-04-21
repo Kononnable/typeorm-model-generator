@@ -18,7 +18,7 @@ export class PostDetails {
 
     @OneToOne(type => Post, post => post.details, {
         // cascade: true,
-        onDelete: 'CASCADE'
+        // onDelete: 'CASCADE'
     })
     post: Post;
 
