@@ -70,20 +70,8 @@ gulp.task('test-coverage', ['test'], function () {
     var GulpStream = gulp.src('coverage/coverage-final.json')
         .pipe(remapIstanbul())
         .pipe(gulp.dest('coverage/remapped'));
-    if ((process.env.CI == 'true')) {
-        GulpStream = GulpStream.pipe(shell(['codecov --file=./coverage/remapped/coverage-final.json ']));
-    }
+    // if ((process.env.CI == 'true')) {
+    //     GulpStream = GulpStream.pipe(shell(['codecov --file=./coverage/remapped/coverage-final.json ']));
+    // }
     return GulpStream;
 })
-gulp.task('prepare-ci', function () {
-    var GulpStream = gulp.src('docker-compose-without-login.yml')
-    var buildWithOracle = process.env.CI == 'true' && process.env.DOCKER_USERNAME == undefined
-    if (buildWithOracle) {
-        var GulpStream = GulpStream
-            .pipe(rename('docker-compose.yml'))
-            .pipe(gulp.dest('.', { overwrite: true }));
-    }
-    return GulpStream;
-
-});
-
