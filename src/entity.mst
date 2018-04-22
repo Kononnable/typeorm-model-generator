@@ -26,8 +26,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
         {{/relations}}{{#relations}}
     @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../name}}=>{{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../is_nullable}} nullable:false,{{/../is_nullable}}{{#actionOnDelete}}onDelete: '{{.}}'{{/actionOnDelete}} }{{else}}{{toPropertyName relatedColumn}}{{#actionOnDelete}},{ onDelete: '{{.}}' }{{/actionOnDelete}}{{/if}}){{#isOwner}}
     {{#if isManyToMany}}@JoinTable(){{else}}@JoinColumn({ name:'{{ ../name}}'}){{/if}}{{/isOwner}}
-    {{#if (or isOneToMany isManyToMany)}}{{toPropertyName ../name}}:{{toEntityName relatedTable}}[];
-    {{else}}{{toPropertyName ../name}}:{{toEntityName relatedTable}};
+    {{#if (or isOneToMany isManyToMany)}}{{toPropertyName ../name}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
+    {{else}}{{toPropertyName ../name}}:{{toLazy (toEntityName relatedTable)}};
     {{/if}}{{/relations}}
     {{/Columns}}
 }

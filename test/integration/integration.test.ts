@@ -65,7 +65,9 @@ describe("TypeOrm examples", async function () {
                             engine = <Engine>{}
                             break;
                     }
-
+                    if (folder=='sample18-lazy-relations') {
+                        engine.Options.lazy=true;
+                    }
 
                     let result = await engine.createModelFromDatabase()
 

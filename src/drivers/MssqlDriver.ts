@@ -284,8 +284,8 @@ ORDER BY
             ForeignKeyColumn: string;
             TableReferenced: string;
             ForeignKeyColumnReferenced: string;
-            onDelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
-            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
+            onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+            onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             object_id: number;
         }[] = (await request.query(`select
     parentTable.name as TableWithForeignKey,
@@ -323,10 +323,30 @@ order by
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete =
-                    resp.onDelete == "NO_ACTION" ? null : resp.onDelete;
-                rels.actionOnUpdate =
-                    resp.onUpdate == "NO_ACTION" ? null : resp.onUpdate;
+                switch (resp.onDelete) {
+                    case "NO_ACTION":
+                        rels.actionOnDelete = null;
+                        break;
+                    case "SET_NULL":
+                        rels.actionOnDelete = "SET NULL";
+                        break;
+                    default:
+                        rels.actionOnDelete = resp.onDelete;
+
+                        break;
+                }
+                switch (resp.onUpdate) {
+                    case "NO_ACTION":
+                        rels.actionOnUpdate = null;
+                        break;
+                    case "SET_NULL":
+                        rels.actionOnUpdate = "SET NULL";
+                        break;
+                    default:
+                        rels.actionOnUpdate = resp.onUpdate;
+
+                        break;
+                }
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;

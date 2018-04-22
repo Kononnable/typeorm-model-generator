@@ -301,7 +301,12 @@ export class EntityFileToJson {
                 } else if (trimmedLine.split(':').length - 1 > 0) {
                     retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
                     //TODO:Should check if null only column is nullable?
-                    retVal.columns[retVal.columns.length - 1].columnTypes = trimmedLine.split(':')[1].split(';')[0].trim().split('|').map(function (x) {
+                    let colTypes=trimmedLine.split(':')[1].split(';')[0].trim();
+                    if (colTypes.startsWith('Promise<')) {
+                        colTypes=colTypes.substring(8,colTypes.length-1)
+                        retVal.columns[retVal.columns.length - 1].columnOptions.isLazy=true;
+                    }
+                    retVal.columns[retVal.columns.length - 1].columnTypes = colTypes.split('|').map(function (x) {
                         if (x == 'any') {
                             x = 'string' //for json columns
                         }

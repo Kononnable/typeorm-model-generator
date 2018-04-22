@@ -78,6 +78,11 @@ var argv = Yargs.usage(
         describe: "Convert property names to specified case",
         choices: ["pascal", "camel", "none"],
         default: "none"
+    })
+    .option("lazy", {
+        describe: "Generate lazy relations",
+        boolean: true,
+        default: false
     }).argv;
 
 var driver: AbstractDriver;
@@ -124,7 +129,8 @@ let engine = new Engine(driver, {
     noConfigs: argv.noConfig,
     convertCaseFile: argv.cf,
     convertCaseEntity: argv.ce,
-    convertCaseProperty: argv.cp
+    convertCaseProperty: argv.cp,
+    lazy: argv.ssl
 });
 
 console.log(

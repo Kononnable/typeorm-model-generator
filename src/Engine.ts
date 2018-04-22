@@ -124,6 +124,9 @@ export class Engine {
             }
             return retStr;
         });
+        Handlebars.registerHelper("concat", (stra, strb) => {
+            return stra + strb;
+        });
         Handlebars.registerHelper("toFileName", str => {
             let retStr = "";
             switch (this.Options.convertCaseFile) {
@@ -159,6 +162,10 @@ export class Engine {
         });
         Handlebars.registerHelper("toLowerCase", str => {
             return str.toLowerCase();
+        });
+        Handlebars.registerHelper("toLazy", str => {
+            if (this.Options.lazy) return `Promise<${str}>`;
+            else return str;
         });
         Handlebars.registerHelper({
             eq: function(v1, v2) {
@@ -263,4 +270,5 @@ export interface EngineOptions {
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
+    lazy: boolean;
 }
