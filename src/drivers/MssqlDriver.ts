@@ -284,8 +284,8 @@ ORDER BY
             ForeignKeyColumn: string;
             TableReferenced: string;
             ForeignKeyColumnReferenced: string;
-            onDelete: "RESTRICT" | "CASCADE" | "SET NULL";
-            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL";
+            onDelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
+            onUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             object_id: number;
         }[] = (await request.query(`select
     parentTable.name as TableWithForeignKey,
@@ -323,8 +323,10 @@ order by
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete = resp.onDelete;
-                rels.actionOnUpdate = resp.onUpdate;
+                rels.actionOnDelete =
+                    resp.onDelete == "NO_ACTION" ? null : resp.onDelete;
+                rels.actionOnUpdate =
+                    resp.onUpdate == "NO_ACTION" ? null : resp.onUpdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;

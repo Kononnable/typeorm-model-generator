@@ -273,8 +273,9 @@ export class OracleDriver extends AbstractDriver {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete = resp.DELETE_RULE;
-                rels.actionOnUpdate = "NO ACTION";
+                rels.actionOnDelete =
+                    resp.DELETE_RULE == "NO ACTION" ? null : resp.DELETE_RULE;
+                rels.actionOnUpdate = null;
                 rels.object_id = resp.CONSTRAINT_NAME;
                 rels.ownerTable = resp.OWNER_TABLE_NAME;
                 rels.referencedTable = resp.CHILD_TABLE_NAME;

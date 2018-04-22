@@ -394,8 +394,8 @@ export class PostgresDriver extends AbstractDriver {
                  att2.attname AS foreignkeycolumn,
               cl.relname AS tablereferenced,
               att.attname AS foreignkeycolumnreferenced,
-               update_rule as ondelete,
-               delete_rule as onupdate,
+              delete_rule as ondelete,
+              update_rule as onupdate,
                 con.conname as object_id
                FROM (
                    SELECT
@@ -435,8 +435,10 @@ export class PostgresDriver extends AbstractDriver {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
-                rels.actionOnDelete = resp.ondelete;
-                rels.actionOnUpdate = resp.onupdate;
+                rels.actionOnDelete =
+                    resp.ondelete == "NO ACTION" ? null : resp.ondelete;
+                rels.actionOnUpdate =
+                    resp.onupdate == "NO ACTION" ? null : resp.onupdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.tablewithforeignkey;
                 rels.referencedTable = resp.tablereferenced;
