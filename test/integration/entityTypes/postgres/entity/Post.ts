@@ -170,23 +170,22 @@ export class Post {
     @Column("jsonb")
     jsonb: Object;
 
-    //typeorm/typeorm#1938
-    // @Column("int4range")
-    // int4range: string;
+    @Column("int4range")
+    int4range: string;
 
-    // @Column("int8range")
-    // int8range: string;
+    @Column("int8range")
+    int8range: string;
 
-    // @Column("numrange")
-    // numrange: string;
+    @Column("numrange")
+    numrange: string;
 
-    // @Column("tsrange")
-    // tsrange: string;
+    @Column("tsrange")
+    tsrange: string;
 
-    // @Column("tstzrange")
-    // tstzrange: string;
+    @Column("tstzrange")
+    tstzrange: string;
 
-    // @Column("daterange")
-    // daterange: string;
+    @Column("daterange")
+    daterange: string;
 
 }
