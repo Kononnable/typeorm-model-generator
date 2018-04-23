@@ -17,14 +17,13 @@ gulp.task('compile', ['clean'], function () {
 });
 
 gulp.task('clean', function () {
-    return gulp.src(['dist','coverage','output'], { read: false })
+    return gulp.src(['dist', 'coverage', 'output'], { read: false })
         .pipe(clean());
 });
 
 gulp.task('prettier', function () {
     return gulp.src('.prettierrc')
         .pipe(shell(['prettier ./src/**/*.ts --write']))
-        // .pipe(shell(['prettier ./test/**/*.ts --write']))
 });
 
 gulp.task('pre-commit', ['prettier'], function () {
@@ -61,11 +60,14 @@ gulp.task('pre-test', function () {
 gulp.task('test', ['pre-test'], function () {
     return gulp.src(['dist/test/**/*.test.js'], { read: false })
         .pipe(mocha())
-        .pipe(istanbul.writeReports())
-
 });
 
-gulp.task('test-coverage', ['test'], function () {
+gulp.task('coveragePost', ['test'], function () {
+    return gulp.src(['dist/test/**/*.test.js'], { read: false })
+        .pipe(istanbul.writeReports())
+});
+
+gulp.task('coverageRemap', ['coveragePost'], function () {
     var GulpStream = gulp.src('coverage/coverage-final.json')
         .pipe(remapIstanbul())
         .pipe(gulp.dest('coverage/remapped'));
