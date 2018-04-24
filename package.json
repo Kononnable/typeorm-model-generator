@@ -28,7 +28,7 @@
         "oracledb": "^2.2.0",
         "pg": "^7.4.0",
         "reflect-metadata": "^0.1.10",
-        "typeorm": "0.2.0",
+        "typeorm": "0.2.1",
         "typescript": "^2.6.1",
         "yargs": "^11.0.0",
         "yn": "^2.0.0"
