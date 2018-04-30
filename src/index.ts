@@ -1,6 +1,7 @@
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { MssqlDriver } from "./drivers/MssqlDriver";
 import { PostgresDriver } from "./drivers/PostgresDriver";
+import { SqliteDriver } from "./drivers/SqliteDriver";
 import { MysqlDriver } from "./drivers/MysqlDriver";
 import { MariaDbDriver } from "./drivers/MariaDbDriver";
 import { OracleDriver } from "./drivers/OracleDriver";
@@ -39,7 +40,7 @@ var argv = Yargs.usage(
     .option("e", {
         alias: "engine",
         describe: "Database engine.",
-        choices: ["mssql", "postgres", "mysql", "mariadb", "oracle"],
+        choices: ["mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"],
         default: "mssql"
     })
     .option("o", {
@@ -110,6 +111,10 @@ switch (argv.e) {
     case "oracle":
         driver = new OracleDriver();
         standardPort = 1521;
+        break;
+    case "sqlite":
+        driver = new SqliteDriver();
+        standardPort = 0;
         break;
     default:
         TomgUtils.LogError("Database engine not recognized.", false);

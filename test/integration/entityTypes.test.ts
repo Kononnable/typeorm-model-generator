@@ -20,6 +20,7 @@ describe("Platform specyfic types", async function () {
     this.slow(5000)//compiling created models takes time
 
     let dbDrivers: string[] = []
+    if (process.env.SQLite_Skip == '0') dbDrivers.push('sqlite')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
@@ -44,8 +45,8 @@ describe("Platform specyfic types", async function () {
 
                     let engine: Engine;
                     switch (dbDriver) {
-                        case 'mssql':
-                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
+                        case 'sqlite':
+                            engine = await GTU.createSQLiteModels(filesOrgPathJS, resultsPath)
                             break;
                         case 'postgres':
                             engine = await GTU.createPostgresModels(filesOrgPathJS, resultsPath)
@@ -55,6 +56,9 @@ describe("Platform specyfic types", async function () {
                             break;
                         case 'mariadb':
                             engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'mssql':
+                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
                             break;
                         case 'oracle':
                             engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)

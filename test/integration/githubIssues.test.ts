@@ -21,6 +21,7 @@ describe("GitHub issues", async function () {
     this.slow(5000)//compiling created models takes time
 
     let dbDrivers: string[] = []
+    if (process.env.SQLite_Skip == '0') dbDrivers.push('sqlite')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
@@ -38,7 +39,7 @@ describe("GitHub issues", async function () {
 
                 switch (folder) {
                     case '39':
-                        if (dbDriver == 'mysql' || dbDriver == 'mariadb' || dbDriver == 'oracle')
+                        if (dbDriver == 'mysql' || dbDriver == 'mariadb' || dbDriver == 'oracle' || dbDriver == 'sqlite')
                             continue;
                         break;
                     default:
@@ -54,8 +55,8 @@ describe("GitHub issues", async function () {
 
                     let engine: Engine;
                     switch (dbDriver) {
-                        case 'mssql':
-                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
+                        case 'sqlite':
+                            engine = await GTU.createSQLiteModels(filesOrgPathJS, resultsPath)
                             break;
                         case 'postgres':
                             engine = await GTU.createPostgresModels(filesOrgPathJS, resultsPath)
@@ -65,6 +66,9 @@ describe("GitHub issues", async function () {
                             break;
                         case 'mariadb':
                             engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
+                            break;
+                        case 'mssql':
+                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
                             break;
                         case 'oracle':
                             engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)

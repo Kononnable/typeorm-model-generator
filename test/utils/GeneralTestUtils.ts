@@ -5,6 +5,7 @@ import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
+import { SqliteDriver } from "../../src/drivers/SqliteDriver";
 import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import * as yn from "yn"
@@ -63,7 +64,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-            lazy:false
+            lazy: false
         });
 
     conn = await createConnection(connOpt)
@@ -127,7 +128,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-            lazy:false
+            lazy: false
         });
 
     conn = await createConnection(connOpt)
@@ -135,6 +136,59 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
     for (const sch of schemas.split(',')) {
         await queryRunner.createSchema(sch, true);
     }
+    await conn.synchronize();
+    if (conn.isConnected)
+        await conn.close()
+
+    return engine;
+}
+
+export async function createSQLiteModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
+    let driver: AbstractDriver;
+    driver = new SqliteDriver();
+    await driver.ConnectToServer(String(process.env.SQLITE_Database), '', 0, '', '', false);
+
+    if (await driver.CheckIfDBExists(String(process.env.SQLITE_Database)))
+        await driver.DropDB(String(process.env.SQLITE_Database));
+    await driver.CreateDB(String(process.env.SQLITE_Database));
+    await driver.DisconnectFromServer();
+
+    let connOpt: ConnectionOptions = {
+        database: String(process.env.SQLITE_Database),
+        type: 'sqlite',
+        dropSchema: true,
+        synchronize: false,
+        entities: [path.resolve(filesOrgPath, '*.js')],
+    }
+
+    let conn = await createConnection(connOpt)
+    let queryRunner = conn.createQueryRunner()
+    await conn.synchronize();
+
+    if (conn.isConnected)
+        await conn.close()
+
+    driver = new SqliteDriver();
+    let engine = new Engine(
+        driver, {
+            host: '',
+            port: 0,
+            databaseName: String(process.env.SQLITE_Database),
+            user: '',
+            password: '',
+            databaseType: 'sqlite',
+            resultsPath: resultsPath,
+            schemaName: '',
+            ssl: false,
+            noConfigs: false,
+            convertCaseEntity: 'none',
+            convertCaseFile: 'none',
+            convertCaseProperty: 'none',
+            lazy: false
+        });
+
+    conn = await createConnection(connOpt)
+    queryRunner = conn.createQueryRunner()
     await conn.synchronize();
     if (conn.isConnected)
         await conn.close()
@@ -184,7 +238,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-            lazy:false
+            lazy: false
         });
 
 
@@ -234,7 +288,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-            lazy:false
+            lazy: false
         });
 
 
@@ -286,7 +340,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
-            lazy:false
+            lazy: false
         });
 
     return engine;

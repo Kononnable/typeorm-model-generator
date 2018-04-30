@@ -164,21 +164,25 @@ export abstract class AbstractDriver {
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            if (!primaryIndex) {
+
+            entity.Columns.forEach(col => {
+                if (
+                    primaryIndex &&
+                    primaryIndex.columns.some(cIndex => cIndex.name == col.name)
+                )
+                    col.isPrimary = true;
+            });
+            if (
+                !entity.Columns.some(v => {
+                    return v.isPrimary;
+                })
+            ) {
                 TomgUtils.LogError(
                     `Table ${entity.EntityName} has no PK.`,
                     false
                 );
                 return;
             }
-            entity.Columns.forEach(col => {
-                if (
-                    primaryIndex!.columns.some(
-                        cIndex => cIndex.name == col.name
-                    )
-                )
-                    col.isPrimary = true;
-            });
         });
     }
     abstract async DisconnectFromServer();
