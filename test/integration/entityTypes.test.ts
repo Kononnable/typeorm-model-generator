@@ -20,7 +20,7 @@ describe("Platform specyfic types", async function () {
     this.slow(5000)//compiling created models takes time
 
     let dbDrivers: string[] = []
-    if (process.env.SQLite_Skip == '0') dbDrivers.push('sqlite')
+    if (process.env.SQLITE_Skip == '0') dbDrivers.push('sqlite')
     if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
     if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
     if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
