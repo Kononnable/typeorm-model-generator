@@ -25,7 +25,7 @@ env:
     ORACLE_Username=typeorm_mg
     ORACLE_Password=Passw0rd
     SQLITE_Skip=0
-    SQLITE_Database=temp/sqlitedb.db
+    SQLITE_Database=/tmp/sqlitedb.db
 before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
