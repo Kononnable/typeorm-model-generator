@@ -15,43 +15,42 @@ var argv = Yargs.usage(
 )
     .option("h", {
         alias: "host",
-        describe: "IP adress/Hostname for database server.",
-        demand: true
+        describe: "IP adress/Hostname for database server",
+        default: "127.0.0.1"
     })
     .option("d", {
         alias: "database",
-        describe: "Database name.",
+        describe: "Database name(or path for sqlite)",
         demand: true
     })
     .option("u", {
         alias: "user",
-        describe: "Username for database server.",
-        demand: true
+        describe: "Username for database server"
     })
     .option("x", {
         alias: "pass",
-        describe: "Password for database server.",
+        describe: "Password for database server",
         default: ""
     })
     .option("p", {
         alias: "port",
-        describe: "Port number for database server."
+        describe: "Port number for database server"
     })
     .option("e", {
         alias: "engine",
-        describe: "Database engine.",
+        describe: "Database engine",
         choices: ["mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"],
         default: "mssql"
     })
     .option("o", {
         alias: "output",
-        describe: "Where to place generated models.",
+        describe: "Where to place generated models",
         default: path.resolve(process.cwd(), "output")
     })
     .option("s", {
         alias: "schema",
         describe:
-            "Schema name to create model from. Only for mssql and postgres."
+            "Schema name to create model from. Only for mssql and postgres"
     })
     .option("ssl", {
         boolean: true,
@@ -91,31 +90,37 @@ var argv = Yargs.usage(
         default: false
     }).argv;
 
-var driver: AbstractDriver;
-var standardPort: number;
-var standardSchema: string = "";
+let driver: AbstractDriver;
+let standardPort: number;
+let standardSchema: string = "";
+let standardUser: string = "";
 switch (argv.e) {
     case "mssql":
         driver = new MssqlDriver();
         standardPort = 1433;
         standardSchema = "dbo";
+        standardUser = "sa";
         break;
     case "postgres":
         driver = new PostgresDriver();
         standardPort = 5432;
         standardSchema = "public";
+        standardUser = "postgres";
         break;
     case "mysql":
         driver = new MysqlDriver();
         standardPort = 3306;
+        standardUser = "root";
         break;
     case "mariadb":
         driver = new MysqlDriver();
         standardPort = 3306;
+        standardUser = "root";
         break;
     case "oracle":
         driver = new OracleDriver();
         standardPort = 1521;
+        standardUser = "SYS";
         break;
     case "sqlite":
         driver = new SqliteDriver();
@@ -130,7 +135,7 @@ let engine = new Engine(driver, {
     host: argv.h,
     port: parseInt(argv.p) || standardPort,
     databaseName: argv.d ? argv.d.toString() : null,
-    user: argv.u ? argv.u.toString() : null,
+    user: argv.u ? argv.u.toString() : standardUser,
     password: argv.x ? argv.x.toString() : null,
     databaseType: argv.e,
     resultsPath: argv.o ? argv.o.toString() : null,

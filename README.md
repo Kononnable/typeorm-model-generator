@@ -30,18 +30,19 @@ Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x
 Options:
   --help                 Show help                                     [boolean]
   --version              Show version number                           [boolean]
-  -h, --host             IP adress/Hostname for database server.      [required]
-  -d, --database         Database name.                               [required]
-  -u, --user             Username for database server.                [required]
-  -x, --pass             Password for database server.             [default: ""]
-  -p, --port             Port number for database server.
-  -e, --engine           Database engine.
+  -h, --host             IP adress/Hostname for database server
+                                                          [default: "127.0.0.1"]
+  -d, --database         Database name(or path for sqlite)            [required]
+  -u, --user             Username for database server
+  -x, --pass             Password for database server              [default: ""]
+  -p, --port             Port number for database server
+  -e, --engine           Database engine
           [choices: "mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"]
                                                               [default: "mssql"]
-  -o, --output           Where to place generated models.
+  -o, --output           Where to place generated models
                             [default: "Z:\Repos\typeorm-model-generator\output"]
   -s, --schema           Schema name to create model from. Only for mssql and
-                         postgres.
+                         postgres
   --ssl                                               [boolean] [default: false]
   --noConfig             Doesn't create tsconfig.json and ormconfig.json
                                                       [boolean] [default: false]
@@ -51,7 +52,9 @@ Options:
                           [choices: "pascal", "camel", "none"] [default: "none"]
   --cp, --case-property  Convert property names to specified case
                           [choices: "pascal", "camel", "none"] [default: "none"]
-  --lazy                 Generate lazy relations      [boolean] [default: false]  
+  --lazy                 Generate lazy relations      [boolean] [default: false]
+  --generateConstructor  Generate constructor allowing partial initialization
+                                                      [boolean] [default: false]
 ```
 ### Examples
 
@@ -72,4 +75,13 @@ Options:
    * Npx Way
       ```
       npx typeorm-model-generator -h localhost -d postgres -u postgres -x !Passw0rd -e postgres -o . -s public --ssl
+      ````
+* Creating model from SQLite database
+   * Global module
+      ```
+      typeorm-model-generator -d "Z:\sqlite.db" -e sqlite -o .
+      ````
+   * Npx Way
+      ```
+      npx typeorm-model-generator -d "Z:\sqlite.db" -e sqlite -o .
       ````
