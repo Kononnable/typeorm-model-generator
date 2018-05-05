@@ -17,7 +17,7 @@ chai.use(chaiSubset);
 
 
 describe("GitHub issues", async function () {
-    this.timeout(20000)
+    this.timeout(30000)
     this.slow(5000)//compiling created models takes time
 
     let dbDrivers: string[] = []
