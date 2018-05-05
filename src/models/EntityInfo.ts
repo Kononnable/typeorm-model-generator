@@ -11,6 +11,7 @@ export class EntityInfo {
     UniqueImports: string[];
     Indexes: IndexInfo[];
     Schema: string;
+    GenerateConstructor: boolean;
 
     relationImports(): any {
         var returnString = "";

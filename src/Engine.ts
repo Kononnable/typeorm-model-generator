@@ -76,6 +76,7 @@ export class Engine {
                     }
                 });
             });
+            element.GenerateConstructor = this.Options.constructor;
             element.Imports.filter(function(elem, index, self) {
                 return index === self.indexOf(elem);
             });
@@ -271,4 +272,5 @@ export interface EngineOptions {
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
     lazy: boolean;
+    constructor: boolean;
 }

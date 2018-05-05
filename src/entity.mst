@@ -30,4 +30,9 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
     {{else}}{{toPropertyName ../name}}:{{toLazy (toEntityName relatedTable)}};
     {{/if}}{{/relations}}
     {{/Columns}}
+    {{#if GenerateConstructor}}
+    constructor(init?: Partial<{{toEntityName EntityName}}>) {
+		Object.assign(this, init);
+	}
+    {{/if}}
 }

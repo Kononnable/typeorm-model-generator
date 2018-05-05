@@ -298,6 +298,15 @@ export class EntityFileToJson {
                         retVal.indicies.push(ind);
                         continue;
                     }
+                } else if (trimmedLine.startsWith('constructor')) {
+                    if (this.isPartOfMultilineStatement(trimmedLine)) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                        continue;
+                    } else {
+                        isMultilineStatement = false;
+                        continue;
+                    }
                 } else if (trimmedLine.split(':').length - 1 > 0) {
                     retVal.columns[retVal.columns.length - 1].columnName = trimmedLine.split(':')[0].trim();
                     //TODO:Should check if null only column is nullable?
@@ -354,8 +363,8 @@ export class EntityFileToJson {
         return retVal;
     }
     isPartOfMultilineStatement(statement: string) {
-        let matchStarting = statement.split('(').length - 1
-        let matchEnding = statement.split(')').length - 1
+        let matchStarting = statement.split('(').length+statement.split('{').length
+        let matchEnding = statement.split(')').length+statement.split('}').length
 
         return !(matchStarting == matchEnding)
     }

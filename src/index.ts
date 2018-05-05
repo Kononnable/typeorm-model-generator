@@ -84,6 +84,11 @@ var argv = Yargs.usage(
         describe: "Generate lazy relations",
         boolean: true,
         default: false
+    })
+    .option("generateConstructor", {
+        describe: "Generate constructor allowing partial initialization",
+        boolean: true,
+        default: false
     }).argv;
 
 var driver: AbstractDriver;
@@ -135,7 +140,8 @@ let engine = new Engine(driver, {
     convertCaseFile: argv.cf,
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
-    lazy: argv.ssl
+    lazy: argv.lazy,
+    constructor: argv.constructor
 });
 
 console.log(
