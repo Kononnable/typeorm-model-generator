@@ -49,7 +49,10 @@ export class SqliteDriver extends AbstractDriver {
                 colInfo.is_nullable = resp.notnull == 0;
                 colInfo.isPrimary = resp.pk > 0;
                 colInfo.default = resp.dflt_value ? resp.dflt_value : null;
-                colInfo.sql_type = resp.type.replace(/\([0-9]+\)/g, "");
+                colInfo.sql_type = resp.type
+                    .replace(/\([0-9 ,]+\)/g, "")
+                    .toLowerCase()
+                    .trim();
                 colInfo.is_generated =
                     colInfo.isPrimary &&
                     this.tablesWithGeneratedPrimaryKey.includes(ent.EntityName);
@@ -137,16 +140,17 @@ export class SqliteDriver extends AbstractDriver {
                         colInfo.ts_type = "Date";
                         break;
                     default:
+                        console.log(colInfo.sql_type.toLowerCase().trim());
                         TomgUtils.LogError(
                             `Unknown column type: ${
                                 colInfo.sql_type
-                            }  table name: ${resp.name} column name: ${
-                                ent.EntityName
+                            }  table name: ${ent.EntityName} column name: ${
+                                resp.name
                             }`
                         );
                         break;
                 }
-                let options = resp.type.match(/\([0-9]+\)/g);
+                let options = resp.type.match(/\([0-9 ,]+\)/g);
                 if (
                     this.ColumnTypesWithPrecision.some(
                         v => v == colInfo.sql_type
