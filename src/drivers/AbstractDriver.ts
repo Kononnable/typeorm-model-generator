@@ -3,7 +3,6 @@ import { DatabaseModel } from "./../models/DatabaseModel";
 import * as TomgUtils from "./../Utils";
 import { RelationInfo } from "../models/RelationInfo";
 import { ColumnInfo } from "../models/ColumnInfo";
-import { ManyToMany } from "typeorm";
 import {
     WithWidthColumnType,
     WithPrecisionColumnType,
@@ -74,40 +73,48 @@ export abstract class AbstractDriver {
             relations = entity.Columns.reduce((prev: RelationInfo[], curr) => {
                 return prev.concat(curr.relations);
             }, relations);
-            //TODO: Composed keys
-            if (relations.length == 2) {
+            let namesOfRelatedTables = relations
+                .map(v => v.relatedTable)
+                .filter((v, i, s) => s.indexOf(v) == i);
+            if (namesOfRelatedTables.length == 2) {
                 let relatedTable1 = dbModel.entities.filter(
-                    v => v.EntityName == relations[0].relatedTable
+                    v => v.EntityName == namesOfRelatedTables[0]
                 )[0];
                 relatedTable1.Columns = relatedTable1.Columns.filter(
-                    v => v.name.toLowerCase() != entity.EntityName.toLowerCase()
+                    v =>
+                        !v.name
+                            .toLowerCase()
+                            .startsWith(entity.EntityName.toLowerCase())
                 );
                 let relatedTable2 = dbModel.entities.filter(
-                    v => v.EntityName == relations[1].relatedTable
+                    v => v.EntityName == namesOfRelatedTables[1]
                 )[0];
                 relatedTable2.Columns = relatedTable2.Columns.filter(
-                    v => v.name.toLowerCase() != entity.EntityName.toLowerCase()
+                    v =>
+                        !v.name
+                            .toLowerCase()
+                            .startsWith(entity.EntityName.toLowerCase())
                 );
                 dbModel.entities = dbModel.entities.filter(ent => {
                     return ent.EntityName != entity.EntityName;
                 });
 
                 let column1 = new ColumnInfo();
-                column1.name = relations[1].relatedTable;
+                column1.name = namesOfRelatedTables[1];
                 let col1Rel = new RelationInfo();
-                col1Rel.relatedTable = relations[1].relatedTable;
-                col1Rel.relatedColumn = relations[1].relatedTable;
+                col1Rel.relatedTable = namesOfRelatedTables[1];
+                col1Rel.relatedColumn = namesOfRelatedTables[1];
                 col1Rel.relationType = "ManyToMany";
                 col1Rel.isOwner = true;
-                col1Rel.ownerColumn = relations[0].relatedTable;
+                col1Rel.ownerColumn = namesOfRelatedTables[0];
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
                 let column2 = new ColumnInfo();
-                column2.name = relations[0].relatedTable;
+                column2.name = namesOfRelatedTables[0];
                 let col2Rel = new RelationInfo();
-                col2Rel.relatedTable = relations[0].relatedTable;
-                col2Rel.relatedColumn = relations[1].relatedTable;
+                col2Rel.relatedTable = namesOfRelatedTables[0];
+                col2Rel.relatedColumn = namesOfRelatedTables[1];
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
                 column2.relations.push(col2Rel);

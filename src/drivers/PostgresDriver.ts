@@ -470,107 +470,130 @@ export class PostgresDriver extends AbstractDriver {
                 );
                 return;
             }
-            let ownerColumn = ownerEntity.Columns.find(column => {
-                return column.name == relationTmp.ownerColumnsNames[0];
-            });
-            if (!ownerColumn) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity column ${
-                        relationTmp.ownerTable
-                    }.${ownerColumn}.`
-                );
-                return;
-            }
-            let relatedColumn = referencedEntity.Columns.find(column => {
-                return column.name == relationTmp.referencedColumnsNames[0];
-            });
-            if (!relatedColumn) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity column ${
-                        relationTmp.referencedTable
-                    }.${relatedColumn}.`
-                );
-                return;
-            }
-            let ownColumn: ColumnInfo = ownerColumn;
-            let isOneToMany: boolean;
-            isOneToMany = false;
-            let index = ownerEntity.Indexes.find(index => {
-                return (
-                    index.isUnique &&
-                    index.columns.some(col => {
-                        return col.name == ownerColumn!.name;
-                    })
-                );
-            });
-            if (!index) {
-                isOneToMany = true;
-            } else {
-                isOneToMany = false;
-            }
-            let ownerRelation = new RelationInfo();
-            let columnName =
-                ownerEntity.EntityName.toLowerCase() + (isOneToMany ? "s" : "");
-            if (
-                referencedEntity.Columns.filter(filterVal => {
-                    return filterVal.name == columnName;
-                }).length > 0
+            for (
+                let relationColumnIndex = 0;
+                relationColumnIndex < relationTmp.ownerColumnsNames.length;
+                relationColumnIndex++
             ) {
-                for (let i = 2; i <= ownerEntity.Columns.length; i++) {
-                    columnName =
-                        ownerEntity.EntityName.toLowerCase() +
-                        (isOneToMany ? "s" : "") +
-                        i.toString();
-                    if (
-                        referencedEntity.Columns.filter(filterVal => {
-                            return filterVal.name == columnName;
-                        }).length == 0
-                    )
-                        break;
+                let ownerColumn = ownerEntity.Columns.find(column => {
+                    return (
+                        column.name ==
+                        relationTmp.ownerColumnsNames[relationColumnIndex]
+                    );
+                });
+                if (!ownerColumn) {
+                    TomgUtils.LogError(
+                        `Relation between tables ${
+                            relationTmp.ownerTable
+                        } and ${
+                            relationTmp.referencedTable
+                        } didn't found entity column ${
+                            relationTmp.ownerTable
+                        }.${ownerColumn}.`
+                    );
+                    return;
                 }
-            }
-            ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
-            ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
-            ownerRelation.isOwner = true;
-            ownerRelation.relatedColumn = relatedColumn.name.toLowerCase();
-            ownerRelation.relatedTable = relationTmp.referencedTable;
-            ownerRelation.ownerTable = relationTmp.ownerTable;
-            ownerRelation.ownerColumn = columnName;
-            ownerRelation.relationType = isOneToMany ? "ManyToOne" : "OneToOne";
-            ownerColumn.relations.push(ownerRelation);
-            if (isOneToMany) {
-                let col = new ColumnInfo();
-                col.name = columnName;
-                let referencedRelation = new RelationInfo();
-                col.relations.push(referencedRelation);
-                referencedRelation.actionondelete = relationTmp.actionOnDelete;
-                referencedRelation.actiononupdate = relationTmp.actionOnUpdate;
-                referencedRelation.isOwner = false;
-                referencedRelation.relatedColumn = ownerColumn.name;
-                referencedRelation.relatedTable = relationTmp.ownerTable;
-                referencedRelation.ownerTable = relationTmp.referencedTable;
-                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                referencedRelation.relationType = "OneToMany";
-                referencedEntity.Columns.push(col);
-            } else {
-                let col = new ColumnInfo();
-                col.name = columnName;
-                let referencedRelation = new RelationInfo();
-                col.relations.push(referencedRelation);
-                referencedRelation.actionondelete = relationTmp.actionOnDelete;
-                referencedRelation.actiononupdate = relationTmp.actionOnUpdate;
-                referencedRelation.isOwner = false;
-                referencedRelation.relatedColumn = ownerColumn.name;
-                referencedRelation.relatedTable = relationTmp.ownerTable;
-                referencedRelation.ownerTable = relationTmp.referencedTable;
-                referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                referencedRelation.relationType = "OneToOne";
+                let relatedColumn = referencedEntity.Columns.find(column => {
+                    return (
+                        column.name ==
+                        relationTmp.referencedColumnsNames[relationColumnIndex]
+                    );
+                });
+                if (!relatedColumn) {
+                    TomgUtils.LogError(
+                        `Relation between tables ${
+                            relationTmp.ownerTable
+                        } and ${
+                            relationTmp.referencedTable
+                        } didn't found entity column ${
+                            relationTmp.referencedTable
+                        }.${relatedColumn}.`
+                    );
+                    return;
+                }
+                let ownColumn: ColumnInfo = ownerColumn;
+                let isOneToMany: boolean;
+                isOneToMany = false;
+                let index = ownerEntity.Indexes.find(index => {
+                    return (
+                        index.isUnique &&
+                        index.columns.some(col => {
+                            return col.name == ownerColumn!.name;
+                        })
+                    );
+                });
+                if (!index) {
+                    isOneToMany = true;
+                } else {
+                    isOneToMany = false;
+                }
+                let ownerRelation = new RelationInfo();
+                let columnName =
+                    ownerEntity.EntityName.toLowerCase() +
+                    (isOneToMany ? "s" : "");
+                if (
+                    referencedEntity.Columns.filter(filterVal => {
+                        return filterVal.name == columnName;
+                    }).length > 0
+                ) {
+                    for (let i = 2; i <= ownerEntity.Columns.length; i++) {
+                        columnName =
+                            ownerEntity.EntityName.toLowerCase() +
+                            (isOneToMany ? "s" : "") +
+                            i.toString();
+                        if (
+                            referencedEntity.Columns.filter(filterVal => {
+                                return filterVal.name == columnName;
+                            }).length == 0
+                        )
+                            break;
+                    }
+                }
+                ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
+                ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
+                ownerRelation.isOwner = true;
+                ownerRelation.relatedColumn = relatedColumn.name.toLowerCase();
+                ownerRelation.relatedTable = relationTmp.referencedTable;
+                ownerRelation.ownerTable = relationTmp.ownerTable;
+                ownerRelation.ownerColumn = columnName;
+                ownerRelation.relationType = isOneToMany
+                    ? "ManyToOne"
+                    : "OneToOne";
+                ownerColumn.relations.push(ownerRelation);
+                if (isOneToMany) {
+                    let col = new ColumnInfo();
+                    col.name = columnName;
+                    let referencedRelation = new RelationInfo();
+                    col.relations.push(referencedRelation);
+                    referencedRelation.actionondelete =
+                        relationTmp.actionOnDelete;
+                    referencedRelation.actiononupdate =
+                        relationTmp.actionOnUpdate;
+                    referencedRelation.isOwner = false;
+                    referencedRelation.relatedColumn = ownerColumn.name;
+                    referencedRelation.relatedTable = relationTmp.ownerTable;
+                    referencedRelation.ownerTable = relationTmp.referencedTable;
+                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
+                    referencedRelation.relationType = "OneToMany";
+                    referencedEntity.Columns.push(col);
+                } else {
+                    let col = new ColumnInfo();
+                    col.name = columnName;
+                    let referencedRelation = new RelationInfo();
+                    col.relations.push(referencedRelation);
+                    referencedRelation.actionondelete =
+                        relationTmp.actionOnDelete;
+                    referencedRelation.actiononupdate =
+                        relationTmp.actionOnUpdate;
+                    referencedRelation.isOwner = false;
+                    referencedRelation.relatedColumn = ownerColumn.name;
+                    referencedRelation.relatedTable = relationTmp.ownerTable;
+                    referencedRelation.ownerTable = relationTmp.referencedTable;
+                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
+                    referencedRelation.relationType = "OneToOne";
 
-                referencedEntity.Columns.push(col);
+                    referencedEntity.Columns.push(col);
+                }
             }
         });
         return entities;
