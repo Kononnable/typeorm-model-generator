@@ -5,9 +5,7 @@ import fs = require("fs");
 import path = require("path");
 import * as TomgUtils from "./Utils";
 import changeCase = require("change-case");
-/**
- * Engine
- */
+
 export class Engine {
     constructor(
         private driver: AbstractDriver,

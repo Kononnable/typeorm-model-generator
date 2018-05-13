@@ -2,34 +2,21 @@ import { AbstractDriver } from "./AbstractDriver";
 import * as PG from "pg";
 import { ColumnInfo } from "./../models/ColumnInfo";
 import { EntityInfo } from "./../models/EntityInfo";
-import { RelationInfo } from "./../models/RelationInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
 import * as TomgUtils from "./../Utils";
-/**
- * PostgresDriver
- */
+
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
 
-    async GetAllTables(schema: string): Promise<EntityInfo[]> {
+    GetAllTablesQuery = async (schema: string) => {
         let response: {
-            table_schema: string;
-            table_name: string;
+            TABLE_SCHEMA: string;
+            TABLE_NAME: string;
         }[] = (await this.Connection.query(
-            `SELECT table_schema,table_name FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
+            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
         )).rows;
+        return response;
+    };
 
-        let ret: EntityInfo[] = <EntityInfo[]>[];
-        response.forEach(val => {
-            let ent: EntityInfo = new EntityInfo();
-            ent.EntityName = val.table_name;
-            ent.Schema = val.table_schema;
-            ent.Columns = <ColumnInfo[]>[];
-            ent.Indexes = <IndexInfo[]>[];
-            ret.push(ent);
-        });
-        return ret;
-    }
     async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
@@ -187,11 +174,9 @@ export class PostgresDriver extends AbstractDriver {
                         case "boolean":
                             colInfo.ts_type = "boolean";
                             break;
-                        /* */
                         case "enum":
                             colInfo.ts_type = "string";
                             break;
-                        /* */
                         case "point":
                             colInfo.ts_type = "string | Object";
                             break;
@@ -222,7 +207,6 @@ export class PostgresDriver extends AbstractDriver {
                         case "macaddr":
                             colInfo.ts_type = "string";
                             break;
-
                         case "tsvector":
                             colInfo.ts_type = "string";
                             break;
@@ -297,7 +281,6 @@ export class PostgresDriver extends AbstractDriver {
                                 ? resp.character_maximum_length
                                 : null;
                     }
-
                     if (colInfo.sql_type) ent.Columns.push(colInfo);
                 });
         });
@@ -312,7 +295,7 @@ export class PostgresDriver extends AbstractDriver {
             indexname: string;
             columnname: string;
             is_unique: number;
-            is_primary_key: number; //, is_descending_key: number//, is_included_column: number
+            is_primary_key: number;
         }[] = (await this.Connection.query(`SELECT
         c.relname AS tablename,
         i.relname as indexname,
@@ -332,10 +315,8 @@ export class PostgresDriver extends AbstractDriver {
         LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
         LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid
         LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
-
         WHERE c.relkind = 'r'::char
         AND n.nspname in (${schema})
-        --AND c.relname = 'nodes'  -- Replace with table name, or Comment this for get all tables
         AND f.attnum > 0
         AND i.oid<>0
         ORDER BY c.relname,f.attname;`)).rows;
@@ -358,17 +339,14 @@ export class PostgresDriver extends AbstractDriver {
                     } else {
                         indexInfo.columns = <IndexColumnInfo[]>[];
                         indexInfo.name = resp.indexname;
-                        indexInfo.isUnique = resp.is_unique == 1 ? true : false;
-                        indexInfo.isPrimaryKey =
-                            resp.is_primary_key == 1 ? true : false;
+                        indexInfo.isUnique = resp.is_unique == 1;
+                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.columnname;
                     if (resp.is_primary_key == 0) {
                         indexInfo.isPrimaryKey = false;
                     }
-                    // indexColumnInfo.isIncludedColumn = resp.is_included_column == 1 ? true : false;
-                    //indexColumnInfo.isDescending = resp.is_descending_key == 1 ? true : false;
                     indexInfo.columns.push(indexColumnInfo);
                 });
         });
@@ -447,155 +425,10 @@ export class PostgresDriver extends AbstractDriver {
             rels.ownerColumnsNames.push(resp.foreignkeycolumn);
             rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
         });
-        relationsTemp.forEach(relationTmp => {
-            let ownerEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.ownerTable;
-            });
-            if (!ownerEntity) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity model ${relationTmp.ownerTable}.`
-                );
-                return;
-            }
-            let referencedEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.referencedTable;
-            });
-            if (!referencedEntity) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity model ${relationTmp.referencedTable}.`
-                );
-                return;
-            }
-            for (
-                let relationColumnIndex = 0;
-                relationColumnIndex < relationTmp.ownerColumnsNames.length;
-                relationColumnIndex++
-            ) {
-                let ownerColumn = ownerEntity.Columns.find(column => {
-                    return (
-                        column.name ==
-                        relationTmp.ownerColumnsNames[relationColumnIndex]
-                    );
-                });
-                if (!ownerColumn) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${
-                            relationTmp.ownerTable
-                        } and ${
-                            relationTmp.referencedTable
-                        } didn't found entity column ${
-                            relationTmp.ownerTable
-                        }.${ownerColumn}.`
-                    );
-                    return;
-                }
-                let relatedColumn = referencedEntity.Columns.find(column => {
-                    return (
-                        column.name ==
-                        relationTmp.referencedColumnsNames[relationColumnIndex]
-                    );
-                });
-                if (!relatedColumn) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${
-                            relationTmp.ownerTable
-                        } and ${
-                            relationTmp.referencedTable
-                        } didn't found entity column ${
-                            relationTmp.referencedTable
-                        }.${relatedColumn}.`
-                    );
-                    return;
-                }
-                let ownColumn: ColumnInfo = ownerColumn;
-                let isOneToMany: boolean;
-                isOneToMany = false;
-                let index = ownerEntity.Indexes.find(index => {
-                    return (
-                        index.isUnique &&
-                        index.columns.some(col => {
-                            return col.name == ownerColumn!.name;
-                        })
-                    );
-                });
-                if (!index) {
-                    isOneToMany = true;
-                } else {
-                    isOneToMany = false;
-                }
-                let ownerRelation = new RelationInfo();
-                let columnName =
-                    ownerEntity.EntityName.toLowerCase() +
-                    (isOneToMany ? "s" : "");
-                if (
-                    referencedEntity.Columns.filter(filterVal => {
-                        return filterVal.name == columnName;
-                    }).length > 0
-                ) {
-                    for (let i = 2; i <= ownerEntity.Columns.length; i++) {
-                        columnName =
-                            ownerEntity.EntityName.toLowerCase() +
-                            (isOneToMany ? "s" : "") +
-                            i.toString();
-                        if (
-                            referencedEntity.Columns.filter(filterVal => {
-                                return filterVal.name == columnName;
-                            }).length == 0
-                        )
-                            break;
-                    }
-                }
-                ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
-                ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
-                ownerRelation.isOwner = true;
-                ownerRelation.relatedColumn = relatedColumn.name.toLowerCase();
-                ownerRelation.relatedTable = relationTmp.referencedTable;
-                ownerRelation.ownerTable = relationTmp.ownerTable;
-                ownerRelation.ownerColumn = columnName;
-                ownerRelation.relationType = isOneToMany
-                    ? "ManyToOne"
-                    : "OneToOne";
-                ownerColumn.relations.push(ownerRelation);
-                if (isOneToMany) {
-                    let col = new ColumnInfo();
-                    col.name = columnName;
-                    let referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionondelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actiononupdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                    referencedRelation.relationType = "OneToMany";
-                    referencedEntity.Columns.push(col);
-                } else {
-                    let col = new ColumnInfo();
-                    col.name = columnName;
-                    let referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionondelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actiononupdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                    referencedRelation.relationType = "OneToOne";
-
-                    referencedEntity.Columns.push(col);
-                }
-            }
-        });
+        entities = this.GetRelationsFromRelationTempInfo(
+            relationsTemp,
+            entities
+        );
         return entities;
     }
     async DisconnectFromServer() {
@@ -603,7 +436,6 @@ export class PostgresDriver extends AbstractDriver {
             let promise = new Promise<boolean>((resolve, reject) => {
                 this.Connection.end(err => {
                     if (!err) {
-                        //Connection successfull
                         resolve(true);
                     } else {
                         TomgUtils.LogError(
@@ -639,7 +471,6 @@ export class PostgresDriver extends AbstractDriver {
         let promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.connect(err => {
                 if (!err) {
-                    //Connection successfull
                     resolve(true);
                 } else {
                     TomgUtils.LogError(
@@ -656,13 +487,13 @@ export class PostgresDriver extends AbstractDriver {
     }
 
     async CreateDB(dbName: string) {
-        let resp = await this.Connection.query(`CREATE DATABASE ${dbName}; `);
+        await this.Connection.query(`CREATE DATABASE ${dbName}; `);
     }
     async UseDB(dbName: string) {
-        let resp = await this.Connection.query(`USE ${dbName}; `);
+        await this.Connection.query(`USE ${dbName}; `);
     }
     async DropDB(dbName: string) {
-        let resp = await this.Connection.query(`DROP DATABASE ${dbName}; `);
+        await this.Connection.query(`DROP DATABASE ${dbName}; `);
     }
     async CheckIfDBExists(dbName: string): Promise<boolean> {
         let resp = await this.Connection.query(

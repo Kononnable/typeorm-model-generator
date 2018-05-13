@@ -1,20 +1,16 @@
 require('dotenv').config()
 import "reflect-metadata";
-import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import fs = require('fs-extra');
 import path = require('path')
 import { Engine } from "./../../src/Engine";
 import { expect } from "chai";
-import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');
 var chaiSubset = require('chai-subset');
-import * as yn from "yn"
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
 
 chai.use(chaiSubset);
-
 
 describe("TypeOrm examples", async function () {
     this.timeout(30000)
@@ -33,11 +29,9 @@ describe("TypeOrm examples", async function () {
     let files = fs.readdirSync(examplesPathTS)
 
     for (let folder of files) {
-
         describe(folder, async function () {
             for (let dbDriver of dbDrivers) {
                 it(dbDriver, async function () {
-
                     let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
                     let filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
                     let resultsPath = path.resolve(process.cwd(), `output`)
@@ -63,7 +57,6 @@ describe("TypeOrm examples", async function () {
                         case 'oracle':
                             engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
                             break;
-
                         default:
                             console.log(`Unknown engine type`);
                             engine = <Engine>{}
@@ -73,12 +66,11 @@ describe("TypeOrm examples", async function () {
                         engine.Options.lazy = true;
                     }
 
-                    let result = await engine.createModelFromDatabase()
-
+                    await engine.createModelFromDatabase()
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val) { return val.toString().endsWith('.ts') })
+                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val) { return val.toString().endsWith('.ts') })
 
                     expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
@@ -93,7 +85,6 @@ describe("TypeOrm examples", async function () {
                             return path.resolve(filesGenPath, v)
                         })
                     let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
-
                         experimentalDecorators: true,
                         sourceMap: false,
                         emitDecoratorMetadata: true,

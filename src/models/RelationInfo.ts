@@ -1,6 +1,4 @@
 export class RelationInfo {
-    [x: string]: any;
-
     isOwner: boolean;
     relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
     relatedTable: string;

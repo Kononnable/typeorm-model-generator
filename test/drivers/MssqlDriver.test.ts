@@ -12,8 +12,8 @@ class fakeResponse implements MSSQL.IResult<any>  {
     recordset: MSSQL.IRecordSet<any>;
     rowsAffected: number[];
     output: { [key: string]: any; };
-
 }
+
 class fakeRecordset extends Array<any> implements MSSQL.IRecordSet<any>{
     columns: IColumnMetadata;
     toTable(): Table {
@@ -27,16 +27,6 @@ describe('MssqlDriver', function () {
 
     beforeEach(() => {
         driver = new MssqlDriver();
-        // sandbox.mock()
-        //  sandbox.stub( (<any>driver).Connection,)
-        //  driver = Sinon.createStubInstance(MssqlDriver);
-
-        //  sandbox.stub(MSSQL,'Connection')
-        //  .callsFake( (a,b)=>{
-        //      console.log(a)
-        //      b({message:'a'})
-        //  })
-        // sandbox.stub(MSSQL.)
     })
 
     afterEach(() => {
@@ -48,15 +38,12 @@ describe('MssqlDriver', function () {
             .returns(
             {
                 query: (q) => {
-
                     let response = new fakeResponse();
-
                     response.recordset = new fakeRecordset();
                     response.recordset.push({ TABLE_SCHEMA: 'schema', TABLE_NAME: 'name' })
                     return response;
                 }
-            }
-            )
+            })
         let result = await driver.GetAllTables('schema')
         let expectedResult = <EntityInfo[]>[];
         let y = new EntityInfo();
@@ -82,9 +69,7 @@ describe('MssqlDriver', function () {
                     })
                     return response;
                 }
-            }
-            )
-
+            })
 
         let entities = <EntityInfo[]>[];
         let y = new EntityInfo();

@@ -1,10 +1,7 @@
-import { debug } from "util";
-import { param } from "change-case";
 
 export class EntityFileToJson {
     getEntityOptions(trimmedLine: string, ent: EntityJson) {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
-
         if (decoratorParameters.length > 0) {
             if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
 
@@ -19,13 +16,9 @@ export class EntityFileToJson {
     }
     getColumnOptionsAndType(trimmedLine: string, col: EntityColumn) {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
-
         if (decoratorParameters.length > 0) {
             if (decoratorParameters.search(',') > 0) {
                 col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|').map(function (x) {
-                    // if (!x.endsWith('[]')) {
-                    //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                    // }
                     return x;
                 });
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
@@ -36,9 +29,6 @@ export class EntityFileToJson {
             } else {
                 if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
                     col.columnTypes = decoratorParameters.split('|').map(function (x) {
-                        // if (!x.endsWith('[]')) {
-                        //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                        // }
                         x = x.trim();
                         return x;
                     });
@@ -75,7 +65,6 @@ export class EntityFileToJson {
             let containsOptions = decoratorParameters.search('{') > -1
             let containsName = decoratorParameters.search('"') > -1//TODO:no name, but fields as string[]
             if (containsName) {
-
                 ind.indexName = decoratorParameters.slice(decoratorParameters.indexOf('"') + 1, decoratorParameters.substr(decoratorParameters.indexOf('"') + 1).indexOf('"'))
             }
             if (containsTables) {
@@ -91,7 +80,6 @@ export class EntityFileToJson {
                 }).filter(v => {
                     return v.length > 0
                 }))
-
             }
             if (containsOptions) {
                 let optionsStr = decoratorParameters.slice(decoratorParameters.indexOf('{') + 1, decoratorParameters.indexOf('}'))
@@ -101,7 +89,6 @@ export class EntityFileToJson {
                             case "unique":
                                 ind.isUnique = optionsStr.split(':')[1].trim() == 'true' ? true : false;
                                 break;
-
                             default:
                                 console.log(`[EntityFileToJson:convert] Index option not recognized ${ind.indexName}:`)
                                 console.log(`${optionsStr}`)
@@ -109,9 +96,7 @@ export class EntityFileToJson {
                         }
                     }
                 })
-
             }
-
         }
     }
 
@@ -126,23 +111,21 @@ export class EntityFileToJson {
         for (let line of lines) {
             let trimmedLine = line.trim();
             if (trimmedLine.startsWith('//')) {
-                continue; //commented line
+                continue;
             }
             if (isMultilineStatement)
                 trimmedLine = priorPartOfMultilineStatement + ' ' + trimmedLine
             if (trimmedLine.length == 0)
-                continue;//empty line
-
+                continue;
             else if (!isInClassBody) {
                 if (trimmedLine.startsWith('import')) {
-                    continue; //import statement is not part of entity definition
+                    continue;
                 } else if (trimmedLine.startsWith('@Entity')) {
                     if (this.isPartOfMultilineStatement(trimmedLine)) {
                         isMultilineStatement = true;
                         priorPartOfMultilineStatement = trimmedLine;
                         continue;
                     } else {
-                        let options = trimmedLine.substring(trimmedLine.lastIndexOf('{'), trimmedLine.lastIndexOf('}') + 1).trim().toLowerCase()
                         this.getEntityOptions(trimmedLine, retVal);
                         continue;
                     }
@@ -176,7 +159,6 @@ export class EntityFileToJson {
                         retVal.columns.push(col);
                         continue;
                     }
-
                 } else if (trimmedLine.startsWith('@PrimaryColumn')) {
                     if (this.isPartOfMultilineStatement(trimmedLine)) {
                         isMultilineStatement = true;
@@ -319,9 +301,6 @@ export class EntityFileToJson {
                         if (x == 'any') {
                             x = 'string' //for json columns
                         }
-                        // if (!x.endsWith('[]')) {
-                        //     x = x + '[]'// can't distinguish OneTwoMany from OneToOne without indexes
-                        // }
                         x = x.trim();
                         return x;
                     });
@@ -335,14 +314,13 @@ export class EntityFileToJson {
                     continue
                 } else if (trimmedLine == '}') {
                     isInClassBody = false;
-                    continue; //class declaration end
+                    continue;
                 }
                 else {
                     console.log(`[EntityFileToJson:convert] Line not recognized in entity ${retVal.entityName}:`)
                     console.log(`${trimmedLine}`)
                 }
             }
-
             console.log(`[EntityFileToJson:convert] Line not recognized in entity ${retVal.entityName}:`)
             console.log(`${trimmedLine}`)
         }
@@ -365,14 +343,12 @@ export class EntityFileToJson {
     isPartOfMultilineStatement(statement: string) {
         let matchStarting = statement.split('(').length+statement.split('{').length
         let matchEnding = statement.split(')').length+statement.split('}').length
-
         return !(matchStarting == matchEnding)
     }
 }
 class EntityJson {
     entityName: string
     entityOptions: any = {}
-
     columns: EntityColumn[] = <EntityColumn[]>[];
     indicies: EntityIndex[] = <EntityIndex[]>[];
 }

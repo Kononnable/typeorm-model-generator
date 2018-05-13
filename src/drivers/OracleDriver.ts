@@ -1,15 +1,8 @@
 import { AbstractDriver } from "./AbstractDriver";
 import { ColumnInfo } from "./../models/ColumnInfo";
 import { EntityInfo } from "./../models/EntityInfo";
-import { RelationInfo } from "./../models/RelationInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-import { promisify } from "util";
-import { request } from "https";
 import * as TomgUtils from "./../Utils";
 
-/**
- * OracleDriver
- */
 export class OracleDriver extends AbstractDriver {
     Oracle: any;
     constructor() {
@@ -22,20 +15,16 @@ export class OracleDriver extends AbstractDriver {
         }
     }
 
-    async GetAllTables(schema: string): Promise<EntityInfo[]> {
-        let response: { TABLE_NAME: string }[] = (await this.Connection.execute(
-            ` SELECT TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`
+    GetAllTablesQuery = async (schema: string) => {
+        let response: {
+            TABLE_SCHEMA: string;
+            TABLE_NAME: string;
+        }[] = (await this.Connection.execute(
+            ` SELECT NULL AS TABLE_SCHEMA, TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`
         )).rows!;
-        let ret: EntityInfo[] = <EntityInfo[]>[];
-        response.forEach(val => {
-            let ent: EntityInfo = new EntityInfo();
-            ent.EntityName = val.TABLE_NAME;
-            ent.Columns = <ColumnInfo[]>[];
-            ent.Indexes = <IndexInfo[]>[];
-            ret.push(ent);
-        });
-        return ret;
-    }
+        return response;
+    };
+
     async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
@@ -67,9 +56,8 @@ export class OracleDriver extends AbstractDriver {
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.name = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.NULLABLE == "Y" ? true : false;
-                    colInfo.is_generated =
-                        resp.IDENTITY_COLUMN == "YES" ? true : false;
+                    colInfo.is_nullable = resp.NULLABLE == "Y";
+                    colInfo.is_generated = resp.IDENTITY_COLUMN == "YES";
                     colInfo.default =
                         !resp.DATA_DEFAULT || resp.DATA_DEFAULT.includes('"')
                             ? null
@@ -284,155 +272,10 @@ export class OracleDriver extends AbstractDriver {
             rels.ownerColumnsNames.push(resp.OWNER_COLUMN_NAME);
             rels.referencedColumnsNames.push(resp.CHILD_COLUMN_NAME);
         });
-        relationsTemp.forEach(relationTmp => {
-            let ownerEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.ownerTable;
-            });
-            if (!ownerEntity) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity model ${relationTmp.ownerTable}.`
-                );
-                return;
-            }
-            let referencedEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.referencedTable;
-            });
-            if (!referencedEntity) {
-                TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${
-                        relationTmp.referencedTable
-                    } didn't found entity model ${relationTmp.referencedTable}.`
-                );
-                return;
-            }
-            for (
-                let relationColumnIndex = 0;
-                relationColumnIndex < relationTmp.ownerColumnsNames.length;
-                relationColumnIndex++
-            ) {
-                let ownerColumn = ownerEntity.Columns.find(column => {
-                    return (
-                        column.name ==
-                        relationTmp.ownerColumnsNames[relationColumnIndex]
-                    );
-                });
-                if (!ownerColumn) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${
-                            relationTmp.ownerTable
-                        } and ${
-                            relationTmp.referencedTable
-                        } didn't found entity column ${
-                            relationTmp.ownerTable
-                        }.${ownerColumn}.`
-                    );
-                    return;
-                }
-                let relatedColumn = referencedEntity.Columns.find(column => {
-                    return (
-                        column.name ==
-                        relationTmp.referencedColumnsNames[relationColumnIndex]
-                    );
-                });
-                if (!relatedColumn) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${
-                            relationTmp.ownerTable
-                        } and ${
-                            relationTmp.referencedTable
-                        } didn't found entity column ${
-                            relationTmp.referencedTable
-                        }.${relatedColumn}.`
-                    );
-                    return;
-                }
-                let ownColumn: ColumnInfo = ownerColumn;
-                let isOneToMany: boolean;
-                isOneToMany = false;
-                let index = ownerEntity.Indexes.find(index => {
-                    return (
-                        index.isUnique &&
-                        index.columns.some(col => {
-                            return col.name == ownerColumn!.name;
-                        })
-                    );
-                });
-                if (!index) {
-                    isOneToMany = true;
-                } else {
-                    isOneToMany = false;
-                }
-                let ownerRelation = new RelationInfo();
-                let columnName =
-                    ownerEntity.EntityName.toLowerCase() +
-                    (isOneToMany ? "s" : "");
-                if (
-                    referencedEntity.Columns.filter(filterVal => {
-                        return filterVal.name == columnName;
-                    }).length > 0
-                ) {
-                    for (let i = 2; i <= ownerEntity.Columns.length; i++) {
-                        columnName =
-                            ownerEntity.EntityName.toLowerCase() +
-                            (isOneToMany ? "s" : "") +
-                            i.toString();
-                        if (
-                            referencedEntity.Columns.filter(filterVal => {
-                                return filterVal.name == columnName;
-                            }).length == 0
-                        )
-                            break;
-                    }
-                }
-                ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
-                ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
-                ownerRelation.isOwner = true;
-                ownerRelation.relatedColumn = relatedColumn.name.toLowerCase();
-                ownerRelation.relatedTable = relationTmp.referencedTable;
-                ownerRelation.ownerTable = relationTmp.ownerTable;
-                ownerRelation.ownerColumn = columnName;
-                ownerRelation.relationType = isOneToMany
-                    ? "ManyToOne"
-                    : "OneToOne";
-                ownerColumn.relations.push(ownerRelation);
-                if (isOneToMany) {
-                    let col = new ColumnInfo();
-                    col.name = columnName;
-                    let referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionOnDelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actionOnUpdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                    referencedRelation.relationType = "OneToMany";
-                    referencedEntity.Columns.push(col);
-                } else {
-                    let col = new ColumnInfo();
-                    col.name = columnName;
-                    let referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionOnDelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actionOnUpdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
-                    referencedRelation.relationType = "OneToOne";
-
-                    referencedEntity.Columns.push(col);
-                }
-            }
-        });
+        entities = this.GetRelationsFromRelationTempInfo(
+            relationsTemp,
+            entities
+        );
         return entities;
     }
     async DisconnectFromServer() {
@@ -453,7 +296,6 @@ export class OracleDriver extends AbstractDriver {
             config /*Oracle.IConnectionAttributes*/ = {
                 user: user,
                 password: password,
-                // connectString: `${server}:${port}/ORCLCDB.localdomain/${database}`,
                 connectString: `${server}:${port}/${database}`,
                 externalAuth: ssl,
                 privilege: this.Oracle.SYSDBA
@@ -462,7 +304,6 @@ export class OracleDriver extends AbstractDriver {
             config /*Oracle.IConnectionAttributes*/ = {
                 user: user,
                 password: password,
-                // connectString: `${server}:${port}/ORCLCDB.localdomain/${database}`,
                 connectString: `${server}:${port}/${database}`,
                 externalAuth: ssl
             };
@@ -471,9 +312,7 @@ export class OracleDriver extends AbstractDriver {
         let promise = new Promise<boolean>((resolve, reject) => {
             this.Oracle.getConnection(config, function(err, connection) {
                 if (!err) {
-                    //Connection successfull
                     that.Connection = connection;
-
                     resolve(true);
                 } else {
                     TomgUtils.LogError(
@@ -490,17 +329,16 @@ export class OracleDriver extends AbstractDriver {
     }
 
     async CreateDB(dbName: string) {
-        var x = await this.Connection.execute(
+        await this.Connection.execute(
             `CREATE USER ${dbName} IDENTIFIED BY ${String(
                 process.env.ORACLE_Password
             )}`
         );
-
-        var y = await this.Connection.execute(`GRANT CONNECT TO ${dbName}`);
+        await this.Connection.execute(`GRANT CONNECT TO ${dbName}`);
     }
     async UseDB(dbName: string) {}
     async DropDB(dbName: string) {
-        var x = await this.Connection.execute(`DROP USER ${dbName} CASCADE`);
+        await this.Connection.execute(`DROP USER ${dbName} CASCADE`);
     }
     async CheckIfDBExists(dbName: string): Promise<boolean> {
         var x = await this.Connection.execute(

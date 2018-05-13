@@ -9,7 +9,6 @@ import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');
 var chaiSubset = require('chai-subset');
-import * as yn from "yn"
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
 
@@ -79,13 +78,11 @@ describe("GitHub issues", async function () {
                             break;
                     }
 
-
-                    let result = await engine.createModelFromDatabase()
-
+                    await engine.createModelFromDatabase()
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val) { return val.toString().endsWith('.ts') })
+                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val) { return val.toString().endsWith('.ts') })
 
                     expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
@@ -100,7 +97,6 @@ describe("GitHub issues", async function () {
                             return path.resolve(filesGenPath, v)
                         })
                     let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
-
                         experimentalDecorators: true,
                         sourceMap: false,
                         emitDecoratorMetadata: true,

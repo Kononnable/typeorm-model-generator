@@ -1,8 +1,5 @@
 import { RelationInfo } from "./RelationInfo";
-import { ColumnType } from "typeorm";
-/**
- * ColumnInfo
- */
+
 export class ColumnInfo {
     name: string = "";
     default: string | null = null;

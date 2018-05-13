@@ -149,6 +149,7 @@ let engine = new Engine(driver, {
     constructor: argv.constructor
 });
 
+console.log(TomgUtils.packageVersion());
 console.log(
     `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
 );

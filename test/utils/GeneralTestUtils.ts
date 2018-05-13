@@ -7,10 +7,9 @@ import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
 import { SqliteDriver } from "../../src/drivers/SqliteDriver";
 import { Engine } from "../../src/Engine";
-import { createConnection, ConnectionOptions, Connection } from "typeorm";
+import { createConnection, ConnectionOptions } from "typeorm";
 import * as yn from "yn"
 import path = require('path')
-import { noCase } from "change-case";
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
 
@@ -24,7 +23,6 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-
         database: String(process.env.MSSQL_Database),
         host: String(process.env.MSSQL_Host),
         password: String(process.env.MSSQL_Password),
@@ -245,8 +243,6 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             constructor:false
         });
 
-
-
     return engine;
 }
 export async function createMariaDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
@@ -260,7 +256,6 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-
         database: String(process.env.MARIADB_Database),
         host: String(process.env.MARIADB_Host),
         password: String(process.env.MARIADB_Password),
@@ -312,7 +307,6 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
     await driver.DisconnectFromServer();
 
     let connOpt: ConnectionOptions = {
-
         database: String(process.env.ORACLE_Database),
         sid: String(process.env.ORACLE_Database),
         host: String(process.env.ORACLE_Host),
@@ -320,7 +314,6 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
         type: 'oracle',
         username: String(process.env.ORACLE_Username),
         port: Number(process.env.ORACLE_Port),
-        // dropSchema: true,
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }

@@ -1,10 +1,8 @@
 require('dotenv').config()
 import "reflect-metadata";
-import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import fs = require('fs-extra');
 import path = require('path')
 import { expect } from "chai";
-import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');
 var chaiSubset = require('chai-subset');
@@ -13,7 +11,6 @@ import * as GTU from "../utils/GeneralTestUtils"
 import { Engine } from "./../../src/Engine";
 
 chai.use(chaiSubset);
-
 
 describe("Platform specyfic types", async function () {
     this.timeout(30000)
@@ -27,13 +24,11 @@ describe("Platform specyfic types", async function () {
     if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
     if (process.env.ORACLE_Skip == '0') dbDrivers.push('oracle')
 
-
     let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/entityTypes')
     let examplesPathTS = path.resolve(process.cwd(), 'test/integration/entityTypes')
     let files = fs.readdirSync(examplesPathTS)
 
     for (let dbDriver of dbDrivers) {
-
         for (let folder of files) {
             if (dbDriver == folder) {
                 it(dbDriver, async function () {
@@ -63,16 +58,13 @@ describe("Platform specyfic types", async function () {
                         case 'oracle':
                             engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
                             break;
-
                         default:
                             console.log(`Unknown engine type`);
                             engine = <Engine>{}
                             break;
                     }
 
-
-                    let result = await engine.createModelFromDatabase()
-
+                    await engine.createModelFromDatabase()
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
                     let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val, ind, arr) { return val.toString().endsWith('.ts') })
@@ -91,7 +83,6 @@ describe("Platform specyfic types", async function () {
                             return path.resolve(filesGenPath, v)
                         })
                     let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
-
                         experimentalDecorators: true,
                         sourceMap: false,
                         emitDecoratorMetadata: true,
