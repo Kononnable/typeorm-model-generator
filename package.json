@@ -46,7 +46,7 @@
         "@types/node": "^10.0.1",
         "@types/oracledb": "^1.11.34",
         "@types/pg": "^7.4.8",
-        "@types/sinon": "^4.3.1",
+        "@types/sinon": "^5.0.0",
         "chai": "^4.1.2",
         "chai-as-promised": "^7.1.1",
         "chai-subset": "^1.6.0",
