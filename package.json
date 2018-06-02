@@ -51,7 +51,7 @@
         "chai-as-promised": "^7.1.1",
         "chai-subset": "^1.6.0",
         "codecov": "^3.0.1",
-        "dotenv": "^5.0.1",
+        "dotenv": "^6.0.0",
         "fs-extra": "^6.0.0",
         "gulp": "^3.9.1",
         "gulp-clean": "^0.4.0",
