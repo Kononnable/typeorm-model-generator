@@ -55,6 +55,14 @@ export class MysqlDriver extends AbstractDriver {
                         case "int":
                             colInfo.ts_type = "number";
                             break;
+                        case "bit":
+                            if (resp.column_type == "bit(1)") {
+                                colInfo.width = 1;
+                                colInfo.ts_type = "boolean";
+                            } else {
+                                colInfo.ts_type = "number";
+                            }
+                            break;
                         case "tinyint":
                             if (resp.column_type == "tinyint(1)") {
                                 colInfo.width = 1;
