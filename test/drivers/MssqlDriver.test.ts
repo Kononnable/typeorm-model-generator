@@ -6,6 +6,7 @@ import { EntityInfo } from './../../src/models/EntityInfo'
 import { ColumnInfo } from './../../src/models/ColumnInfo'
 import { RelationInfo } from './../../src/models/RelationInfo'
 import { Table, IColumnMetadata } from "mssql";
+import { DefaultNamingStrategy } from "../../src/DefaultNamingStrategy";
 
 class fakeResponse implements MSSQL.IResult<any>  {
     recordsets: MSSQL.IRecordSet<any>[];
@@ -27,6 +28,7 @@ describe('MssqlDriver', function () {
 
     beforeEach(() => {
         driver = new MssqlDriver();
+        driver.namingStrategy = new DefaultNamingStrategy();
     })
 
     afterEach(() => {
@@ -84,7 +86,8 @@ describe('MssqlDriver', function () {
             is_nullable: true,
             isPrimary: false,
             is_generated: true,
-            name: 'name',
+            tsName: 'name',
+            sqlName: 'name',
             numericPrecision: null,
             numericScale: null,
             width: null,

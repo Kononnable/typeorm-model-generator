@@ -53,7 +53,8 @@ export class MssqlDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.name = resp.COLUMN_NAME;
+                    colInfo.tsName = this.namingStrategy.entityName(resp.COLUMN_NAME);
+                    colInfo.sqlName = resp.COLUMN_NAME;
                     colInfo.is_nullable = resp.IS_NULLABLE == "YES";
                     colInfo.is_generated = resp.IsIdentity == 1;
                     colInfo.is_unique = resp.IsUnique == 1;

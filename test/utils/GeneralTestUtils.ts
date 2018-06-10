@@ -10,6 +10,8 @@ import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions } from "typeorm";
 import * as yn from "yn"
 import path = require('path')
+import { NamingStrategy } from "../../src/NamingStrategy";
+import { DefaultNamingStrategy } from "../../src/DefaultNamingStrategy";
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
 
@@ -45,6 +47,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     if (conn.isConnected)
         await conn.close()
 
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new MssqlDriver();
     let engine = new Engine(
@@ -63,7 +66,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor: false,
+            namingStrategy: namingStrategy
         });
 
     conn = await createConnection(connOpt)
@@ -110,6 +114,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
 
     if (conn.isConnected)
         await conn.close()
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new PostgresDriver();
     let engine = new Engine(
@@ -128,7 +133,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor:false,
+            namingStrategy: namingStrategy
         });
 
     conn = await createConnection(connOpt)
@@ -167,6 +173,7 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
 
     if (conn.isConnected)
         await conn.close()
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new SqliteDriver();
     let engine = new Engine(
@@ -185,7 +192,8 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor:false,
+            namingStrategy: namingStrategy
         });
 
     conn = await createConnection(connOpt)
@@ -222,6 +230,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
 
     if (conn.isConnected)
         await conn.close()
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new MysqlDriver();
     let engine = new Engine(
@@ -240,7 +249,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor:false,
+            namingStrategy: namingStrategy
         });
 
     return engine;
@@ -270,6 +280,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
 
     if (conn.isConnected)
         await conn.close()
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new MariaDbDriver();
     let engine = new Engine(
@@ -288,7 +299,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor:false,
+            namingStrategy: namingStrategy
         });
 
 
@@ -321,6 +333,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
 
     if (conn.isConnected)
         await conn.close()
+    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
 
     driver = new OracleDriver();
     let engine = new Engine(
@@ -339,7 +352,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
             lazy: false,
-            constructor:false
+            constructor:false,
+            namingStrategy: namingStrategy
         });
 
     return engine;

@@ -9,6 +9,8 @@ import { Engine } from "./Engine";
 import * as Yargs from "yargs";
 import * as TomgUtils from "./Utils";
 import path = require("path");
+import { DefaultNamingStrategy } from "./DefaultNamingStrategy";
+import { NamingStrategy } from "./NamingStrategy";
 
 var argv = Yargs.usage(
     "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]"
@@ -130,6 +132,7 @@ switch (argv.e) {
         TomgUtils.LogError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
 }
+let namingStrategy: NamingStrategy= new DefaultNamingStrategy();
 
 let engine = new Engine(driver, {
     host: argv.h,
@@ -146,7 +149,8 @@ let engine = new Engine(driver, {
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
     lazy: argv.lazy,
-    constructor: argv.constructor
+    constructor: argv.constructor,
+    namingStrategy: namingStrategy
 });
 
 console.log(TomgUtils.packageVersion());

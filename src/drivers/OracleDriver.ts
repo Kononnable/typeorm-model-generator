@@ -55,7 +55,8 @@ export class OracleDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.name = resp.COLUMN_NAME;
+                    colInfo.tsName = this.namingStrategy.entityName(resp.COLUMN_NAME);
+                    colInfo.sqlName = resp.COLUMN_NAME;
                     colInfo.is_nullable = resp.NULLABLE == "Y";
                     colInfo.is_generated = resp.IDENTITY_COLUMN == "YES";
                     colInfo.default =

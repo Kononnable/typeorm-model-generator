@@ -8,6 +8,7 @@ import {
     WithPrecisionColumnType,
     WithLengthColumnType
 } from "./../../node_modules/typeorm/driver/types/ColumnTypes";
+import { NamingStrategy } from "../NamingStrategy";
 
 export abstract class AbstractDriver {
     ColumnTypesWithWidth: WithWidthColumnType[] = [
@@ -52,6 +53,7 @@ export abstract class AbstractDriver {
         "binary",
         "varbinary"
     ];
+    namingStrategy: NamingStrategy;
 
     FindManyToManyRelations(dbModel: DatabaseModel) {
         let manyToManyEntities = dbModel.entities.filter(entity => {
@@ -79,7 +81,7 @@ export abstract class AbstractDriver {
                 )[0];
                 relatedTable1.Columns = relatedTable1.Columns.filter(
                     v =>
-                        !v.name
+                        !v.tsName
                             .toLowerCase()
                             .startsWith(entity.EntityName.toLowerCase())
                 );
@@ -88,7 +90,7 @@ export abstract class AbstractDriver {
                 )[0];
                 relatedTable2.Columns = relatedTable2.Columns.filter(
                     v =>
-                        !v.name
+                        !v.tsName
                             .toLowerCase()
                             .startsWith(entity.EntityName.toLowerCase())
                 );
@@ -97,21 +99,21 @@ export abstract class AbstractDriver {
                 });
 
                 let column1 = new ColumnInfo();
-                column1.name = namesOfRelatedTables[1];
+                column1.tsName = this.namingStrategy.entityName(namesOfRelatedTables[1]);
                 let col1Rel = new RelationInfo();
                 col1Rel.relatedTable = namesOfRelatedTables[1];
-                col1Rel.relatedColumn = namesOfRelatedTables[1];
+                col1Rel.relatedColumn = this.namingStrategy.entityName(namesOfRelatedTables[1]);
                 col1Rel.relationType = "ManyToMany";
                 col1Rel.isOwner = true;
-                col1Rel.ownerColumn = namesOfRelatedTables[0];
+                col1Rel.ownerColumn = this.namingStrategy.entityName(namesOfRelatedTables[0]);
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
                 let column2 = new ColumnInfo();
-                column2.name = namesOfRelatedTables[0];
+                column2.tsName = this.namingStrategy.entityName(namesOfRelatedTables[0]);
                 let col2Rel = new RelationInfo();
                 col2Rel.relatedTable = namesOfRelatedTables[0];
-                col2Rel.relatedColumn = namesOfRelatedTables[1];
+                col2Rel.relatedColumn = this.namingStrategy.entityName(namesOfRelatedTables[1]);
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
                 column2.relations.push(col2Rel);
@@ -126,9 +128,11 @@ export abstract class AbstractDriver {
         user: string,
         password: string,
         schema: string,
-        ssl: boolean
+        ssl: boolean,
+        namingStrategy:NamingStrategy
     ): Promise<DatabaseModel> {
         let dbModel = <DatabaseModel>{};
+        this.namingStrategy = namingStrategy;
         await this.ConnectToServer(database, server, port, user, password, ssl);
         let sqlEscapedSchema = "'" + schema.split(",").join("','") + "'";
         dbModel.entities = await this.GetAllTables(sqlEscapedSchema);
@@ -209,7 +213,7 @@ export abstract class AbstractDriver {
             ) {
                 let ownerColumn = ownerEntity.Columns.find(column => {
                     return (
-                        column.name ==
+                        column.tsName ==
                         relationTmp.ownerColumnsNames[relationColumnIndex]
                     );
                 });
@@ -227,7 +231,7 @@ export abstract class AbstractDriver {
                 }
                 let relatedColumn = referencedEntity.Columns.find(column => {
                     return (
-                        column.name ==
+                        column.tsName ==
                         relationTmp.referencedColumnsNames[relationColumnIndex]
                     );
                 });
@@ -249,48 +253,29 @@ export abstract class AbstractDriver {
                     return (
                         index.isUnique &&
                         index.columns.some(col => {
-                            return col.name == ownerColumn!.name;
+                            return col.name == ownerColumn!.tsName;
                         })
                     );
                 });
                 isOneToMany = !index;
 
                 let ownerRelation = new RelationInfo();
-                let columnName =
-                    ownerEntity.EntityName.toLowerCase() +
-                    (isOneToMany ? "s" : "");
-                if (
-                    referencedEntity.Columns.filter(filterVal => {
-                        return filterVal.name == columnName;
-                    }).length > 0
-                ) {
-                    for (let i = 2; i <= ownerEntity.Columns.length; i++) {
-                        columnName =
-                            ownerEntity.EntityName.toLowerCase() +
-                            (isOneToMany ? "s" : "") +
-                            i.toString();
-                        if (
-                            referencedEntity.Columns.filter(filterVal => {
-                                return filterVal.name == columnName;
-                            }).length == 0
-                        )
-                            break;
-                    }
-                }
                 ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
                 ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
                 ownerRelation.isOwner = true;
-                ownerRelation.relatedColumn = relatedColumn.name.toLowerCase();
+                ownerRelation.relatedColumn = relatedColumn.tsName.toLowerCase();
                 ownerRelation.relatedTable = relationTmp.referencedTable;
                 ownerRelation.ownerTable = relationTmp.ownerTable;
-                ownerRelation.ownerColumn = columnName;
                 ownerRelation.relationType = isOneToMany
-                    ? "ManyToOne"
+                ? "ManyToOne"
                     : "OneToOne";
+
+                let columnName = this.namingStrategy.relationName(ownerEntity,referencedEntity,isOneToMany);
+                ownerRelation.ownerColumn = columnName;
                 ownerColumn.relations.push(ownerRelation);
                 if (isOneToMany) {
                     let col = new ColumnInfo();
-                    col.name = columnName;
+                    col.tsName = columnName;
                     let referencedRelation = new RelationInfo();
                     col.relations.push(referencedRelation);
                     referencedRelation.actionOnDelete =
@@ -298,15 +283,15 @@ export abstract class AbstractDriver {
                     referencedRelation.actionOnUpdate =
                         relationTmp.actionOnUpdate;
                     referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
+                    referencedRelation.relatedColumn = ownerColumn.tsName;
                     referencedRelation.relatedTable = relationTmp.ownerTable;
                     referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
+                    referencedRelation.ownerColumn = relatedColumn.tsName.toLowerCase();
                     referencedRelation.relationType = "OneToMany";
                     referencedEntity.Columns.push(col);
                 } else {
                     let col = new ColumnInfo();
-                    col.name = columnName;
+                    col.tsName = columnName;
                     let referencedRelation = new RelationInfo();
                     col.relations.push(referencedRelation);
                     referencedRelation.actionOnDelete =
@@ -314,10 +299,10 @@ export abstract class AbstractDriver {
                     referencedRelation.actionOnUpdate =
                         relationTmp.actionOnUpdate;
                     referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.name;
+                    referencedRelation.relatedColumn = ownerColumn.tsName;
                     referencedRelation.relatedTable = relationTmp.ownerTable;
                     referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.name.toLowerCase();
+                    referencedRelation.ownerColumn = relatedColumn.tsName.toLowerCase();
                     referencedRelation.relationType = "OneToOne";
                     referencedEntity.Columns.push(col);
                 }
@@ -344,7 +329,7 @@ export abstract class AbstractDriver {
             entity.Columns.forEach(col => {
                 if (
                     primaryIndex &&
-                    primaryIndex.columns.some(cIndex => cIndex.name == col.name)
+                    primaryIndex.columns.some(cIndex => cIndex.name == col.tsName)
                 )
                     col.isPrimary = true;
             });
