@@ -223,7 +223,7 @@ export class Engine {
     "username": "${this.Options.user}",
     "password": "${this.Options.password}",
     "database": "${this.Options.databaseName}",
-    "synchronize": false
+    "synchronize": false,
     "entities": [
       "entities/*.js"
     ]
