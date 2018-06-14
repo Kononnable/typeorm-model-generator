@@ -153,16 +153,12 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.numericPrecision = <any>(
-                        options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[0]
-                    );
-                    colInfo.numericScale = <any>(
-                        options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[1]
-                    );
+                    colInfo.numericPrecision = <any>options[0]
+                        .substring(1, options[0].length - 1)
+                        .split(",")[0];
+                    colInfo.numericScale = <any>options[0]
+                        .substring(1, options[0].length - 1)
+                        .split(",")[1];
                 }
                 if (
                     this.ColumnTypesWithLength.some(
@@ -170,8 +166,9 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.lenght = <any>(
-                        options[0].substring(1, options[0].length - 1)
+                    colInfo.lenght = <any>options[0].substring(
+                        1,
+                        options[0].length - 1
                     );
                 }
                 if (
@@ -182,8 +179,9 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.width = <any>(
-                        options[0].substring(1, options[0].length - 1)
+                    colInfo.width = <any>options[0].substring(
+                        1,
+                        options[0].length - 1
                     );
                 }
 

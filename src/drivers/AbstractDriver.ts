@@ -99,21 +99,31 @@ export abstract class AbstractDriver {
                 });
 
                 let column1 = new ColumnInfo();
-                column1.tsName = this.namingStrategy.entityName(namesOfRelatedTables[1]);
+                column1.tsName = this.namingStrategy.entityName(
+                    namesOfRelatedTables[1]
+                );
                 let col1Rel = new RelationInfo();
                 col1Rel.relatedTable = namesOfRelatedTables[1];
-                col1Rel.relatedColumn = this.namingStrategy.entityName(namesOfRelatedTables[1]);
+                col1Rel.relatedColumn = this.namingStrategy.entityName(
+                    namesOfRelatedTables[1]
+                );
                 col1Rel.relationType = "ManyToMany";
                 col1Rel.isOwner = true;
-                col1Rel.ownerColumn = this.namingStrategy.entityName(namesOfRelatedTables[0]);
+                col1Rel.ownerColumn = this.namingStrategy.entityName(
+                    namesOfRelatedTables[0]
+                );
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
                 let column2 = new ColumnInfo();
-                column2.tsName = this.namingStrategy.entityName(namesOfRelatedTables[0]);
+                column2.tsName = this.namingStrategy.entityName(
+                    namesOfRelatedTables[0]
+                );
                 let col2Rel = new RelationInfo();
                 col2Rel.relatedTable = namesOfRelatedTables[0];
-                col2Rel.relatedColumn = this.namingStrategy.entityName(namesOfRelatedTables[1]);
+                col2Rel.relatedColumn = this.namingStrategy.entityName(
+                    namesOfRelatedTables[1]
+                );
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
                 column2.relations.push(col2Rel);
@@ -129,7 +139,7 @@ export abstract class AbstractDriver {
         password: string,
         schema: string,
         ssl: boolean,
-        namingStrategy:NamingStrategy
+        namingStrategy: NamingStrategy
     ): Promise<DatabaseModel> {
         let dbModel = <DatabaseModel>{};
         this.namingStrategy = namingStrategy;
@@ -267,10 +277,14 @@ export abstract class AbstractDriver {
                 ownerRelation.relatedTable = relationTmp.referencedTable;
                 ownerRelation.ownerTable = relationTmp.ownerTable;
                 ownerRelation.relationType = isOneToMany
-                ? "ManyToOne"
+                    ? "ManyToOne"
                     : "OneToOne";
 
-                let columnName = this.namingStrategy.relationName(ownerEntity,referencedEntity,isOneToMany);
+                let columnName = this.namingStrategy.relationName(
+                    ownerEntity,
+                    referencedEntity,
+                    isOneToMany
+                );
                 ownerRelation.ownerColumn = columnName;
                 ownerColumn.relations.push(ownerRelation);
                 if (isOneToMany) {
@@ -329,7 +343,9 @@ export abstract class AbstractDriver {
             entity.Columns.forEach(col => {
                 if (
                     primaryIndex &&
-                    primaryIndex.columns.some(cIndex => cIndex.name == col.tsName)
+                    primaryIndex.columns.some(
+                        cIndex => cIndex.name == col.tsName
+                    )
                 )
                     col.isPrimary = true;
             });

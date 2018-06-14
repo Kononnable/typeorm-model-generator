@@ -54,7 +54,9 @@ export class PostgresDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = this.namingStrategy.entityName(resp.column_name);
+                    colInfo.tsName = this.namingStrategy.entityName(
+                        resp.column_name
+                    );
                     colInfo.sqlName = resp.column_name;
                     colInfo.is_nullable = resp.is_nullable == "YES";
                     colInfo.is_generated = resp.isidentity == "YES";
