@@ -149,7 +149,7 @@ let engine = new Engine(driver, {
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
     lazy: argv.lazy,
-    constructor: argv.constructor,
+    constructor: argv.generateConstructor,
     namingStrategy: namingStrategy
 });
 
