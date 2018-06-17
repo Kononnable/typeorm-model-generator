@@ -9,7 +9,7 @@ import { Engine } from "./Engine";
 import * as Yargs from "yargs";
 import * as TomgUtils from "./Utils";
 import path = require("path");
-import { DefaultNamingStrategy } from "./DefaultNamingStrategy";
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { NamingStrategy } from "./NamingStrategy";
 
 var argv = Yargs.usage(
@@ -86,6 +86,9 @@ var argv = Yargs.usage(
         boolean: true,
         default: false
     })
+    .option("namingStrategy", {
+        describe: "Use custom naming strategy",
+    })
     .option("generateConstructor", {
         describe: "Generate constructor allowing partial initialization",
         boolean: true,
@@ -131,9 +134,17 @@ switch (argv.e) {
     default:
         TomgUtils.LogError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
-}
-let namingStrategy: NamingStrategy= new DefaultNamingStrategy();
 
+}
+
+let namingStrategy: AbstractNamingStrategy;
+if (argv.namingStrategy && argv.namingStrategy!='') {
+    let req = require(argv.namingStrategy);
+    namingStrategy= new req.NamingStrategy();
+} else {
+    namingStrategy= new NamingStrategy();
+}
+debugger;
 let engine = new Engine(driver, {
     host: argv.h,
     port: parseInt(argv.p) || standardPort,

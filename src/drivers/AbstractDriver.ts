@@ -8,7 +8,7 @@ import {
     WithPrecisionColumnType,
     WithLengthColumnType
 } from "typeorm/driver/types/ColumnTypes";
-import { NamingStrategy } from "../NamingStrategy";
+import { AbstractNamingStrategy } from "../AbstractNamingStrategy";
 
 export abstract class AbstractDriver {
     changeColumnNames(dbModel: DatabaseModel) {
@@ -157,7 +157,7 @@ export abstract class AbstractDriver {
         "binary",
         "varbinary"
     ];
-    namingStrategy: NamingStrategy;
+    namingStrategy: AbstractNamingStrategy;
 
     FindManyToManyRelations(dbModel: DatabaseModel) {
         let manyToManyEntities = dbModel.entities.filter(entity => {
@@ -238,7 +238,7 @@ export abstract class AbstractDriver {
         password: string,
         schema: string,
         ssl: boolean,
-        namingStrategy: NamingStrategy
+        namingStrategy: AbstractNamingStrategy
     ): Promise<DatabaseModel> {
         let dbModel = <DatabaseModel>{};
         this.namingStrategy = namingStrategy;

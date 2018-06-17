@@ -5,7 +5,7 @@ import fs = require("fs");
 import path = require("path");
 import * as TomgUtils from "./Utils";
 import changeCase = require("change-case");
-import { NamingStrategy } from "./NamingStrategy";
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 
 export class Engine {
     constructor(
@@ -42,7 +42,7 @@ export class Engine {
         password: string,
         schemaName: string,
         ssl: boolean,
-        namingStrategy: NamingStrategy
+        namingStrategy: AbstractNamingStrategy
     ): Promise<DatabaseModel> {
         return await this.driver.GetDataFromServer(
             database,
@@ -275,5 +275,5 @@ export interface EngineOptions {
     convertCaseProperty: "pascal" | "camel" | "none";
     lazy: boolean;
     constructor: boolean;
-    namingStrategy: NamingStrategy;
+    namingStrategy: AbstractNamingStrategy;
 }
