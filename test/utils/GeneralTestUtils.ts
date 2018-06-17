@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { AbstractDriver } from "../../src/drivers/AbstractDriver";
 import { MssqlDriver } from "../../src/drivers/MssqlDriver";
-import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
+import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";

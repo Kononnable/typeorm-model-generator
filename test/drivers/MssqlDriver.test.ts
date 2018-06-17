@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { MssqlDriver } from './../../src/drivers/MssqlDriver'
+import { MssqlDriver } from '../../src/drivers/MssqlDriver'
 import * as Sinon from 'sinon'
 import * as MSSQL from 'mssql'
-import { EntityInfo } from './../../src/models/EntityInfo'
-import { ColumnInfo } from './../../src/models/ColumnInfo'
-import { RelationInfo } from './../../src/models/RelationInfo'
+import { EntityInfo } from '../../src/models/EntityInfo'
+import { ColumnInfo } from '../../src/models/ColumnInfo'
+import { RelationInfo } from '../../src/models/RelationInfo'
 import { Table, IColumnMetadata } from "mssql";
 import { DefaultNamingStrategy } from "../../src/DefaultNamingStrategy";
 
