@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-#- stable
+- stable
 - 8
 - 6
 sudo: required
@@ -8,7 +8,7 @@ services:
 - docker
 env:
   matrix:
-  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres
+  - POSTGRES_Skip=1 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres
     POSTGRES_Password=!Passw0rd POSTGRES_Database=typeorm_mg POSTGRES_SSL=0  MYSQL_Skip=0
     MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root MYSQL_Password=!Passw0rd
     MYSQL_Database=typeorm_mg MYSQL_SSL=1 MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
@@ -33,17 +33,21 @@ before_install:
 - if [ -z "$DOCKER_USERNAME" ]; then mv docker-compose-without-login.yml docker-compose.yml; fi
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; fi
 - docker-compose up -d
-- mkdir /opt/oracle
-- if [ -n "$DOCKER_USERNAME" ]; then docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
-- export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1
+- mkdir /opt/oracle
+install:
+- case $TRAVIS_BRANCH in greenkeeper*) npm i;; *) npm ci;; esac;
 before_script:
+- if [ -n "$DOCKER_USERNAME" ]; then npm i oracledb --no-save; docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
+- export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - greenkeeper-lockfile-update
 - typings install
 - npm link typescript
 - tsc
 - sleep 180
+- docker logs typeorm-mg-postgres
+
 after_script:
 - greenkeeper-lockfile-upload
 dd:

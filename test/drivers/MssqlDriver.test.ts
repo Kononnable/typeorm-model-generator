@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import { MssqlDriver } from './../../src/drivers/MssqlDriver'
+import { MssqlDriver } from '../../src/drivers/MssqlDriver'
 import * as Sinon from 'sinon'
 import * as MSSQL from 'mssql'
-import { EntityInfo } from './../../src/models/EntityInfo'
-import { ColumnInfo } from './../../src/models/ColumnInfo'
-import { RelationInfo } from './../../src/models/RelationInfo'
+import { EntityInfo } from '../../src/models/EntityInfo'
+import { ColumnInfo } from '../../src/models/ColumnInfo'
+import { RelationInfo } from '../../src/models/RelationInfo'
 import { Table, IColumnMetadata } from "mssql";
+import { NamingStrategy } from "../../src/NamingStrategy";
 
 class fakeResponse implements MSSQL.IResult<any>  {
     recordsets: MSSQL.IRecordSet<any>[];
@@ -27,6 +28,7 @@ describe('MssqlDriver', function () {
 
     beforeEach(() => {
         driver = new MssqlDriver();
+        driver.namingStrategy = new NamingStrategy();
     })
 
     afterEach(() => {
@@ -84,7 +86,8 @@ describe('MssqlDriver', function () {
             is_nullable: true,
             isPrimary: false,
             is_generated: true,
-            name: 'name',
+            tsName: 'name',
+            sqlName: 'name',
             numericPrecision: null,
             numericScale: null,
             width: null,
@@ -92,7 +95,7 @@ describe('MssqlDriver', function () {
             ts_type: 'number',
             enumOptions: null,
             is_unique:false,
-            relations: <RelationInfo[]>[]
+            relations: <RelationInfo[]>[],
         })
         let result = await driver.GetCoulmnsFromEntity(entities, 'schema');
         expect(result).to.be.deep.equal(expected)

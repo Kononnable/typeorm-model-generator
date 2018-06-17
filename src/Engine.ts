@@ -5,6 +5,7 @@ import fs = require("fs");
 import path = require("path");
 import * as TomgUtils from "./Utils";
 import changeCase = require("change-case");
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 
 export class Engine {
     constructor(
@@ -20,7 +21,9 @@ export class Engine {
             this.Options.user,
             this.Options.password,
             this.Options.schemaName,
-            this.Options.ssl
+            this.Options.ssl,
+            this.Options.namingStrategy,
+            this.Options.relationIds
         );
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
@@ -39,7 +42,9 @@ export class Engine {
         user: string,
         password: string,
         schemaName: string,
-        ssl: boolean
+        ssl: boolean,
+        namingStrategy: AbstractNamingStrategy,
+        relationIds: boolean
     ): Promise<DatabaseModel> {
         return await this.driver.GetDataFromServer(
             database,
@@ -48,7 +53,9 @@ export class Engine {
             user,
             password,
             schemaName,
-            ssl
+            ssl,
+            namingStrategy,
+            relationIds
         );
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
@@ -223,7 +230,7 @@ export class Engine {
     "username": "${this.Options.user}",
     "password": "${this.Options.password}",
     "database": "${this.Options.databaseName}",
-    "synchronize": false
+    "synchronize": false,
     "entities": [
       "entities/*.js"
     ]
@@ -271,4 +278,6 @@ export interface EngineOptions {
     convertCaseProperty: "pascal" | "camel" | "none";
     lazy: boolean;
     constructor: boolean;
+    namingStrategy: AbstractNamingStrategy;
+    relationIds: boolean;
 }
