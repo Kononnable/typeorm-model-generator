@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { createConnection, ConnectionOptions, Connection } from "typeorm";
 import fs = require('fs-extra');
 import path = require('path')
-import { Engine } from "./../../src/Engine";
+import { Engine } from "../../src/Engine";
 import { expect } from "chai";
 import * as Sinon from 'sinon'
 import { EntityFileToJson } from "../utils/EntityFileToJson";
@@ -75,6 +75,14 @@ describe("GitHub issues", async function () {
                         default:
                             console.log(`Unknown engine type`);
                             engine = <Engine>{}
+                            break;
+                    }
+
+                    switch (folder) {
+                        case '65':
+                            engine.Options.relationIds = true;
+                            break;
+                        default:
                             break;
                     }
 

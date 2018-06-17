@@ -1,8 +1,8 @@
 import { PrimaryGeneratedColumn, Column, Entity, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable } from "typeorm";
 import {Post} from "./Post";
 
-@Entity("PostDetails")
-export class PostDetails {
+@Entity("PostDetail")
+export class PostDetail {
 
     @PrimaryGeneratedColumn()
     id: number;
@@ -16,7 +16,7 @@ export class PostDetails {
     @Column()
     metadata: string;
 
-    @ManyToMany(type => Post, post => post.PostDetails)
-    Post: Post[];
+    @ManyToMany(type => Post, post => post.postDetails)
+    posts: Post[];
 
 }

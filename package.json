@@ -1,6 +1,6 @@
 {
     "name": "typeorm-model-generator",
-    "version": "0.2.16",
+    "version": "0.2.17",
     "description": "Generates models for TypeORM from existing databases.",
     "bin": "bin/typeorm-model-generator",
     "scripts": {
@@ -25,7 +25,6 @@
         "handlebars": "^4.0.11",
         "mssql": "^4.0.4",
         "mysql": "^2.15.0",
-        "oracledb": "^2.2.0",
         "pg": "^7.4.0",
         "reflect-metadata": "^0.1.10",
         "typeorm": "^0.2.4",

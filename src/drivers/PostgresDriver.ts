@@ -1,8 +1,8 @@
 import { AbstractDriver } from "./AbstractDriver";
 import * as PG from "pg";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
 
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
@@ -54,7 +54,8 @@ export class PostgresDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.name = resp.column_name;
+                    colInfo.tsName = resp.column_name;
+                    colInfo.sqlName = resp.column_name;
                     colInfo.is_nullable = resp.is_nullable == "YES";
                     colInfo.is_generated = resp.isidentity == "YES";
                     colInfo.is_unique = resp.isunique == 1;

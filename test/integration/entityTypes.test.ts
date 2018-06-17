@@ -8,7 +8,7 @@ var chai = require('chai');
 var chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
-import { Engine } from "./../../src/Engine";
+import { Engine } from "../../src/Engine";
 
 chai.use(chaiSubset);
 

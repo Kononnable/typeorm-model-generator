@@ -1,7 +1,8 @@
 import { RelationInfo } from "./RelationInfo";
 
 export class ColumnInfo {
-    name: string = "";
+    tsName: string = "";
+    sqlName: string = "";
     default: string | null = null;
     is_nullable: boolean = false;
     is_unique: boolean = false;
@@ -24,7 +25,6 @@ export class ColumnInfo {
     numericScale: number | null = null;
     enumOptions: string | null = null;
     relations: RelationInfo[];
-
     constructor() {
         this.relations = [];
     }

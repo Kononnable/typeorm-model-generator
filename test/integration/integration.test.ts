@@ -2,7 +2,7 @@ require('dotenv').config()
 import "reflect-metadata";
 import fs = require('fs-extra');
 import path = require('path')
-import { Engine } from "./../../src/Engine";
+import { Engine } from "../../src/Engine";
 import { expect } from "chai";
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 var chai = require('chai');

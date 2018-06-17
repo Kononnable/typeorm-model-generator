@@ -1,7 +1,7 @@
 import { AbstractDriver } from "./AbstractDriver";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
 
 export class OracleDriver extends AbstractDriver {
     Oracle: any;
@@ -55,7 +55,8 @@ export class OracleDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.name = resp.COLUMN_NAME;
+                    colInfo.tsName = resp.COLUMN_NAME;
+                    colInfo.sqlName = resp.COLUMN_NAME;
                     colInfo.is_nullable = resp.NULLABLE == "Y";
                     colInfo.is_generated = resp.IDENTITY_COLUMN == "YES";
                     colInfo.default =
