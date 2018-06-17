@@ -43,7 +43,9 @@ before_script:
 - typings install
 - npm link typescript
 - tsc
-- sleep 180
+- sleep 240
+- docker logs typeorm-mg-postgres
+
 after_script:
 - greenkeeper-lockfile-upload
 dd:
