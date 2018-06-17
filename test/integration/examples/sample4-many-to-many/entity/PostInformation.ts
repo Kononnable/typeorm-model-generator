@@ -10,7 +10,7 @@ export class PostInformation {
     @Column()
     text: string;
 
-    @ManyToMany(type => Post, post => post.PostInformation)
-    Post: Post[];
+    @ManyToMany(type => Post, post => post.postInformations)
+    posts: Post[];
 
 }

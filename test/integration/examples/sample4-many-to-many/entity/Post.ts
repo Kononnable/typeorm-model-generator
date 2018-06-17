@@ -1,5 +1,5 @@
 import { PrimaryGeneratedColumn, Column, Entity, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable } from "typeorm";
-import {PostDetails} from "./PostDetails";
+import {PostDetail} from "./PostDetail";
 import {PostCategory} from "./PostCategory";
 import {PostAuthor} from "./PostAuthor";
 import {PostInformation} from "./PostInformation";
@@ -23,40 +23,40 @@ export class Post {
         cascade: true
     })
     @JoinTable()
-    PostCategory: PostCategory[];
+    postCategorys: PostCategory[];
 
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
     // relation it will be inserted automatically to the db when you save this Post entity
-    @ManyToMany(type => PostDetails, details => details.Post, {
+    @ManyToMany(type => PostDetail, details => details.posts, {
         cascade: true
     })
     @JoinTable()
-    PostDetails: PostDetails[];
+    postDetails: PostDetail[];
 
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
-    @ManyToMany(type => PostImage, image => image.Post, {
+    @ManyToMany(type => PostImage, image => image.posts, {
         cascade: true
     })
     @JoinTable()
-    PostImage: PostImage[];
+    postImages: PostImage[];
 
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
-    @ManyToMany(type => PostMetadata, metadata => metadata.Post)
+    @ManyToMany(type => PostMetadata, metadata => metadata.posts)
     @JoinTable()
-    PostMetadata: PostMetadata[];
+    postMetadatas: PostMetadata[];
 
     // post has relation with details. full cascades here
-    @ManyToMany(type => PostInformation, information => information.Post, {
+    @ManyToMany(type => PostInformation, information => information.posts, {
         cascade: true
     })
     @JoinTable()
-    PostInformation: PostInformation[];
+    postInformations: PostInformation[];
 
     // post has relation with details. not cascades here. means cannot be persisted, updated or removed
-    @ManyToMany(type => PostAuthor, author => author.Post)
+    @ManyToMany(type => PostAuthor, author => author.posts)
     @JoinTable()
-    PostAuthor: PostAuthor[];
+    postAuthors: PostAuthor[];
 
 }

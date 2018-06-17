@@ -9,7 +9,7 @@ import { Engine } from "./Engine";
 import * as Yargs from "yargs";
 import * as TomgUtils from "./Utils";
 import path = require("path");
-import { DefaultNamingStrategy } from "./DefaultNamingStrategy";
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { NamingStrategy } from "./NamingStrategy";
 
 var argv = Yargs.usage(
@@ -86,6 +86,14 @@ var argv = Yargs.usage(
         boolean: true,
         default: false
     })
+    .option("namingStrategy", {
+        describe: "Use custom naming strategy"
+    })
+    .option("relationIds", {
+        describe: "Generate RelationId fields",
+        boolean: true,
+        default: false
+    })
     .option("generateConstructor", {
         describe: "Generate constructor allowing partial initialization",
         boolean: true,
@@ -115,7 +123,7 @@ switch (argv.e) {
         standardUser = "root";
         break;
     case "mariadb":
-        driver = new MysqlDriver();
+        driver = new MariaDbDriver();
         standardPort = 3306;
         standardUser = "root";
         break;
@@ -132,7 +140,13 @@ switch (argv.e) {
         TomgUtils.LogError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
 }
-let namingStrategy: NamingStrategy= new DefaultNamingStrategy();
+let namingStrategy: AbstractNamingStrategy;
+if (argv.namingStrategy && argv.namingStrategy != "") {
+    let req = require(argv.namingStrategy);
+    namingStrategy = new req.NamingStrategy();
+} else {
+    namingStrategy = new NamingStrategy();
+}
 
 let engine = new Engine(driver, {
     host: argv.h,
@@ -149,7 +163,8 @@ let engine = new Engine(driver, {
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
     lazy: argv.lazy,
-    constructor: argv.constructor,
+    constructor: argv.generateConstructor,
+    relationIds: argv.relationIds,
     namingStrategy: namingStrategy
 });
 

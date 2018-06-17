@@ -10,7 +10,7 @@ export class Category {
     @Column()
     name: string;
 
-    @ManyToMany(type => Post, post => post.Category)
-    Post: Promise<Post[]>;
+    @ManyToMany(type => Post, post => post.categorys)
+    posts: Promise<Post[]>;
 
 }

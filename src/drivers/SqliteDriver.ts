@@ -1,7 +1,7 @@
 import { AbstractDriver } from "./AbstractDriver";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
 
 export class SqliteDriver extends AbstractDriver {
     sqlite = require("sqlite3").verbose();
@@ -41,7 +41,7 @@ export class SqliteDriver extends AbstractDriver {
             }>(`PRAGMA table_info('${ent.EntityName}');`);
             response.forEach(resp => {
                 let colInfo: ColumnInfo = new ColumnInfo();
-                colInfo.tsName = this.namingStrategy.entityName(resp.name);
+                colInfo.tsName = resp.name;
                 colInfo.sqlName = resp.name;
                 colInfo.is_nullable = resp.notnull == 0;
                 colInfo.isPrimary = resp.pk > 0;
@@ -153,16 +153,12 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.numericPrecision = <any>(
-                        options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[0]
-                    );
-                    colInfo.numericScale = <any>(
-                        options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[1]
-                    );
+                    colInfo.numericPrecision = <any>options[0]
+                        .substring(1, options[0].length - 1)
+                        .split(",")[0];
+                    colInfo.numericScale = <any>options[0]
+                        .substring(1, options[0].length - 1)
+                        .split(",")[1];
                 }
                 if (
                     this.ColumnTypesWithLength.some(
@@ -170,8 +166,9 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.lenght = <any>(
-                        options[0].substring(1, options[0].length - 1)
+                    colInfo.lenght = <any>options[0].substring(
+                        1,
+                        options[0].length - 1
                     );
                 }
                 if (
@@ -182,8 +179,9 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.width = <any>(
-                        options[0].substring(1, options[0].length - 1)
+                    colInfo.width = <any>options[0].substring(
+                        1,
+                        options[0].length - 1
                     );
                 }
 

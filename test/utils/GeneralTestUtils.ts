@@ -1,7 +1,7 @@
 import * as ts from "typescript";
 import { AbstractDriver } from "../../src/drivers/AbstractDriver";
 import { MssqlDriver } from "../../src/drivers/MssqlDriver";
-import { PostgresDriver } from "./../../src/drivers/PostgresDriver";
+import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
@@ -10,8 +10,8 @@ import { Engine } from "../../src/Engine";
 import { createConnection, ConnectionOptions } from "typeorm";
 import * as yn from "yn"
 import path = require('path')
+import { AbstractNamingStrategy } from "../../src/AbstractNamingStrategy";
 import { NamingStrategy } from "../../src/NamingStrategy";
-import { DefaultNamingStrategy } from "../../src/DefaultNamingStrategy";
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
 
@@ -47,7 +47,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     if (conn.isConnected)
         await conn.close()
 
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MssqlDriver();
     let engine = new Engine(
@@ -67,7 +67,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseProperty: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds:false
         });
 
     conn = await createConnection(connOpt)
@@ -114,7 +115,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
 
     if (conn.isConnected)
         await conn.close()
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new PostgresDriver();
     let engine = new Engine(
@@ -134,7 +135,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     conn = await createConnection(connOpt)
@@ -173,7 +175,7 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
 
     if (conn.isConnected)
         await conn.close()
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new SqliteDriver();
     let engine = new Engine(
@@ -193,7 +195,8 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     conn = await createConnection(connOpt)
@@ -230,7 +233,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
 
     if (conn.isConnected)
         await conn.close()
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MysqlDriver();
     let engine = new Engine(
@@ -250,7 +253,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     return engine;
@@ -280,7 +284,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
 
     if (conn.isConnected)
         await conn.close()
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MariaDbDriver();
     let engine = new Engine(
@@ -300,7 +304,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
 
@@ -333,7 +338,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
 
     if (conn.isConnected)
         await conn.close()
-    let namingStrategy: NamingStrategy = new DefaultNamingStrategy();
+    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new OracleDriver();
     let engine = new Engine(
@@ -353,7 +358,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     return engine;

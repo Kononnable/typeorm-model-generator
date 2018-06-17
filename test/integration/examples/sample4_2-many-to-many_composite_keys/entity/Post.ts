@@ -11,8 +11,8 @@ export class Post {
     type: string;
 
     // post has relation with details. not cascades here. means cannot be persisted, updated or removed
-    @ManyToMany(type => PostAuthor, author => author.Post)
+    @ManyToMany(type => PostAuthor, author => author.posts)
     @JoinTable()
-    PostAuthor: PostAuthor[];
+    postAuthors: PostAuthor[];
 
 }
