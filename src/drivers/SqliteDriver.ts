@@ -1,7 +1,7 @@
 import { AbstractDriver } from "./AbstractDriver";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
 
 export class SqliteDriver extends AbstractDriver {
     sqlite = require("sqlite3").verbose();
@@ -41,7 +41,7 @@ export class SqliteDriver extends AbstractDriver {
             }>(`PRAGMA table_info('${ent.EntityName}');`);
             response.forEach(resp => {
                 let colInfo: ColumnInfo = new ColumnInfo();
-                colInfo.tsName = this.namingStrategy.entityName(resp.name);
+                colInfo.tsName = resp.name;
                 colInfo.sqlName = resp.name;
                 colInfo.is_nullable = resp.notnull == 0;
                 colInfo.isPrimary = resp.pk > 0;

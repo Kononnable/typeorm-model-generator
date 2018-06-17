@@ -1,8 +1,8 @@
 import { AbstractDriver } from "./AbstractDriver";
 import * as MSSQL from "mssql";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
 
 export class MssqlDriver extends AbstractDriver {
     GetAllTablesQuery = async (schema: string) => {
@@ -53,9 +53,7 @@ export class MssqlDriver extends AbstractDriver {
                 })
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = this.namingStrategy.entityName(
-                        resp.COLUMN_NAME
-                    );
+                    colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
                     colInfo.is_nullable = resp.IS_NULLABLE == "YES";
                     colInfo.is_generated = resp.IsIdentity == 1;

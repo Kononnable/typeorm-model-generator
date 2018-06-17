@@ -24,8 +24,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
         })
     {{toPropertyName tsName}}:{{ts_type}}{{#is_nullable}} | null{{/is_nullable}};
         {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../tsName}}=>{{toPropertyName ../tsName}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../is_nullable}} nullable:false,{{/../is_nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#actionOnDelete}},{ onDelete: '{{.}}' }{{/actionOnDelete}}{{/if}}){{#isOwner}}
-    {{#if isManyToMany}}@JoinTable(){{else}}@JoinColumn({ name:'{{ ../tsName}}'}){{/if}}{{/isOwner}}
+    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../is_nullable}} nullable:false,{{/../is_nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#actionOnDelete}},{ onDelete: '{{.}}' }{{/actionOnDelete}}{{/if}}){{#isOwner}}
+    {{#if isManyToMany}}@JoinTable(){{else}}@JoinColumn({ name:'{{ ../sqlName}}'}){{/if}}{{/isOwner}}
     {{#if (or isOneToMany isManyToMany)}}{{toPropertyName ../tsName}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
     {{else}}{{toPropertyName ../tsName}}:{{toLazy (concat (toEntityName relatedTable) ' | null')}};
     {{/if}}{{/relations}}

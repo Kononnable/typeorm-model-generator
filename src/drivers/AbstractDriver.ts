@@ -1,16 +1,120 @@
-import { EntityInfo } from "./../models/EntityInfo";
-import { DatabaseModel } from "./../models/DatabaseModel";
-import * as TomgUtils from "./../Utils";
+import { EntityInfo } from "../models/EntityInfo";
+import { DatabaseModel } from "../models/DatabaseModel";
+import * as TomgUtils from "../Utils";
 import { RelationInfo } from "../models/RelationInfo";
 import { ColumnInfo } from "../models/ColumnInfo";
 import {
     WithWidthColumnType,
     WithPrecisionColumnType,
     WithLengthColumnType
-} from "./../../node_modules/typeorm/driver/types/ColumnTypes";
+} from "typeorm/driver/types/ColumnTypes";
 import { NamingStrategy } from "../NamingStrategy";
 
 export abstract class AbstractDriver {
+    changeColumnNames(dbModel: DatabaseModel) {
+        dbModel.entities.forEach(entity => {
+            entity.Columns.forEach(column => {
+                let newName = this.namingStrategy.columnName(column.tsName);
+                entity.Indexes.forEach(index => {
+                    index.columns
+                        .filter(column2 => {
+                            return column2.name == column.tsName;
+                        })
+                        .forEach(column2 => {
+                            column2.name = newName;
+                        });
+                });
+                dbModel.entities.forEach(entity2 => {
+                    entity2.Columns.forEach(column2 => {
+                        column2.relations
+                            .filter(relation => {
+                                return (
+                                    relation.relatedTable ==
+                                        entity.EntityName &&
+                                    relation.relatedColumn == column.tsName
+                                );
+                            })
+                            .map(v => {
+                                v.relatedColumn = newName;
+                            });
+                        column2.relations
+                            .filter(relation => {
+                                return (
+                                    relation.ownerTable == entity.EntityName &&
+                                    relation.ownerColumn == column.tsName
+                                );
+                            })
+                            .map(v => {
+                                v.ownerColumn = newName;
+                            });
+                    });
+                });
+
+                column.tsName = newName;
+            });
+        });
+    }
+    changeEntityNames(dbModel: DatabaseModel) {
+        dbModel.entities.forEach(entity => {
+            let newName = this.namingStrategy.columnName(entity.EntityName);
+            dbModel.entities.forEach(entity2 => {
+                entity2.Columns.forEach(column => {
+                    column.relations.forEach(relation => {
+                        if (relation.ownerTable == entity.EntityName)
+                            relation.ownerTable = newName;
+                        if (relation.relatedTable == entity.EntityName)
+                            relation.relatedTable = newName;
+                    });
+                });
+            });
+            entity.EntityName = newName;
+        });
+    }
+    changeRelationNames(dbModel: DatabaseModel) {
+        dbModel.entities.forEach(entity => {
+            entity.Columns.forEach(column => {
+                column.relations.forEach(relation => {
+                    if (true || !relation.isOwner) {
+                        let newName = this.namingStrategy.relationName(
+                            column.tsName,
+                            relation,
+                            dbModel
+                        );
+                        dbModel.entities.forEach(entity2 => {
+                            entity2.Columns.forEach(column2 => {
+                                column2.relations.forEach(relation2 => {
+                                    if (
+                                        relation2.relatedTable ==
+                                            entity.EntityName &&
+                                        relation2.ownerColumn == column.tsName
+                                    ) {
+                                        relation2.ownerColumn = newName;
+                                    }
+                                    if (
+                                        relation2.relatedTable ==
+                                            entity.EntityName &&
+                                        relation2.relatedColumn == column.tsName
+                                    ) {
+                                        relation2.relatedColumn = newName;
+                                    }
+                                    if (relation.isOwner) {
+                                        entity.Indexes.forEach(ind => {
+                                            ind.columns.forEach(col => {
+                                                if (col.name == column.tsName) {
+                                                    col.name = newName;
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            });
+                        });
+                        column.tsName = newName;
+                    }
+                });
+            });
+        });
+    }
     ColumnTypesWithWidth: WithWidthColumnType[] = [
         "tinyint",
         "smallint",
@@ -99,31 +203,26 @@ export abstract class AbstractDriver {
                 });
 
                 let column1 = new ColumnInfo();
-                column1.tsName = this.namingStrategy.entityName(
-                    namesOfRelatedTables[1]
-                );
+                column1.tsName = namesOfRelatedTables[1];
+
                 let col1Rel = new RelationInfo();
                 col1Rel.relatedTable = namesOfRelatedTables[1];
-                col1Rel.relatedColumn = this.namingStrategy.entityName(
-                    namesOfRelatedTables[1]
-                );
+                col1Rel.relatedColumn = namesOfRelatedTables[1];
+
                 col1Rel.relationType = "ManyToMany";
                 col1Rel.isOwner = true;
-                col1Rel.ownerColumn = this.namingStrategy.entityName(
-                    namesOfRelatedTables[0]
-                );
+                col1Rel.ownerColumn = namesOfRelatedTables[0];
+
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
                 let column2 = new ColumnInfo();
-                column2.tsName = this.namingStrategy.entityName(
-                    namesOfRelatedTables[0]
-                );
+                column2.tsName = namesOfRelatedTables[0];
+
                 let col2Rel = new RelationInfo();
                 col2Rel.relatedTable = namesOfRelatedTables[0];
-                col2Rel.relatedColumn = this.namingStrategy.entityName(
-                    namesOfRelatedTables[1]
-                );
+                col2Rel.relatedColumn = namesOfRelatedTables[1];
+
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
                 column2.relations.push(col2Rel);
@@ -155,8 +254,16 @@ export abstract class AbstractDriver {
         await this.DisconnectFromServer();
         this.FindManyToManyRelations(dbModel);
         this.FindPrimaryColumnsFromIndexes(dbModel);
+        this.ApplyNamingStrategy(dbModel);
         return dbModel;
     }
+
+    private ApplyNamingStrategy(dbModel: DatabaseModel) {
+        this.changeColumnNames(dbModel);
+        this.changeEntityNames(dbModel);
+        this.changeRelationNames(dbModel);
+    }
+
     abstract async ConnectToServer(
         database: string,
         server: string,
@@ -280,11 +387,24 @@ export abstract class AbstractDriver {
                     ? "ManyToOne"
                     : "OneToOne";
 
-                let columnName = this.namingStrategy.relationName(
-                    ownerEntity,
-                    referencedEntity,
-                    isOneToMany
-                );
+                let columnName = ownerEntity.EntityName;
+                if (
+                    referencedEntity.Columns.some(v => v.tsName == columnName)
+                ) {
+                    columnName = columnName + "_";
+                    for (let i = 2; i <= referencedEntity.Columns.length; i++) {
+                        columnName =
+                            columnName.substring(0, columnName.length - 1) +
+                            i.toString();
+                        if (
+                            referencedEntity.Columns.every(
+                                v => v.tsName != columnName
+                            )
+                        )
+                            break;
+                    }
+                }
+
                 ownerRelation.ownerColumn = columnName;
                 ownerColumn.relations.push(ownerRelation);
                 if (isOneToMany) {
@@ -300,7 +420,7 @@ export abstract class AbstractDriver {
                     referencedRelation.relatedColumn = ownerColumn.tsName;
                     referencedRelation.relatedTable = relationTmp.ownerTable;
                     referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.tsName.toLowerCase();
+                    referencedRelation.ownerColumn = relatedColumn.tsName;
                     referencedRelation.relationType = "OneToMany";
                     referencedEntity.Columns.push(col);
                 } else {
@@ -316,7 +436,7 @@ export abstract class AbstractDriver {
                     referencedRelation.relatedColumn = ownerColumn.tsName;
                     referencedRelation.relatedTable = relationTmp.ownerTable;
                     referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.tsName.toLowerCase();
+                    referencedRelation.ownerColumn = relatedColumn.tsName;
                     referencedRelation.relationType = "OneToOne";
                     referencedEntity.Columns.push(col);
                 }

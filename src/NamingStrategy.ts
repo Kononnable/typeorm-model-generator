@@ -1,7 +1,8 @@
-import { EntityInfo } from "./models/EntityInfo";
+import { RelationInfo } from "./models/RelationInfo";
+import { DatabaseModel } from "./models/DatabaseModel";
 
 export abstract class NamingStrategy {
-    abstract relationName(ownerEntity: EntityInfo, referencedEntity: EntityInfo, isOneToMany: boolean): string;
+    abstract relationName(columnName: string, relation: RelationInfo, dbModel: DatabaseModel): string;
 
     abstract entityName(entityName: string): string;
 
