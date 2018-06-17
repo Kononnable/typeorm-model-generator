@@ -78,6 +78,14 @@ describe("GitHub issues", async function () {
                             break;
                     }
 
+                    switch (folder) {
+                        case '65':
+                            engine.Options.relationIds = true;
+                            break;
+                        default:
+                            break;
+                    }
+
                     await engine.createModelFromDatabase()
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 

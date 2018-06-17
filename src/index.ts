@@ -87,7 +87,12 @@ var argv = Yargs.usage(
         default: false
     })
     .option("namingStrategy", {
-        describe: "Use custom naming strategy",
+        describe: "Use custom naming strategy"
+    })
+    .option("relationIds", {
+        describe: "Generate RelationId fields",
+        boolean: true,
+        default: false
     })
     .option("generateConstructor", {
         describe: "Generate constructor allowing partial initialization",
@@ -118,7 +123,7 @@ switch (argv.e) {
         standardUser = "root";
         break;
     case "mariadb":
-        driver = new MysqlDriver();
+        driver = new MariaDbDriver();
         standardPort = 3306;
         standardUser = "root";
         break;
@@ -134,17 +139,15 @@ switch (argv.e) {
     default:
         TomgUtils.LogError("Database engine not recognized.", false);
         throw new Error("Database engine not recognized.");
-
 }
-
 let namingStrategy: AbstractNamingStrategy;
-if (argv.namingStrategy && argv.namingStrategy!='') {
+if (argv.namingStrategy && argv.namingStrategy != "") {
     let req = require(argv.namingStrategy);
-    namingStrategy= new req.NamingStrategy();
+    namingStrategy = new req.NamingStrategy();
 } else {
-    namingStrategy= new NamingStrategy();
+    namingStrategy = new NamingStrategy();
 }
-debugger;
+
 let engine = new Engine(driver, {
     host: argv.h,
     port: parseInt(argv.p) || standardPort,
@@ -161,6 +164,7 @@ let engine = new Engine(driver, {
     convertCaseProperty: argv.cp,
     lazy: argv.lazy,
     constructor: argv.generateConstructor,
+    relationIds: argv.relationIds,
     namingStrategy: namingStrategy
 });
 

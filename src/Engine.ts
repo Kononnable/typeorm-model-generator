@@ -22,7 +22,8 @@ export class Engine {
             this.Options.password,
             this.Options.schemaName,
             this.Options.ssl,
-            this.Options.namingStrategy
+            this.Options.namingStrategy,
+            this.Options.relationIds
         );
         if (dbModel.entities.length > 0) {
             this.createModelFromMetadata(dbModel);
@@ -42,7 +43,8 @@ export class Engine {
         password: string,
         schemaName: string,
         ssl: boolean,
-        namingStrategy: AbstractNamingStrategy
+        namingStrategy: AbstractNamingStrategy,
+        relationIds: boolean
     ): Promise<DatabaseModel> {
         return await this.driver.GetDataFromServer(
             database,
@@ -52,7 +54,8 @@ export class Engine {
             password,
             schemaName,
             ssl,
-            namingStrategy
+            namingStrategy,
+            relationIds
         );
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
@@ -276,4 +279,5 @@ export interface EngineOptions {
     lazy: boolean;
     constructor: boolean;
     namingStrategy: AbstractNamingStrategy;
+    relationIds: boolean;
 }

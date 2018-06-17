@@ -67,7 +67,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseProperty: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds:false
         });
 
     conn = await createConnection(connOpt)
@@ -134,7 +135,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     conn = await createConnection(connOpt)
@@ -193,7 +195,8 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     conn = await createConnection(connOpt)
@@ -250,7 +253,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     return engine;
@@ -300,7 +304,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
 
@@ -353,7 +358,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseProperty: 'none',
             lazy: false,
             constructor:false,
-            namingStrategy: namingStrategy
+            namingStrategy: namingStrategy,
+            relationIds: false
         });
 
     return engine;

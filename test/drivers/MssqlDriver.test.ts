@@ -95,7 +95,7 @@ describe('MssqlDriver', function () {
             ts_type: 'number',
             enumOptions: null,
             is_unique:false,
-            relations: <RelationInfo[]>[]
+            relations: <RelationInfo[]>[],
         })
         let result = await driver.GetCoulmnsFromEntity(entities, 'schema');
         expect(result).to.be.deep.equal(expected)

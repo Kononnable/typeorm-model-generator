@@ -158,6 +158,7 @@ export abstract class AbstractDriver {
         "varbinary"
     ];
     namingStrategy: AbstractNamingStrategy;
+    generateRelationsIds: boolean;
 
     FindManyToManyRelations(dbModel: DatabaseModel) {
         let manyToManyEntities = dbModel.entities.filter(entity => {
@@ -238,8 +239,10 @@ export abstract class AbstractDriver {
         password: string,
         schema: string,
         ssl: boolean,
-        namingStrategy: AbstractNamingStrategy
+        namingStrategy: AbstractNamingStrategy,
+        relationIds: boolean
     ): Promise<DatabaseModel> {
+        this.generateRelationsIds = relationIds;
         let dbModel = <DatabaseModel>{};
         this.namingStrategy = namingStrategy;
         await this.ConnectToServer(database, server, port, user, password, ssl);
@@ -259,9 +262,9 @@ export abstract class AbstractDriver {
     }
 
     private ApplyNamingStrategy(dbModel: DatabaseModel) {
-        this.changeColumnNames(dbModel);
-        this.changeEntityNames(dbModel);
         this.changeRelationNames(dbModel);
+        this.changeEntityNames(dbModel);
+        this.changeColumnNames(dbModel);
     }
 
     abstract async ConnectToServer(
@@ -386,6 +389,7 @@ export abstract class AbstractDriver {
                 ownerRelation.relationType = isOneToMany
                     ? "ManyToOne"
                     : "OneToOne";
+                ownerRelation.relationIdField = this.generateRelationsIds;
 
                 let columnName = ownerEntity.EntityName;
                 if (
@@ -394,8 +398,10 @@ export abstract class AbstractDriver {
                     columnName = columnName + "_";
                     for (let i = 2; i <= referencedEntity.Columns.length; i++) {
                         columnName =
-                            columnName.substring(0, columnName.length - 1) +
-                            i.toString();
+                            columnName.substring(
+                                0,
+                                columnName.length - i.toString().length
+                            ) + i.toString();
                         if (
                             referencedEntity.Columns.every(
                                 v => v.tsName != columnName
