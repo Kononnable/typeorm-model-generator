@@ -50,7 +50,7 @@
         "chai-as-promised": "^7.1.1",
         "chai-subset": "^1.6.0",
         "codecov": "^3.0.1",
-        "dotenv": "^5.0.1",
+        "dotenv": "^6.0.0",
         "fs-extra": "^6.0.0",
         "gulp": "^3.9.1",
         "gulp-clean": "^0.4.0",
@@ -65,7 +65,7 @@
         "mocha": "^5.1.1",
         "prettier": "^1.12.1",
         "remap-istanbul": "^0.11.1",
-        "sinon": "^5.0.1",
+        "sinon": "^6.0.0",
         "sinon-chai": "^3.0.0",
         "typings": "^2.1.1"
     }
