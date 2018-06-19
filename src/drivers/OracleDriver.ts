@@ -9,6 +9,7 @@ export class OracleDriver extends AbstractDriver {
         super();
         try {
             this.Oracle = require("oracledb");
+            this.Oracle.outFormat = this.Oracle.OBJECT;
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;

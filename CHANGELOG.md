@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.2.18
+* oracle output format fixed
 
 ## 0.2.17
 
