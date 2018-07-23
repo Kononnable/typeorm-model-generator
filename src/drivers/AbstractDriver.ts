@@ -56,7 +56,7 @@ export abstract class AbstractDriver {
     }
     changeEntityNames(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
-            let newName = this.namingStrategy.columnName(entity.EntityName);
+            let newName = this.namingStrategy.entityName(entity.EntityName);
             dbModel.entities.forEach(entity2 => {
                 entity2.Columns.forEach(column => {
                     column.relations.forEach(relation => {
