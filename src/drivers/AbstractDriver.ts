@@ -40,7 +40,8 @@ export abstract class AbstractDriver {
                         column2.relations
                             .filter(relation => {
                                 return (
-                                    relation.ownerTable == entity.EntityName &&
+                                    relation.relatedTable ==
+                                        entity.EntityName &&
                                     relation.ownerColumn == column.tsName
                                 );
                             })
