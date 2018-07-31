@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.19
+* custom naming strategy fiexes
+* dependencies update
+
 ## 0.2.18
 * oracle output format fixed
 
