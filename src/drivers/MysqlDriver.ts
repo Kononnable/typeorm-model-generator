@@ -302,8 +302,12 @@ export class MysqlDriver extends AbstractDriver {
                 rels.referencedTable = resp.TableReferenced;
                 relationsTemp.push(rels);
             }
-            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
-            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
+            if (!rels.ownerColumnsNames.includes(resp.ForeignKeyColumn)) {
+                rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
+                rels.referencedColumnsNames.push(
+                    resp.ForeignKeyColumnReferenced
+                );
+            }
         });
         entities = this.GetRelationsFromRelationTempInfo(
             relationsTemp,
