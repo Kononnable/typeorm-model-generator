@@ -41,6 +41,9 @@ describe("GitHub issues", async function () {
                         if (dbDriver == 'mysql' || dbDriver == 'mariadb' || dbDriver == 'oracle' || dbDriver == 'sqlite')
                             continue;
                         break;
+                    // case '71':
+                    //     xit(dbDriver);
+                    //     continue;
                     default:
                         break;
                 }

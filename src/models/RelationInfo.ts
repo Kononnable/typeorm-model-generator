@@ -5,8 +5,14 @@ export class RelationInfo {
     relatedColumn: string;
     ownerTable: string;
     ownerColumn: string;
-    actionOnDelete: "RESTRICT" | "CASCADE" | "SET NULL" | null;
-    actionOnUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | null;
+    actionOnDelete:
+        | "RESTRICT"
+        | "CASCADE"
+        | "SET NULL"
+        | "DEFAULT"
+        | "NO ACTION"
+        | null;
+    actionOnUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "DEFAULT" | null;
     relationIdField: boolean = false;
 
     get isOneToMany(): boolean {
