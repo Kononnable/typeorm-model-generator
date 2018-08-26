@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.20
+* relation onUpdate fixes
+* postgres support for citext, hstore, geometry, array column types
+* upgraded typeorm version
+
 ## 0.2.19
 * custom naming strategy fiexes
 * dependencies update
