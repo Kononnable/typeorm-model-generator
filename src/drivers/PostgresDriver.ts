@@ -246,14 +246,12 @@ export class PostgresDriver extends AbstractDriver {
                             colInfo.ts_type = "string";
                             break;
                         case "USER-DEFINED":
+                            colInfo.sql_type = resp.udt_name;
+                            colInfo.ts_type = "string";
                             switch (resp.udt_name) {
                                 case "citext":
-                                    colInfo.sql_type = resp.udt_name;
-                                    colInfo.ts_type = "string";
-                                    break;
                                 case "hstore":
-                                    colInfo.sql_type = resp.udt_name;
-                                    colInfo.ts_type = "string";
+                                case "geometry":
                                     break;
                                 default:
                                     TomgUtils.LogError(
