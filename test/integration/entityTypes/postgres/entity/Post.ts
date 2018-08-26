@@ -66,11 +66,11 @@ export class Post {
     @Column("text")
     text: string;
 
-    // @Column("citext")
-    // citext: string;
+    @Column("citext")
+    citext: string;
 
-    // @Column("hstore")
-    // hstore: string;
+    @Column("hstore")
+    hstore: string;
 
     @Column("bytea")
     bytea: Buffer;

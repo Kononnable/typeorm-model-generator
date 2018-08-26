@@ -24,6 +24,7 @@ export class PostgresDriver extends AbstractDriver {
         let response: {
             table_name: string;
             column_name: string;
+            udt_name: string;
             column_default: string;
             is_nullable: string;
             data_type: string;
@@ -33,7 +34,7 @@ export class PostgresDriver extends AbstractDriver {
             isidentity: string;
             isunique: number;
         }[] = (await this.Connection
-            .query(`SELECT table_name,column_name,column_default,is_nullable,
+            .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
             case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
 			(SELECT count(*)
@@ -243,6 +244,27 @@ export class PostgresDriver extends AbstractDriver {
                             break;
                         case "daterange":
                             colInfo.ts_type = "string";
+                            break;
+                        case "USER-DEFINED":
+                            switch (resp.udt_name) {
+                                case "citext":
+                                    colInfo.sql_type = resp.udt_name;
+                                    colInfo.ts_type = "string";
+                                    break;
+                                case "hstore":
+                                    colInfo.sql_type = resp.udt_name;
+                                    colInfo.ts_type = "string";
+                                    break;
+                                default:
+                                    TomgUtils.LogError(
+                                        `Unknown USER-DEFINED column type: ${
+                                            resp.udt_name
+                                        }  table name: ${
+                                            resp.table_name
+                                        } column name: ${resp.column_name}`
+                                    );
+                                    break;
+                            }
                             break;
                         default:
                             TomgUtils.LogError(
