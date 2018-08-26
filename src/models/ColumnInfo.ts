@@ -21,6 +21,7 @@ export class ColumnInfo {
     width: number | null = null;
     isPrimary: boolean = false;
     is_generated: boolean = false;
+    is_array: boolean = false;
     numericPrecision: number | null = null;
     numericScale: number | null = null;
     enumOptions: string | null = null;

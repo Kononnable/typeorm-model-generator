@@ -19,7 +19,8 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}}{{#enumOptions}}
-        enum:[{{.}}],{{/enumOptions}}
+        enum:[{{.}}],{{/enumOptions}}{{#is_array}}
+        array:{{is_array}},{{/is_array}}
         name:"{{sqlName}}"
         })
     {{toPropertyName tsName}}:{{ts_type}}{{#is_nullable}} | null{{/is_nullable}};

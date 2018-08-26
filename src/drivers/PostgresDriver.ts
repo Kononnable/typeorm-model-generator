@@ -63,208 +63,24 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.default = colInfo.is_generated
                         ? null
                         : resp.column_default;
-                    colInfo.sql_type = resp.data_type;
-                    switch (resp.data_type) {
-                        case "int2":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "int4":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "int8":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "smallint":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "integer":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "bigint":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "decimal":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "numeric":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "real":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "float":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "float4":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "float8":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "double precision":
-                            colInfo.ts_type = "number";
-                            break;
-                        case "money":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "character varying":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "varchar":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "character":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "char":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "text":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "citext":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "hstore":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "bytea":
-                            colInfo.ts_type = "Buffer";
-                            break;
-                        case "bit":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "varbit":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "bit varying":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "timetz":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "timestamptz":
-                            colInfo.ts_type = "Date";
-                            break;
-                        case "timestamp":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "timestamp without time zone":
-                            colInfo.ts_type = "Date";
-                            break;
-                        case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
-                            break;
-                        case "date":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "time":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "time without time zone":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "time with time zone":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "interval":
-                            colInfo.ts_type = "any";
-                            break;
-                        case "bool":
-                            colInfo.ts_type = "boolean";
-                            break;
-                        case "boolean":
-                            colInfo.ts_type = "boolean";
-                            break;
-                        case "enum":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "point":
-                            colInfo.ts_type = "string | Object";
-                            break;
-                        case "line":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "lseg":
-                            colInfo.ts_type = "string | string[]";
-                            break;
-                        case "box":
-                            colInfo.ts_type = "string | Object";
-                            break;
-                        case "path":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "polygon":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "circle":
-                            colInfo.ts_type = "string | Object";
-                            break;
-                        case "cidr":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "inet":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "macaddr":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "tsvector":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "tsquery":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "uuid":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "xml":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "json":
-                            colInfo.ts_type = "Object";
-                            break;
-                        case "jsonb":
-                            colInfo.ts_type = "Object";
-                            break;
-                        case "int4range":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "int8range":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "numrange":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "tsrange":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "tstzrange":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "daterange":
-                            colInfo.ts_type = "string";
-                            break;
-                        case "USER-DEFINED":
-                            colInfo.sql_type = resp.udt_name;
-                            colInfo.ts_type = "string";
-                            switch (resp.udt_name) {
-                                case "citext":
-                                case "hstore":
-                                case "geometry":
-                                    break;
-                                default:
-                                    TomgUtils.LogError(
-                                        `Unknown USER-DEFINED column type: ${
-                                            resp.udt_name
-                                        }  table name: ${
-                                            resp.table_name
-                                        } column name: ${resp.column_name}`
-                                    );
-                                    break;
-                            }
-                            break;
-                        default:
+
+                    var columnTypes = this.MatchColumnTypes(
+                        resp.data_type,
+                        resp.udt_name
+                    );
+                    if (!columnTypes.sql_type || !columnTypes.ts_type) {
+                        if (
+                            resp.data_type == "USER-DEFINED" ||
+                            resp.data_type == "ARRAY"
+                        ) {
+                            TomgUtils.LogError(
+                                `Unknown ${resp.data_type} column type: ${
+                                    resp.udt_name
+                                }  table name: ${
+                                    resp.table_name
+                                } column name: ${resp.column_name}`
+                            );
+                        } else {
                             TomgUtils.LogError(
                                 `Unknown column type: ${
                                     resp.data_type
@@ -272,8 +88,19 @@ export class PostgresDriver extends AbstractDriver {
                                     resp.table_name
                                 } column name: ${resp.column_name}`
                             );
-                            break;
+                        }
+                        return;
                     }
+                    colInfo.sql_type = columnTypes.sql_type;
+                    colInfo.ts_type = columnTypes.ts_type;
+                    colInfo.is_array = columnTypes.is_array;
+                    if (colInfo.is_array) {
+                        colInfo.ts_type = <any>colInfo.ts_type
+                            .split("|")
+                            .map(x => x.replace("|", "").trim() + "[]")
+                            .join(" | ");
+                    }
+
                     if (
                         this.ColumnTypesWithPrecision.some(
                             v => v == colInfo.sql_type
@@ -302,10 +129,242 @@ export class PostgresDriver extends AbstractDriver {
                                 ? resp.character_maximum_length
                                 : null;
                     }
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sql_type && colInfo.ts_type) {
+                        ent.Columns.push(colInfo);
+                    }
                 });
         });
         return entities;
+    }
+
+    MatchColumnTypes(data_type: string, udt_name: string) {
+        let ret: {
+            ts_type:
+                | "number"
+                | "string"
+                | "boolean"
+                | "Date"
+                | "Buffer"
+                | "Object"
+                | "string | Object"
+                | "string | string[]"
+                | "any"
+                | null;
+            sql_type: string | null;
+            is_array: boolean;
+        } = { ts_type: null, sql_type: null, is_array: false };
+        ret.sql_type = data_type;
+        switch (data_type) {
+            case "int2":
+                ret.ts_type = "number";
+                break;
+            case "int4":
+                ret.ts_type = "number";
+                break;
+            case "int8":
+                ret.ts_type = "string";
+                break;
+            case "smallint":
+                ret.ts_type = "number";
+                break;
+            case "integer":
+                ret.ts_type = "number";
+                break;
+            case "bigint":
+                ret.ts_type = "string";
+                break;
+            case "decimal":
+                ret.ts_type = "string";
+                break;
+            case "numeric":
+                ret.ts_type = "string";
+                break;
+            case "real":
+                ret.ts_type = "number";
+                break;
+            case "float":
+                ret.ts_type = "number";
+                break;
+            case "float4":
+                ret.ts_type = "number";
+                break;
+            case "float8":
+                ret.ts_type = "number";
+                break;
+            case "double precision":
+                ret.ts_type = "number";
+                break;
+            case "money":
+                ret.ts_type = "string";
+                break;
+            case "character varying":
+                ret.ts_type = "string";
+                break;
+            case "varchar":
+                ret.ts_type = "string";
+                break;
+            case "character":
+                ret.ts_type = "string";
+                break;
+            case "char":
+                ret.ts_type = "string";
+                break;
+            case "bpchar":
+                ret.sql_type = "char";
+                ret.ts_type = "string";
+                break;
+            case "text":
+                ret.ts_type = "string";
+                break;
+            case "citext":
+                ret.ts_type = "string";
+                break;
+            case "hstore":
+                ret.ts_type = "string";
+                break;
+            case "bytea":
+                ret.ts_type = "Buffer";
+                break;
+            case "bit":
+                ret.ts_type = "string";
+                break;
+            case "varbit":
+                ret.ts_type = "string";
+                break;
+            case "bit varying":
+                ret.ts_type = "string";
+                break;
+            case "timetz":
+                ret.ts_type = "string";
+                break;
+            case "timestamptz":
+                ret.ts_type = "Date";
+                break;
+            case "timestamp":
+                ret.ts_type = "string";
+                break;
+            case "timestamp without time zone":
+                ret.ts_type = "Date";
+                break;
+            case "timestamp with time zone":
+                ret.ts_type = "Date";
+                break;
+            case "date":
+                ret.ts_type = "string";
+                break;
+            case "time":
+                ret.ts_type = "string";
+                break;
+            case "time without time zone":
+                ret.ts_type = "string";
+                break;
+            case "time with time zone":
+                ret.ts_type = "string";
+                break;
+            case "interval":
+                ret.ts_type = "any";
+                break;
+            case "bool":
+                ret.ts_type = "boolean";
+                break;
+            case "boolean":
+                ret.ts_type = "boolean";
+                break;
+            case "enum":
+                ret.ts_type = "string";
+                break;
+            case "point":
+                ret.ts_type = "string | Object";
+                break;
+            case "line":
+                ret.ts_type = "string";
+                break;
+            case "lseg":
+                ret.ts_type = "string | string[]";
+                break;
+            case "box":
+                ret.ts_type = "string | Object";
+                break;
+            case "path":
+                ret.ts_type = "string";
+                break;
+            case "polygon":
+                ret.ts_type = "string";
+                break;
+            case "circle":
+                ret.ts_type = "string | Object";
+                break;
+            case "cidr":
+                ret.ts_type = "string";
+                break;
+            case "inet":
+                ret.ts_type = "string";
+                break;
+            case "macaddr":
+                ret.ts_type = "string";
+                break;
+            case "tsvector":
+                ret.ts_type = "string";
+                break;
+            case "tsquery":
+                ret.ts_type = "string";
+                break;
+            case "uuid":
+                ret.ts_type = "string";
+                break;
+            case "xml":
+                ret.ts_type = "string";
+                break;
+            case "json":
+                ret.ts_type = "Object";
+                break;
+            case "jsonb":
+                ret.ts_type = "Object";
+                break;
+            case "int4range":
+                ret.ts_type = "string";
+                break;
+            case "int8range":
+                ret.ts_type = "string";
+                break;
+            case "numrange":
+                ret.ts_type = "string";
+                break;
+            case "tsrange":
+                ret.ts_type = "string";
+                break;
+            case "tstzrange":
+                ret.ts_type = "string";
+                break;
+            case "daterange":
+                ret.ts_type = "string";
+                break;
+            case "ARRAY":
+                let z = this.MatchColumnTypes(udt_name.substring(1), udt_name);
+                ret.ts_type = z.ts_type;
+                ret.sql_type = z.sql_type;
+                ret.is_array = true;
+                break;
+            case "USER-DEFINED":
+                ret.sql_type = udt_name;
+                ret.ts_type = "string";
+                switch (udt_name) {
+                    case "citext":
+                    case "hstore":
+                    case "geometry":
+                        break;
+                    default:
+                        ret.ts_type = null;
+                        ret.sql_type = null;
+                        break;
+                }
+                break;
+            default:
+                ret.ts_type = null;
+                ret.sql_type = null;
+                break;
+        }
+        return ret;
     }
     async GetIndexesFromEntity(
         entities: EntityInfo[],
