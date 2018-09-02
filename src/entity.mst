@@ -1,4 +1,4 @@
-import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable, RelationId} from "typeorm";
+import {Index,Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable, RelationId} from "typeorm";
 {{relationImports}}{{#each UniqueImports}}import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName this}}";
 {{/each}}
 
@@ -8,17 +8,17 @@ import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, Man
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
 {{#Columns}}
 
-   {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
-        generated:true,{{/is_generated}}{{#is_nullable}}
+   {{^relations}}{{#is_generated}} @PrimaryGeneratedColumn({
+   {{/is_generated}}{{^is_generated}} @Column("{{sql_type}}",{ {{#is_nullable}}
         nullable:true,{{/is_nullable}}{{^is_nullable}}
-        nullable:false,{{/is_nullable}}{{#is_unique}}
+        nullable:false,{{/is_nullable}}{{#isPrimary}}
+        primary:{{isPrimary}},{{/isPrimary}}{{/is_generated}}{{#is_unique}}
         unique: true,{{/is_unique}}{{#lenght}}
         length:{{.}},{{/lenght}}{{#width}}
         width:{{.}},{{/width}}{{#default}}
         default:"{{.}}",{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
-        scale:{{.}},{{/numericScale}}{{#isPrimary}}
-        primary:{{isPrimary}},{{/isPrimary}}{{#enumOptions}}
+        scale:{{.}},{{/numericScale}}{{#enumOptions}}
         enum:[{{.}}],{{/enumOptions}}{{#is_array}}
         array:{{is_array}},{{/is_array}}
         name:"{{sqlName}}"
