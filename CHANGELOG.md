@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.21
+* primary keys using identity/sequence are now generated with `@PrimaryGeneratedColumn` decorator [#96](https://github.com/Kononnable/typeorm-model-generator/issues/96)
+
 ## 0.2.20
 * relation onUpdate fixes
 * postgres support for citext, hstore, geometry, array column types
