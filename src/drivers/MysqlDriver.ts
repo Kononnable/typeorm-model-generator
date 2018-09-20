@@ -129,8 +129,8 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "enum":
                             colInfo.ts_type = "string";
-                            colInfo.enumOptions = resp.column_type
-                                .substring(5, resp.column_type.length - 1)
+                            colInfo.enumOptions = resp.COLUMN_TYPE
+                                .substring(5, resp.COLUMN_TYPE.length - 1)
                                 .replace(/\'/gi, '"');
                             break;
                         case "json":
