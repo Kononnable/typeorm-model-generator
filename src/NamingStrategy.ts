@@ -20,11 +20,8 @@ export class NamingStrategy extends AbstractNamingStrategy {
             columnOldName[0].toLowerCase() +
             columnOldName.substring(1, columnOldName.length);
         if (
-            columnName
-                .toLowerCase()
-                .endsWith(
-                    "id"
-                ) /*&& !ownerEntity.Columns.some(x=>x.tsName==columnName && x.isPrimary)*/
+            columnName.toLowerCase().endsWith("id") &&
+            !columnName.toLowerCase().endsWith("guid")
         ) {
             columnName = columnName.substring(
                 0,
