@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.22
+* fixed naming stategy for guid ended column names
+* fixed column names case convertion in index declarations
+
 ## 0.2.21
 * primary keys using identity/sequence are now generated with `@PrimaryGeneratedColumn` decorator [#96](https://github.com/Kononnable/typeorm-model-generator/issues/96)
 
