@@ -44,7 +44,7 @@ before_script:
 - greenkeeper-lockfile-update
 - npm link typescript
 - tsc
-- sleep 240
+- sleep 180
 - docker logs typeorm-mg-postgres
 
 after_script:

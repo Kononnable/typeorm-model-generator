@@ -21,7 +21,7 @@ services:
 
   # postgres
   postgres:
-    image: "postgres:10.0"
+    image: "postgres:10.5"
     container_name: "typeorm-mg-postgres"
     ports:
       - "5432:5432"
