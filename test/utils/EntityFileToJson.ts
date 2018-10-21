@@ -16,8 +16,9 @@ export class EntityFileToJson {
     }
     getColumnOptionsAndType(trimmedLine: string, col: EntityColumn) {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
+        let primaryGeneratedColumn = trimmedLine.substring(0, trimmedLine.indexOf('('))=='@PrimaryGeneratedColumn'
         if (decoratorParameters.length > 0) {
-            if (decoratorParameters.search(',') > 0) {
+            if (decoratorParameters.search(',') > 0 && !primaryGeneratedColumn) {
                 col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|').map(function (x) {
                     return x;
                 });
@@ -33,7 +34,8 @@ export class EntityFileToJson {
                         return x;
                     });
                 } else {
-                    let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
+                    let badJSON = !primaryGeneratedColumn ? decoratorParameters.substring(decoratorParameters.indexOf(',') + 1) : decoratorParameters
+                    badJSON = badJSON.trim()
                     if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
                         badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                     }

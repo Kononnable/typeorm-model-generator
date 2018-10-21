@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.23
+* added column type to generated `@PrimaryGeneratedColumn` decorator
+
 ## 0.2.22
 * fixed naming stategy for guid ended column names
 * fixed column names case convertion in index declarations

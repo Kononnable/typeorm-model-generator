@@ -8,7 +8,8 @@ import {Index,Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, OneToOne, O
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
 {{#Columns}}
 
-   {{^relations}}{{#is_generated}} @PrimaryGeneratedColumn({ {{/is_generated}}{{^is_generated}} @Column("{{sql_type}}",{ {{#is_nullable}}
+   {{^relations}}{{#is_generated}} @PrimaryGeneratedColumn({
+        type:"{{sql_type}}", {{/is_generated}}{{^is_generated}} @Column("{{sql_type}}",{ {{#is_nullable}}
         nullable:true,{{/is_nullable}}{{^is_nullable}}
         nullable:false,{{/is_nullable}}{{#isPrimary}}
         primary:{{isPrimary}},{{/isPrimary}}{{/is_generated}}{{#is_unique}}
