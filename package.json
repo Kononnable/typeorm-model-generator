@@ -58,7 +58,7 @@
         "fs-extra": "^7.0.0",
         "husky": "^1.0.0",
         "istanbul": "^0.4.5",
-        "lint-staged": "^7.2.0",
+        "lint-staged": "^8.0.0",
         "mocha": "^5.1.1",
         "prettier": "^1.12.1",
         "remap-istanbul": "^0.12.0",
