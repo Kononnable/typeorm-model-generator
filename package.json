@@ -1,6 +1,6 @@
 {
     "name": "typeorm-model-generator",
-    "version": "0.2.22",
+    "version": "0.3.0",
     "description": "Generates models for TypeORM from existing databases.",
     "bin": "bin/typeorm-model-generator",
     "scripts": {
@@ -11,7 +11,9 @@
         "test": "istanbul cover ./node_modules/mocha/bin/_mocha dist/test/**/*.test.js  -- -R spec",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remapped.json && codecov --file=./coverage/coverage-remapped.json ",
         "clean": "rimraf dist coverage output",
-        "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
+        "prettier": "prettier --write ./src/*.ts ./src/**/*.ts",
+        "prepack": "npm run compile",
+        "postpack": "npm run clean"
     },
     "repository": {
         "type": "git",

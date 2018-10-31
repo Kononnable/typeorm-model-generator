@@ -151,6 +151,13 @@ export class Engine {
             }
             return retStr;
         });
+        Handlebars.registerHelper(
+            "printPropertyVisibility",
+            () =>
+                this.Options.propertyVisibility !== "none"
+                    ? this.Options.propertyVisibility
+                    : ""
+        );
         Handlebars.registerHelper("toPropertyName", str => {
             let retStr = "";
             switch (this.Options.convertCaseProperty) {
@@ -276,6 +283,7 @@ export interface EngineOptions {
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
+    propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
     constructor: boolean;
     namingStrategy: AbstractNamingStrategy;

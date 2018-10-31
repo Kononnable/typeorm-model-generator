@@ -65,10 +65,11 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
             constructor: false,
             namingStrategy: namingStrategy,
-            relationIds:false
+            relationIds: false
         });
 
     conn = await createConnection(connOpt)
@@ -133,8 +134,9 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
-            constructor:false,
+            constructor: false,
             namingStrategy: namingStrategy,
             relationIds: false
         });
@@ -193,8 +195,9 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
-            constructor:false,
+            constructor: false,
             namingStrategy: namingStrategy,
             relationIds: false
         });
@@ -251,8 +254,9 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
-            constructor:false,
+            constructor: false,
             namingStrategy: namingStrategy,
             relationIds: false
         });
@@ -302,8 +306,9 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
-            constructor:false,
+            constructor: false,
             namingStrategy: namingStrategy,
             relationIds: false
         });
@@ -356,8 +361,9 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             convertCaseEntity: 'none',
             convertCaseFile: 'none',
             convertCaseProperty: 'none',
+            propertyVisibility: 'none',
             lazy: false,
-            constructor:false,
+            constructor: false,
             namingStrategy: namingStrategy,
             relationIds: false
         });
