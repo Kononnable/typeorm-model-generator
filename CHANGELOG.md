@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.3.0
+## 0.2.24
+* Allow to define property visibility, by using --pv
 
-* __Feature:__ Allow to define property visibility, by using --pv
 ## 0.2.23
 * added column type to generated `@PrimaryGeneratedColumn` decorator
 

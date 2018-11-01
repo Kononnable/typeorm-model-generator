@@ -155,7 +155,7 @@ export class Engine {
             "printPropertyVisibility",
             () =>
                 this.Options.propertyVisibility !== "none"
-                    ? this.Options.propertyVisibility
+                    ? this.Options.propertyVisibility + " "
                     : ""
         );
         Handlebars.registerHelper("toPropertyName", str => {
