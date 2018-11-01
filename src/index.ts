@@ -81,6 +81,12 @@ var argv = Yargs.usage(
         choices: ["pascal", "camel", "none"],
         default: "none"
     })
+    .option("pv", {
+        alias: "property-visibility",
+        describe: "Defines which visibility should have the generated property",
+        choices: ["public", "protected", "private", "none"],
+        default: "none"
+    })
     .option("lazy", {
         describe: "Generate lazy relations",
         boolean: true,
@@ -162,6 +168,7 @@ let engine = new Engine(driver, {
     convertCaseFile: argv.cf,
     convertCaseEntity: argv.ce,
     convertCaseProperty: argv.cp,
+    propertyVisibility: argv.pv,
     lazy: argv.lazy,
     constructor: argv.generateConstructor,
     relationIds: argv.relationIds,
