@@ -267,7 +267,7 @@ export class MysqlDriver extends AbstractDriver {
             onDelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             object_id: string;
-        }>(`SELECT
+        }>(`SELECT DISTINCT
             CU.TABLE_NAME TableWithForeignKey,
             CU.ORDINAL_POSITION FK_PartNo,
             CU.COLUMN_NAME ForeignKeyColumn,
