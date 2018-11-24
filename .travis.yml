@@ -3,6 +3,7 @@ node_js:
 - 10
 - 8
 - 6
+cache: npm
 sudo: required
 services:
 - docker
