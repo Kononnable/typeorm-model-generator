@@ -50,9 +50,7 @@ export class PostgresDriver extends AbstractDriver {
             .rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.table_name == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.table_name == ent.EntityName)
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.column_name;
@@ -402,20 +400,18 @@ export class PostgresDriver extends AbstractDriver {
         ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.tablename == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.tablename == ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = <IndexInfo>{};
                     let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
                     if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.indexname;
-                        }).length > 0
+                        ent.Indexes.filter(
+                            filterVal => filterVal.name == resp.indexname
+                        ).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.indexname;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name == resp.indexname
+                        )!;
                     } else {
                         indexInfo.columns = <IndexColumnInfo[]>[];
                         indexInfo.name = resp.indexname;
@@ -486,9 +482,9 @@ export class PostgresDriver extends AbstractDriver {
                 and rc.constraint_name= con.conname`)).rows;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.object_id;
-            });
+            let rels = relationsTemp.find(
+                val => val.object_id == resp.object_id
+            );
             if (rels == undefined) {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];

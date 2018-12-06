@@ -3,9 +3,7 @@ export class EntityFileToJson {
     getEntityOptions(trimmedLine: string, ent: EntityJson) {
         let decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))
         if (decoratorParameters.length > 0) {
-            if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
-
-            } else {
+            if (decoratorParameters[0] != '"' || !decoratorParameters.endsWith('"')) {
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
                 if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
                     badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
@@ -19,9 +17,7 @@ export class EntityFileToJson {
         let primaryGeneratedColumn = trimmedLine.substring(0, trimmedLine.indexOf('('))=='@PrimaryGeneratedColumn'
         if (decoratorParameters.length > 0) {
             if (decoratorParameters.search(',') > 0 && !primaryGeneratedColumn) {
-                col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|').map(function (x) {
-                    return x;
-                });
+                col.columnTypes = decoratorParameters.substring(0, decoratorParameters.indexOf(',')).trim().split('|');
                 let badJSON = decoratorParameters.substring(decoratorParameters.indexOf(',') + 1).trim()
                 if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
                     badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
@@ -29,10 +25,7 @@ export class EntityFileToJson {
                 col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
             } else {
                 if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
-                    col.columnTypes = decoratorParameters.split('|').map(function (x) {
-                        x = x.trim();
-                        return x;
-                    });
+                    col.columnTypes = decoratorParameters.split('|').map( x=>x.trim())
                 } else {
                     let badJSON = !primaryGeneratedColumn ? decoratorParameters.substring(decoratorParameters.indexOf(',') + 1) : decoratorParameters
                     badJSON = badJSON.trim()
@@ -54,8 +47,6 @@ export class EntityFileToJson {
                     badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                 }
                 col.columnOptions = JSON.parse(badJSON.replace(/(')/g,`"`).replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
-            } else {
-
             }
         }
     }
@@ -65,7 +56,7 @@ export class EntityFileToJson {
         if (decoratorParameters.length > 0) {
             let containsTables = decoratorParameters.search('\\[') > -1
             let containsOptions = decoratorParameters.search('{') > -1
-            let containsName = decoratorParameters.search('"') > -1//TODO:no name, but fields as string[]
+            let containsName = decoratorParameters.search('"') > -1
             if (containsName) {
                 ind.indexName = decoratorParameters.slice(decoratorParameters.indexOf('"') + 1, decoratorParameters.substr(decoratorParameters.indexOf('"') + 1).indexOf('"'))
             }
@@ -79,9 +70,7 @@ export class EntityFileToJson {
                         colName = val.slice(val.indexOf('"') + 1, val.lastIndexOf('"'))
                     }
                     return colName
-                }).filter(v => {
-                    return v.length > 0
-                }))
+                }).filter(v =>  v.length > 0))
             }
             if (containsOptions) {
                 let optionsStr = decoratorParameters.slice(decoratorParameters.indexOf('{') + 1, decoratorParameters.indexOf('}'))
@@ -307,9 +296,8 @@ export class EntityFileToJson {
                         return x;
                     });
 
-                    if (!retVal.columns[retVal.columns.length - 1].columnTypes.some(function (this, val, ind, arr) {
-                        return val == "null" ? true : false;
-                    })) retVal.columns[retVal.columns.length - 1].columnTypes.push('null')
+                    if (!retVal.columns[retVal.columns.length - 1].columnTypes.some( (val) =>  val == "null" ? true : false))
+                     retVal.columns[retVal.columns.length - 1].columnTypes.push('null')
                     if (retVal.indicies.length > 0 && retVal.indicies[retVal.indicies.length - 1].columnNames.length == 0) {
                         retVal.indicies[retVal.indicies.length - 1].columnNames.push(retVal.columns[retVal.columns.length - 1].columnName)
                     }

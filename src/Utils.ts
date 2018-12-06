@@ -14,7 +14,6 @@ export function LogError(
     );
     if (isABug && !errObject) errObject = new Error().stack;
     if (!!errObject) console.error(errObject);
-    // process.abort();
 }
 export function packageVersion() {
     return `${(<any>packagejson).name}@${(<any>packagejson).version}`;

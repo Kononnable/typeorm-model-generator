@@ -17,37 +17,27 @@ export abstract class AbstractDriver {
                 let newName = this.namingStrategy.columnName(column.tsName);
                 entity.Indexes.forEach(index => {
                     index.columns
-                        .filter(column2 => {
-                            return column2.name == column.tsName;
-                        })
-                        .forEach(column2 => {
-                            column2.name = newName;
-                        });
+                        .filter(column2 => column2.name == column.tsName)
+                        .forEach(column2 => (column2.name = newName));
                 });
                 dbModel.entities.forEach(entity2 => {
                     entity2.Columns.forEach(column2 => {
                         column2.relations
-                            .filter(relation => {
-                                return (
+                            .filter(
+                                relation =>
                                     relation.relatedTable ==
                                         entity.EntityName &&
                                     relation.relatedColumn == column.tsName
-                                );
-                            })
-                            .map(v => {
-                                v.relatedColumn = newName;
-                            });
+                            )
+                            .map(v => (v.relatedColumn = newName));
                         column2.relations
-                            .filter(relation => {
-                                return (
+                            .filter(
+                                relation =>
                                     relation.relatedTable ==
                                         entity.EntityName &&
                                     relation.ownerColumn == column.tsName
-                                );
-                            })
-                            .map(v => {
-                                v.ownerColumn = newName;
-                            });
+                            )
+                            .map(v => (v.ownerColumn = newName));
                     });
                 });
 
@@ -75,43 +65,43 @@ export abstract class AbstractDriver {
         dbModel.entities.forEach(entity => {
             entity.Columns.forEach(column => {
                 column.relations.forEach(relation => {
-                    if (true || !relation.isOwner) {
-                        let newName = this.namingStrategy.relationName(
-                            column.tsName,
-                            relation,
-                            dbModel
-                        );
-                        dbModel.entities.forEach(entity2 => {
-                            entity2.Columns.forEach(column2 => {
-                                column2.relations.forEach(relation2 => {
-                                    if (
-                                        relation2.relatedTable ==
-                                            entity.EntityName &&
-                                        relation2.ownerColumn == column.tsName
-                                    ) {
-                                        relation2.ownerColumn = newName;
-                                    }
-                                    if (
-                                        relation2.relatedTable ==
-                                            entity.EntityName &&
-                                        relation2.relatedColumn == column.tsName
-                                    ) {
-                                        relation2.relatedColumn = newName;
-                                    }
-                                    if (relation.isOwner) {
-                                        entity.Indexes.forEach(ind => {
-                                            ind.columns.forEach(col => {
-                                                if (col.name == column.tsName) {
-                                                    col.name = newName;
-                                                }
-                                            });
-                                        });
-                                    }
-                                });
+                    let newName = this.namingStrategy.relationName(
+                        column.tsName,
+                        relation,
+                        dbModel
+                    );
+                    dbModel.entities.forEach(entity2 => {
+                        entity2.Columns.forEach(column2 => {
+                            column2.relations.forEach(relation2 => {
+                                if (
+                                    relation2.relatedTable ==
+                                        entity.EntityName &&
+                                    relation2.ownerColumn == column.tsName
+                                ) {
+                                    relation2.ownerColumn = newName;
+                                }
+                                if (
+                                    relation2.relatedTable ==
+                                        entity.EntityName &&
+                                    relation2.relatedColumn == column.tsName
+                                ) {
+                                    relation2.relatedColumn = newName;
+                                }
+                                if (relation.isOwner) {
+                                    entity.Indexes.forEach(ind => {
+                                        ind.columns
+                                            .filter(
+                                                col => col.name == column.tsName
+                                            )
+                                            .forEach(
+                                                col => (col.name = newName)
+                                            );
+                                    });
+                                }
                             });
                         });
-                        column.tsName = newName;
-                    }
+                    });
+                    column.tsName = newName;
                 });
             });
         });
@@ -162,8 +152,8 @@ export abstract class AbstractDriver {
     generateRelationsIds: boolean;
 
     FindManyToManyRelations(dbModel: DatabaseModel) {
-        let manyToManyEntities = dbModel.entities.filter(entity => {
-            return (
+        let manyToManyEntities = dbModel.entities.filter(
+            entity =>
                 entity.Columns.filter(column => {
                     return (
                         column.relations.length == 1 &&
@@ -171,29 +161,29 @@ export abstract class AbstractDriver {
                         column.relations[0].isOwner
                     );
                 }).length == entity.Columns.length
-            );
-        });
+        );
         manyToManyEntities.map(entity => {
             let relations: RelationInfo[] = [];
-            relations = entity.Columns.reduce((prev: RelationInfo[], curr) => {
-                return prev.concat(curr.relations);
-            }, relations);
+            relations = entity.Columns.reduce(
+                (prev: RelationInfo[], curr) => prev.concat(curr.relations),
+                relations
+            );
             let namesOfRelatedTables = relations
                 .map(v => v.relatedTable)
                 .filter((v, i, s) => s.indexOf(v) == i);
             if (namesOfRelatedTables.length == 2) {
-                let relatedTable1 = dbModel.entities.filter(
+                let relatedTable1 = dbModel.entities.find(
                     v => v.EntityName == namesOfRelatedTables[0]
-                )[0];
+                )!;
                 relatedTable1.Columns = relatedTable1.Columns.filter(
                     v =>
                         !v.tsName
                             .toLowerCase()
                             .startsWith(entity.EntityName.toLowerCase())
                 );
-                let relatedTable2 = dbModel.entities.filter(
+                let relatedTable2 = dbModel.entities.find(
                     v => v.EntityName == namesOfRelatedTables[1]
-                )[0];
+                )!;
                 relatedTable2.Columns = relatedTable2.Columns.filter(
                     v =>
                         !v.tsName
@@ -305,9 +295,9 @@ export abstract class AbstractDriver {
         entities: EntityInfo[]
     ) {
         relationsTemp.forEach(relationTmp => {
-            let ownerEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.ownerTable;
-            });
+            let ownerEntity = entities.find(
+                entitity => entitity.EntityName == relationTmp.ownerTable
+            );
             if (!ownerEntity) {
                 TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
@@ -316,9 +306,9 @@ export abstract class AbstractDriver {
                 );
                 return;
             }
-            let referencedEntity = entities.find(entitity => {
-                return entitity.EntityName == relationTmp.referencedTable;
-            });
+            let referencedEntity = entities.find(
+                entitity => entitity.EntityName == relationTmp.referencedTable
+            );
             if (!referencedEntity) {
                 TomgUtils.LogError(
                     `Relation between tables ${relationTmp.ownerTable} and ${
@@ -332,12 +322,11 @@ export abstract class AbstractDriver {
                 relationColumnIndex < relationTmp.ownerColumnsNames.length;
                 relationColumnIndex++
             ) {
-                let ownerColumn = ownerEntity.Columns.find(column => {
-                    return (
+                let ownerColumn = ownerEntity.Columns.find(
+                    column =>
                         column.tsName ==
                         relationTmp.ownerColumnsNames[relationColumnIndex]
-                    );
-                });
+                );
                 if (!ownerColumn) {
                     TomgUtils.LogError(
                         `Relation between tables ${
@@ -350,12 +339,11 @@ export abstract class AbstractDriver {
                     );
                     return;
                 }
-                let relatedColumn = referencedEntity.Columns.find(column => {
-                    return (
+                let relatedColumn = referencedEntity.Columns.find(
+                    column =>
                         column.tsName ==
                         relationTmp.referencedColumnsNames[relationColumnIndex]
-                    );
-                });
+                );
                 if (!relatedColumn) {
                     TomgUtils.LogError(
                         `Relation between tables ${
@@ -370,14 +358,13 @@ export abstract class AbstractDriver {
                 }
                 let isOneToMany: boolean;
                 isOneToMany = false;
-                let index = ownerEntity.Indexes.find(index => {
-                    return (
+                let index = ownerEntity.Indexes.find(
+                    index =>
                         index.isUnique &&
-                        index.columns.some(col => {
-                            return col.name == ownerColumn!.tsName;
-                        })
-                    );
-                });
+                        index.columns.some(
+                            col => col.name == ownerColumn!.tsName
+                        )
+                );
                 isOneToMany = !index;
 
                 let ownerRelation = new RelationInfo();
@@ -467,15 +454,13 @@ export abstract class AbstractDriver {
     FindPrimaryColumnsFromIndexes(dbModel: DatabaseModel) {
         dbModel.entities.forEach(entity => {
             let primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            entity.Columns.forEach(col => {
-                if (
+            entity.Columns.filter(
+                col =>
                     primaryIndex &&
                     primaryIndex.columns.some(
                         cIndex => cIndex.name == col.tsName
                     )
-                )
-                    col.isPrimary = true;
-            });
+            ).forEach(col => (col.isPrimary = true));
             if (
                 !entity.Columns.some(v => {
                     return v.isPrimary;

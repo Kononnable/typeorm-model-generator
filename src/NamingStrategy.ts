@@ -9,12 +9,9 @@ export class NamingStrategy extends AbstractNamingStrategy {
         dbModel: DatabaseModel
     ): string {
         let isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        let ownerEntity = dbModel.entities.filter(v => {
-            return v.EntityName == relation.ownerTable;
-        })[0];
-        let referencedEntity = dbModel.entities.filter(v => {
-            return v.EntityName == relation.relatedTable;
-        })[0];
+        let ownerEntity = dbModel.entities.find(
+            v => v.EntityName == relation.ownerTable
+        )!;
 
         let columnName =
             columnOldName[0].toLowerCase() +

@@ -51,9 +51,7 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TABLE_NAME == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
@@ -202,20 +200,18 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TABLE_NAME == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = <IndexInfo>{};
                     let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
                     if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.INDEX_NAME;
-                        }).length > 0
+                        ent.Indexes.filter(
+                            filterVal => filterVal.name == resp.INDEX_NAME
+                        ).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.INDEX_NAME;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name == resp.INDEX_NAME
+                        )!;
                     } else {
                         indexInfo.columns = <IndexColumnInfo[]>[];
                         indexInfo.name = resp.INDEX_NAME;
@@ -256,9 +252,9 @@ export class OracleDriver extends AbstractDriver {
 
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.CONSTRAINT_NAME;
-            });
+            let rels = relationsTemp.find(
+                val => val.object_id == resp.CONSTRAINT_NAME
+            );
             if (rels == undefined) {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];

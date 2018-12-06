@@ -112,9 +112,7 @@ export class Engine {
         });
     }
     private createHandlebarsHelpers() {
-        Handlebars.registerHelper("curly", open => {
-            return open ? "{" : "}";
-        });
+        Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
         Handlebars.registerHelper("toEntityName", str => {
             let retStr = "";
             switch (this.Options.convertCaseEntity) {
@@ -173,38 +171,20 @@ export class Engine {
             }
             return retStr;
         });
-        Handlebars.registerHelper("toLowerCase", str => {
-            return str.toLowerCase();
-        });
+        Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
         Handlebars.registerHelper("toLazy", str => {
             if (this.Options.lazy) return `Promise<${str}>`;
             else return str;
         });
         Handlebars.registerHelper({
-            eq: function(v1, v2) {
-                return v1 === v2;
-            },
-            ne: function(v1, v2) {
-                return v1 !== v2;
-            },
-            lt: function(v1, v2) {
-                return v1 < v2;
-            },
-            gt: function(v1, v2) {
-                return v1 > v2;
-            },
-            lte: function(v1, v2) {
-                return v1 <= v2;
-            },
-            gte: function(v1, v2) {
-                return v1 >= v2;
-            },
-            and: function(v1, v2) {
-                return v1 && v2;
-            },
-            or: function(v1, v2) {
-                return v1 || v2;
-            }
+            eq: (v1, v2) => v1 === v2,
+            ne: (v1, v2) => v1 !== v2,
+            lt: (v1, v2) => v1 < v2,
+            gt: (v1, v2) => v1 > v2,
+            lte: (v1, v2) => v1 <= v2,
+            gte: (v1, v2) => v1 >= v2,
+            and: (v1, v2) => v1 && v2,
+            or: (v1, v2) => v1 || v2
         });
     }
 

@@ -217,9 +217,9 @@ export class SqliteDriver extends AbstractDriver {
                             return filterVal.name == resp.name;
                         }).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.name;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name == resp.name
+                        )!;
                     } else {
                         indexInfo.columns = <IndexColumnInfo[]>[];
                         indexInfo.name = resp.name;

@@ -9,7 +9,7 @@ export class EntityInfo {
     Schema: string;
     GenerateConstructor: boolean;
 
-    relationImports(): any {
+    relationImports() {
         var imports: string[] = [];
         this.Columns.forEach(column => {
             column.relations.forEach(relation => {
@@ -17,8 +17,8 @@ export class EntityInfo {
                     imports.push(relation.relatedTable);
             });
         });
-        this.UniqueImports = imports.filter(function(elem, index, self) {
-            return index == self.indexOf(elem);
-        });
+        this.UniqueImports = imports.filter(
+            (elem, index, self) => index == self.indexOf(elem)
+        );
     }
 }

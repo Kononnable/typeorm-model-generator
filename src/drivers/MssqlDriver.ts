@@ -228,9 +228,7 @@ ORDER BY
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TableName == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TableName == ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = <IndexInfo>{};
                     let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
@@ -299,9 +297,9 @@ order by
     TableWithForeignKey, FK_PartNo`)).recordset;
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.object_id;
-            });
+            let rels = relationsTemp.find(
+                val => val.object_id == resp.object_id
+            );
             if (rels == undefined) {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];
@@ -315,7 +313,6 @@ order by
                         break;
                     default:
                         rels.actionOnDelete = resp.onDelete;
-
                         break;
                 }
                 switch (resp.onUpdate) {
@@ -327,7 +324,6 @@ order by
                         break;
                     default:
                         rels.actionOnUpdate = resp.onUpdate;
-
                         break;
                 }
                 rels.object_id = resp.object_id;

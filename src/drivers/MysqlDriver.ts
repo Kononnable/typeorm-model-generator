@@ -40,9 +40,7 @@ export class MysqlDriver extends AbstractDriver {
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TABLE_NAME == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
                 .forEach(resp => {
                     let colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
@@ -226,20 +224,18 @@ export class MysqlDriver extends AbstractDriver {
             `);
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TableName == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TableName == ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = <IndexInfo>{};
                     let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
                     if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
-                        }).length > 0
+                        ent.Indexes.filter(
+                            filterVal => filterVal.name == resp.IndexName
+                        ).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name == resp.IndexName
+                        )!;
                     } else {
                         indexInfo.columns = <IndexColumnInfo[]>[];
                         indexInfo.name = resp.IndexName;
@@ -286,9 +282,9 @@ export class MysqlDriver extends AbstractDriver {
             `);
         let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.object_id;
-            });
+            let rels = relationsTemp.find(
+                val => val.object_id == resp.object_id
+            );
             if (rels == undefined) {
                 rels = <RelationTempInfo>{};
                 rels.ownerColumnsNames = [];

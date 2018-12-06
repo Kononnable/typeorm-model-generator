@@ -69,8 +69,8 @@ describe("TypeOrm examples", async function () {
                     await engine.createModelFromDatabase()
                     let filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val) { return val.toString().endsWith('.ts') })
+                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter((val) => val.toString().endsWith('.ts'))
+                    let filesGen = fs.readdirSync(filesGenPath).filter((val) =>  val.toString().endsWith('.ts'))
 
                     expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
@@ -81,9 +81,7 @@ describe("TypeOrm examples", async function () {
                         expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
                     }
                     const currentDirectoryFiles = fs.readdirSync(filesGenPath).
-                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => {
-                            return path.resolve(filesGenPath, v)
-                        })
+                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => path.resolve(filesGenPath, v))
                     let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
                         experimentalDecorators: true,
                         sourceMap: false,
