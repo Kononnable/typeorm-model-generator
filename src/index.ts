@@ -1,18 +1,18 @@
+import path = require("path");
+import * as Yargs from "yargs";
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { AbstractDriver } from "./drivers/AbstractDriver";
+import { MariaDbDriver } from "./drivers/MariaDbDriver";
 import { MssqlDriver } from "./drivers/MssqlDriver";
+import { MysqlDriver } from "./drivers/MysqlDriver";
+import { OracleDriver } from "./drivers/OracleDriver";
 import { PostgresDriver } from "./drivers/PostgresDriver";
 import { SqliteDriver } from "./drivers/SqliteDriver";
-import { MysqlDriver } from "./drivers/MysqlDriver";
-import { MariaDbDriver } from "./drivers/MariaDbDriver";
-import { OracleDriver } from "./drivers/OracleDriver";
 import { Engine } from "./Engine";
-import * as Yargs from "yargs";
-import * as TomgUtils from "./Utils";
-import path = require("path");
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { NamingStrategy } from "./NamingStrategy";
+import * as TomgUtils from "./Utils";
 
-var argv = Yargs.usage(
+const argv = Yargs.usage(
     "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]"
 )
     .option("h", {
@@ -148,13 +148,13 @@ switch (argv.e) {
 }
 let namingStrategy: AbstractNamingStrategy;
 if (argv.namingStrategy && argv.namingStrategy != "") {
-    let req = require(argv.namingStrategy);
+    const req = require(argv.namingStrategy);
     namingStrategy = new req.NamingStrategy();
 } else {
     namingStrategy = new NamingStrategy();
 }
 
-let engine = new Engine(driver, {
+const engine = new Engine(driver, {
     host: argv.h,
     port: parseInt(argv.p) || standardPort,
     databaseName: argv.d ? argv.d.toString() : null,
@@ -172,7 +172,7 @@ let engine = new Engine(driver, {
     lazy: argv.lazy,
     constructor: argv.generateConstructor,
     relationIds: argv.relationIds,
-    namingStrategy: namingStrategy
+    namingStrategy
 });
 
 console.log(TomgUtils.packageVersion());

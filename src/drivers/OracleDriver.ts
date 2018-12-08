@@ -1,10 +1,12 @@
-import { AbstractDriver } from "./AbstractDriver";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class OracleDriver extends AbstractDriver {
-    Oracle: any;
+    public Oracle: any;
+
+    private Connection: any /*Oracle.IConnection*/;
     constructor() {
         super();
         try {
@@ -16,21 +18,21 @@ export class OracleDriver extends AbstractDriver {
         }
     }
 
-    GetAllTablesQuery = async (schema: string) => {
-        let response: {
+    public GetAllTablesQuery = async (schema: string) => {
+        const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
-        }[] = (await this.Connection.execute(
+        }> = (await this.Connection.execute(
             ` SELECT NULL AS TABLE_SCHEMA, TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`
         )).rows!;
         return response;
     };
 
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             TABLE_NAME: string;
             COLUMN_NAME: string;
             DATA_DEFAULT: string;
@@ -41,7 +43,7 @@ export class OracleDriver extends AbstractDriver {
             DATA_SCALE: number;
             IDENTITY_COLUMN: string;
             IS_UNIQUE: Number;
-        }[] = (await this.Connection
+        }> = (await this.Connection
             .execute(`SELECT utc.TABLE_NAME, utc.COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
             DATA_PRECISION, DATA_SCALE, IDENTITY_COLUMN,
             (select count(*) from USER_CONS_COLUMNS ucc
@@ -51,13 +53,13 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
                 .forEach(resp => {
-                    let colInfo: ColumnInfo = new ColumnInfo();
+                    const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.NULLABLE == "Y";
-                    colInfo.is_generated = resp.IDENTITY_COLUMN == "YES";
+                    colInfo.is_nullable = resp.NULLABLE === "Y";
+                    colInfo.is_generated = resp.IDENTITY_COLUMN === "YES";
                     colInfo.default =
                         !resp.DATA_DEFAULT || resp.DATA_DEFAULT.includes('"')
                             ? null
@@ -161,7 +163,7 @@ export class OracleDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sql_type
                         )
                     ) {
                         colInfo.numericPrecision = resp.DATA_PRECISION;
@@ -169,29 +171,31 @@ export class OracleDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sql_type
                         )
                     ) {
                         colInfo.lenght =
                             resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : null;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sql_type) {
+                        ent.Columns.push(colInfo);
+                    }
                 });
         });
         return entities;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             COLUMN_NAME: string;
             TABLE_NAME: string;
             INDEX_NAME: string;
             UNIQUENESS: string;
             ISPRIMARYKEY: number;
-        }[] = (await this.Connection
+        }> = (await this.Connection
             .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
         FROM USER_INDEXES ind
         JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
@@ -200,23 +204,23 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
                 .forEach(resp => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(
-                            filterVal => filterVal.name == resp.INDEX_NAME
+                            filterVal => filterVal.name === resp.INDEX_NAME
                         ).length > 0
                     ) {
                         indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name == resp.INDEX_NAME
+                            filterVal => filterVal.name === resp.INDEX_NAME
                         )!;
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.INDEX_NAME;
-                        indexInfo.isUnique = resp.UNIQUENESS == "UNIQUE";
-                        indexInfo.isPrimaryKey = resp.ISPRIMARYKEY == 1;
+                        indexInfo.isUnique = resp.UNIQUENESS === "UNIQUE";
+                        indexInfo.isPrimaryKey = resp.ISPRIMARYKEY === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.COLUMN_NAME;
@@ -226,11 +230,11 @@ export class OracleDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             OWNER_TABLE_NAME: string;
             OWNER_POSITION: string;
             OWNER_COLUMN_NAME: string;
@@ -238,7 +242,7 @@ export class OracleDriver extends AbstractDriver {
             CHILD_COLUMN_NAME: string;
             DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             CONSTRAINT_NAME: string;
-        }[] = (await this.Connection
+        }> = (await this.Connection
             .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
         child.TABLE_NAME CHILD_TABLE_NAME ,childCol.COLUMN_NAME CHILD_COLUMN_NAME,
         owner.DELETE_RULE,
@@ -250,17 +254,17 @@ export class OracleDriver extends AbstractDriver {
         ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`))
             .rows!;
 
-        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id == resp.CONSTRAINT_NAME
+                val => val.object_id === resp.CONSTRAINT_NAME
             );
-            if (rels == undefined) {
-                rels = <RelationTempInfo>{};
+            if (rels === undefined) {
+                rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.DELETE_RULE == "NO ACTION" ? null : resp.DELETE_RULE;
+                    resp.DELETE_RULE === "NO ACTION" ? null : resp.DELETE_RULE;
                 rels.actionOnUpdate = null;
                 rels.object_id = resp.CONSTRAINT_NAME;
                 rels.ownerTable = resp.OWNER_TABLE_NAME;
@@ -276,12 +280,12 @@ export class OracleDriver extends AbstractDriver {
         );
         return entities;
     }
-    async DisconnectFromServer() {
-        if (this.Connection) await this.Connection.close();
+    public async DisconnectFromServer() {
+        if (this.Connection) {
+            await this.Connection.close();
+        }
     }
-
-    private Connection: any /*Oracle.IConnection*/;
-    async ConnectToServer(
+    public async ConnectToServer(
         database: string,
         server: string,
         port: number,
@@ -290,24 +294,24 @@ export class OracleDriver extends AbstractDriver {
         ssl: boolean
     ) {
         let config: any;
-        if (user == String(process.env.ORACLE_UsernameSys)) {
+        if (user === String(process.env.ORACLE_UsernameSys)) {
             config /*Oracle.IConnectionAttributes*/ = {
-                user: user,
-                password: password,
+                user,
+                password,
                 connectString: `${server}:${port}/${database}`,
                 externalAuth: ssl,
                 privilege: this.Oracle.SYSDBA
             };
         } else {
             config /*Oracle.IConnectionAttributes*/ = {
-                user: user,
-                password: password,
+                user,
+                password,
                 connectString: `${server}:${port}/${database}`,
                 externalAuth: ssl
             };
         }
-        let that = this;
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const that = this;
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Oracle.getConnection(config, function(err, connection) {
                 if (!err) {
                     that.Connection = connection;
@@ -326,7 +330,7 @@ export class OracleDriver extends AbstractDriver {
         await promise;
     }
 
-    async CreateDB(dbName: string) {
+    public async CreateDB(dbName: string) {
         await this.Connection.execute(
             `CREATE USER ${dbName} IDENTIFIED BY ${String(
                 process.env.ORACLE_Password
@@ -334,12 +338,12 @@ export class OracleDriver extends AbstractDriver {
         );
         await this.Connection.execute(`GRANT CONNECT TO ${dbName}`);
     }
-    async UseDB(dbName: string) {}
-    async DropDB(dbName: string) {
+    public async UseDB(dbName: string) {}
+    public async DropDB(dbName: string) {
         await this.Connection.execute(`DROP USER ${dbName} CASCADE`);
     }
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
-        var x = await this.Connection.execute(
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
+        const x = await this.Connection.execute(
             `select count(*) as CNT from dba_users where username='${dbName.toUpperCase()}'`
         );
         return x.rows[0][0] > 0 || x.rows[0].CNT;

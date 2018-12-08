@@ -1,24 +1,24 @@
-import { AbstractDriver } from "./AbstractDriver";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class SqliteDriver extends AbstractDriver {
-    sqlite = require("sqlite3").verbose();
-    db: any;
-    tablesWithGeneratedPrimaryKey: String[] = new Array<String>();
-    GetAllTablesQuery: any;
+    public sqlite = require("sqlite3").verbose();
+    public db: any;
+    public tablesWithGeneratedPrimaryKey: String[] = new Array<String>();
+    public GetAllTablesQuery: any;
 
-    async GetAllTables(schema: string): Promise<EntityInfo[]> {
-        let ret: EntityInfo[] = <EntityInfo[]>[];
-        let rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
+    public async GetAllTables(schema: string): Promise<EntityInfo[]> {
+        const ret: EntityInfo[] = [] as EntityInfo[];
+        const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
             `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
         );
         rows.forEach(val => {
-            let ent: EntityInfo = new EntityInfo();
+            const ent: EntityInfo = new EntityInfo();
             ent.EntityName = val.tbl_name;
-            ent.Columns = <ColumnInfo[]>[];
-            ent.Indexes = <IndexInfo[]>[];
+            ent.Columns = [] as ColumnInfo[];
+            ent.Indexes = [] as IndexInfo[];
             if (val.sql.includes("AUTOINCREMENT")) {
                 this.tablesWithGeneratedPrimaryKey.push(ent.EntityName);
             }
@@ -26,12 +26,12 @@ export class SqliteDriver extends AbstractDriver {
         });
         return ret;
     }
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         for (const ent of entities) {
-            let response = await this.ExecQuery<{
+            const response = await this.ExecQuery<{
                 cid: number;
                 name: string;
                 type: string;
@@ -40,7 +40,7 @@ export class SqliteDriver extends AbstractDriver {
                 pk: number;
             }>(`PRAGMA table_info('${ent.EntityName}');`);
             response.forEach(resp => {
-                let colInfo: ColumnInfo = new ColumnInfo();
+                const colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.tsName = resp.name;
                 colInfo.sqlName = resp.name;
                 colInfo.is_nullable = resp.notnull == 0;
@@ -146,19 +146,19 @@ export class SqliteDriver extends AbstractDriver {
                         );
                         break;
                 }
-                let options = resp.type.match(/\([0-9 ,]+\)/g);
+                const options = resp.type.match(/\([0-9 ,]+\)/g);
                 if (
                     this.ColumnTypesWithPrecision.some(
                         v => v == colInfo.sql_type
                     ) &&
                     options
                 ) {
-                    colInfo.numericPrecision = <any>options[0]
+                    colInfo.numericPrecision = options[0]
                         .substring(1, options[0].length - 1)
-                        .split(",")[0];
-                    colInfo.numericScale = <any>options[0]
+                        .split(",")[0] as any;
+                    colInfo.numericScale = options[0]
                         .substring(1, options[0].length - 1)
-                        .split(",")[1];
+                        .split(",")[1] as any;
                 }
                 if (
                     this.ColumnTypesWithLength.some(
@@ -166,10 +166,10 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.lenght = <any>options[0].substring(
+                    colInfo.lenght = options[0].substring(
                         1,
                         options[0].length - 1
-                    );
+                    ) as any;
                 }
                 if (
                     this.ColumnTypesWithWidth.some(
@@ -179,24 +179,26 @@ export class SqliteDriver extends AbstractDriver {
                     ) &&
                     options
                 ) {
-                    colInfo.width = <any>options[0].substring(
+                    colInfo.width = options[0].substring(
                         1,
                         options[0].length - 1
-                    );
+                    ) as any;
                 }
 
-                if (colInfo.sql_type) ent.Columns.push(colInfo);
+                if (colInfo.sql_type) {
+                    ent.Columns.push(colInfo);
+                }
             });
         }
 
         return entities;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         for (const ent of entities) {
-            let response = await this.ExecQuery<{
+            const response = await this.ExecQuery<{
                 seq: number;
                 name: string;
                 unique: number;
@@ -204,14 +206,14 @@ export class SqliteDriver extends AbstractDriver {
                 partial: number;
             }>(`PRAGMA index_list('${ent.EntityName}');`);
             for (const resp of response) {
-                let indexColumnsResponse = await this.ExecQuery<{
+                const indexColumnsResponse = await this.ExecQuery<{
                     seqno: number;
                     cid: number;
                     name: string;
                 }>(`PRAGMA index_info('${resp.name}');`);
                 indexColumnsResponse.forEach(element => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(filterVal => {
                             return filterVal.name == resp.name;
@@ -221,7 +223,7 @@ export class SqliteDriver extends AbstractDriver {
                             filterVal => filterVal.name == resp.name
                         )!;
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.name;
                         indexInfo.isUnique = resp.unique == 1;
                         ent.Indexes.push(indexInfo);
@@ -242,12 +244,12 @@ export class SqliteDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         for (const entity of entities) {
-            let response = await this.ExecQuery<{
+            const response = await this.ExecQuery<{
                 id: number;
                 seq: number;
                 table: string;
@@ -257,9 +259,9 @@ export class SqliteDriver extends AbstractDriver {
                 on_delete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
                 match: string;
             }>(`PRAGMA foreign_key_list('${entity.EntityName}');`);
-            let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+            const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
             response.forEach(resp => {
-                let rels = <RelationTempInfo>{};
+                const rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
@@ -279,11 +281,11 @@ export class SqliteDriver extends AbstractDriver {
         }
         return entities;
     }
-    async DisconnectFromServer() {
+    public async DisconnectFromServer() {
         this.db.close();
     }
 
-    async ConnectToServer(
+    public async ConnectToServer(
         database: string,
         server: string,
         port: number,
@@ -294,9 +296,9 @@ export class SqliteDriver extends AbstractDriver {
         await this.UseDB(database);
     }
 
-    async CreateDB(dbName: string) {}
-    async UseDB(dbName: string) {
-        let promise = new Promise<boolean>((resolve, reject) => {
+    public async CreateDB(dbName: string) {}
+    public async UseDB(dbName: string) {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.db = new this.sqlite.Database(dbName, err => {
                 if (err) {
                     console.error(err.message);
@@ -308,14 +310,14 @@ export class SqliteDriver extends AbstractDriver {
         });
         return promise;
     }
-    async DropDB(dbName: string) {}
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
+    public async DropDB(dbName: string) {}
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
         return true;
     }
 
-    async ExecQuery<T>(sql: string): Promise<Array<T>> {
+    public async ExecQuery<T>(sql: string): Promise<T[]> {
         let ret: any;
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.db.serialize(() => {
                 this.db.all(sql, [], function(err, row) {
                     if (!err) {

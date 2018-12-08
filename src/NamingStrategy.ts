@@ -1,15 +1,15 @@
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { RelationInfo } from "./models/RelationInfo";
 import { DatabaseModel } from "./models/DatabaseModel";
+import { RelationInfo } from "./models/RelationInfo";
 
 export class NamingStrategy extends AbstractNamingStrategy {
-    relationName(
+    public relationName(
         columnOldName: string,
         relation: RelationInfo,
         dbModel: DatabaseModel
     ): string {
-        let isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        let ownerEntity = dbModel.entities.find(
+        const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
+        const ownerEntity = dbModel.entities.find(
             v => v.EntityName == relation.ownerTable
         )!;
 
@@ -51,8 +51,9 @@ export class NamingStrategy extends AbstractNamingStrategy {
                                 v.tsName != columnName ||
                                 columnName == columnOldName
                         )
-                    )
+                    ) {
                         break;
+                    }
                 }
             }
         }
@@ -60,11 +61,11 @@ export class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 
-    entityName(entityName: string): string {
+    public entityName(entityName: string): string {
         return entityName;
     }
 
-    columnName(columnName: string): string {
+    public columnName(columnName: string): string {
         return columnName;
     }
 }

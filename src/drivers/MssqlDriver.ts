@@ -6,8 +6,8 @@ import * as TomgUtils from "../Utils";
 
 export class MssqlDriver extends AbstractDriver {
     GetAllTablesQuery = async (schema: string) => {
-        let request = new MSSQL.Request(this.Connection);
-        let response: {
+        const request = new MSSQL.Request(this.Connection);
+        const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
         }[] = (await request.query(
@@ -20,8 +20,8 @@ export class MssqlDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection);
-        let response: {
+        const request = new MSSQL.Request(this.Connection);
+        const response: {
             TABLE_NAME: string;
             COLUMN_NAME: string;
             COLUMN_DEFAULT: string;
@@ -199,8 +199,8 @@ export class MssqlDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection);
-        let response: {
+        const request = new MSSQL.Request(this.Connection);
+        const response: {
             TableName: string;
             IndexName: string;
             ColumnName: string;
@@ -258,8 +258,8 @@ ORDER BY
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let request = new MSSQL.Request(this.Connection);
-        let response: {
+        const request = new MSSQL.Request(this.Connection);
+        const response: {
             TableWithForeignKey: string;
             FK_PartNo: number;
             ForeignKeyColumn: string;
@@ -365,7 +365,7 @@ order by
             }
         };
 
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = new MSSQL.ConnectionPool(config, err => {
                 if (!err) {
                     resolve(true);
@@ -383,20 +383,20 @@ order by
         await promise;
     }
     async CreateDB(dbName: string) {
-        let request = new MSSQL.Request(this.Connection);
+        const request = new MSSQL.Request(this.Connection);
         await request.query(`CREATE DATABASE ${dbName}; `);
     }
     async UseDB(dbName: string) {
-        let request = new MSSQL.Request(this.Connection);
+        const request = new MSSQL.Request(this.Connection);
         await request.query(`USE ${dbName}; `);
     }
     async DropDB(dbName: string) {
-        let request = new MSSQL.Request(this.Connection);
+        const request = new MSSQL.Request(this.Connection);
         await request.query(`DROP DATABASE ${dbName}; `);
     }
     async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let request = new MSSQL.Request(this.Connection);
-        let resp = await request.query(
+        const request = new MSSQL.Request(this.Connection);
+        const resp = await request.query(
             `SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `
         );
         return resp.recordset.length > 0;

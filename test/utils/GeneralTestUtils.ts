@@ -1,16 +1,16 @@
+import path = require('path')
+import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
+import * as yn from "yn"
+import { AbstractNamingStrategy } from "../../src/AbstractNamingStrategy";
 import { AbstractDriver } from "../../src/drivers/AbstractDriver";
-import { MssqlDriver } from "../../src/drivers/MssqlDriver";
-import { PostgresDriver } from "../../src/drivers/PostgresDriver";
-import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
+import { MssqlDriver } from "../../src/drivers/MssqlDriver";
+import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
+import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { SqliteDriver } from "../../src/drivers/SqliteDriver";
 import { Engine } from "../../src/Engine";
-import { createConnection, ConnectionOptions } from "typeorm";
-import * as yn from "yn"
-import path = require('path')
-import { AbstractNamingStrategy } from "../../src/AbstractNamingStrategy";
 import { NamingStrategy } from "../../src/NamingStrategy";
 
 export async function createMSSQLModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
@@ -19,12 +19,13 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     driver = new MssqlDriver();
     await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password), yn(process.env.MSSQL_SSL));
 
-    if (await driver.CheckIfDBExists(String(process.env.MSSQL_Database)))
+    if (await driver.CheckIfDBExists(String(process.env.MSSQL_Database))) {
         await driver.DropDB(String(process.env.MSSQL_Database));
+    }
     await driver.CreateDB(String(process.env.MSSQL_Database));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.MSSQL_Database),
         host: String(process.env.MSSQL_Host),
         password: String(process.env.MSSQL_Password),
@@ -36,7 +37,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
 
-    let schemas = 'dbo,sch1,sch2'
+    const schemas = 'dbo,sch1,sch2'
     let conn = await createConnection(connOpt)
     let queryRunner = conn.createQueryRunner()
     for (const sch of schemas.split(',')) {
@@ -44,13 +45,14 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
     }
     await conn.synchronize();
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
+    }
 
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MssqlDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: String(process.env.MSSQL_Host),
             port: Number(process.env.MSSQL_Port),
@@ -58,7 +60,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             user: String(process.env.MSSQL_Username),
             password: String(process.env.MSSQL_Password),
             databaseType: 'mssql',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: 'dbo,sch1,sch2',
             ssl: yn(process.env.MSSQL_SSL),
             noConfigs: false,
@@ -68,7 +70,7 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
@@ -78,8 +80,9 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
         await queryRunner.createSchema(sch, true);
     }
     await conn.synchronize();
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
+    }
 
     return engine;
 }
@@ -89,12 +92,13 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
     driver = new PostgresDriver();
     await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password), yn(process.env.POSTGRES_SSL));
 
-    if (await driver.CheckIfDBExists(String(process.env.POSTGRES_Database)))
+    if (await driver.CheckIfDBExists(String(process.env.POSTGRES_Database))) {
         await driver.DropDB(String(process.env.POSTGRES_Database));
+    }
     await driver.CreateDB(String(process.env.POSTGRES_Database));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.POSTGRES_Database),
         host: String(process.env.POSTGRES_Host),
         password: String(process.env.POSTGRES_Password),
@@ -106,7 +110,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
 
-    let schemas = 'public,sch1,sch2'
+    const schemas = 'public,sch1,sch2'
     let conn = await createConnection(connOpt)
     let queryRunner = conn.createQueryRunner()
     for (const sch of schemas.split(',')) {
@@ -114,12 +118,13 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
     }
     await conn.synchronize();
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    }
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new PostgresDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: String(process.env.POSTGRES_Host),
             port: Number(process.env.POSTGRES_Port),
@@ -127,7 +132,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             user: String(process.env.POSTGRES_Username),
             password: String(process.env.POSTGRES_Password),
             databaseType: 'postgres',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: 'public,sch1,sch2',
             ssl: yn(process.env.POSTGRES_SSL),
             noConfigs: false,
@@ -137,7 +142,7 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
@@ -147,8 +152,9 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
         await queryRunner.createSchema(sch, true);
     }
     await conn.synchronize();
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
+    }
 
     return engine;
 }
@@ -158,12 +164,13 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
     driver = new SqliteDriver();
     await driver.ConnectToServer(String(process.env.SQLITE_Database), '', 0, '', '', false);
 
-    if (await driver.CheckIfDBExists(String(process.env.SQLITE_Database)))
+    if (await driver.CheckIfDBExists(String(process.env.SQLITE_Database))) {
         await driver.DropDB(String(process.env.SQLITE_Database));
+    }
     await driver.CreateDB(String(process.env.SQLITE_Database));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.SQLITE_Database),
         type: 'sqlite',
         dropSchema: true,
@@ -175,12 +182,13 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
     let queryRunner = conn.createQueryRunner()
     await conn.synchronize();
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    }
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new SqliteDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: '',
             port: 0,
@@ -188,7 +196,7 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             user: '',
             password: '',
             databaseType: 'sqlite',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: '',
             ssl: false,
             noConfigs: false,
@@ -198,15 +206,16 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
     conn = await createConnection(connOpt)
     queryRunner = conn.createQueryRunner()
     await conn.synchronize();
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
+    }
 
     return engine;
 }
@@ -216,12 +225,13 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
     driver = new MysqlDriver();
     await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password), yn(process.env.MYSQL_SSL));
 
-    if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database)))
+    if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database))) {
         await driver.DropDB(String(process.env.MYSQL_Database));
+    }
     await driver.CreateDB(String(process.env.MYSQL_Database));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.MYSQL_Database),
         host: String(process.env.MYSQL_Host),
         password: String(process.env.MYSQL_Password),
@@ -232,14 +242,15 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
-    let conn = await createConnection(connOpt)
+    const conn = await createConnection(connOpt)
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    }
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MysqlDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: String(process.env.MYSQL_Host),
             port: Number(process.env.MYSQL_Port),
@@ -247,7 +258,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             user: String(process.env.MYSQL_Username),
             password: String(process.env.MYSQL_Password),
             databaseType: 'mysql',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MYSQL_SSL),
             noConfigs: false,
@@ -257,7 +268,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
@@ -268,12 +279,13 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
     driver = new MariaDbDriver();
     await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password), yn(process.env.MARIADB_SSL));
 
-    if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database)))
+    if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database))) {
         await driver.DropDB(String(process.env.MARIADB_Database));
+    }
     await driver.CreateDB(String(process.env.MARIADB_Database));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.MARIADB_Database),
         host: String(process.env.MARIADB_Host),
         password: String(process.env.MARIADB_Password),
@@ -284,14 +296,15 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
-    let conn = await createConnection(connOpt)
+    const conn = await createConnection(connOpt)
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    }
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new MariaDbDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: String(process.env.MARIADB_Host),
             port: Number(process.env.MARIADB_Port),
@@ -299,7 +312,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             user: String(process.env.MARIADB_Username),
             password: String(process.env.MARIADB_Password),
             databaseType: 'mariadb',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: 'ignored',
             ssl: yn(process.env.MARIADB_SSL),
             noConfigs: false,
@@ -309,7 +322,7 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
@@ -323,12 +336,13 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
     driver = new OracleDriver();
     await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_UsernameSys), String(process.env.ORACLE_PasswordSys), yn(process.env.ORACLE_SSL));
 
-    if (await driver.CheckIfDBExists(String(process.env.ORACLE_Username)))
+    if (await driver.CheckIfDBExists(String(process.env.ORACLE_Username))) {
         await driver.DropDB(String(process.env.ORACLE_Username));
+    }
     await driver.CreateDB(String(process.env.ORACLE_Username));
     await driver.DisconnectFromServer();
 
-    let connOpt: ConnectionOptions = {
+    const connOpt: ConnectionOptions = {
         database: String(process.env.ORACLE_Database),
         sid: String(process.env.ORACLE_Database),
         host: String(process.env.ORACLE_Host),
@@ -339,14 +353,15 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
     }
-    let conn = await createConnection(connOpt)
+    const conn = await createConnection(connOpt)
 
-    if (conn.isConnected)
+    if (conn.isConnected) {
         await conn.close()
-    let namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    }
+    const namingStrategy: AbstractNamingStrategy = new NamingStrategy();
 
     driver = new OracleDriver();
-    let engine = new Engine(
+    const engine = new Engine(
         driver, {
             host: String(process.env.ORACLE_Host),
             port: Number(process.env.ORACLE_Port),
@@ -354,7 +369,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             user: String(process.env.ORACLE_Username),
             password: String(process.env.ORACLE_Password),
             databaseType: 'oracle',
-            resultsPath: resultsPath,
+            resultsPath,
             schemaName: String(process.env.ORACLE_Username),
             ssl: yn(process.env.ORACLE_SSL),
             noConfigs: false,
@@ -364,7 +379,7 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             propertyVisibility: 'none',
             lazy: false,
             constructor: false,
-            namingStrategy: namingStrategy,
+            namingStrategy,
             relationIds: false
         });
 
@@ -372,16 +387,16 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
 }
 
 export function compileTsFiles(fileNames: string[], options: ts.CompilerOptions): boolean {
-    let program = ts.createProgram(fileNames, options);
-    let emitResult = program.emit();
+    const program = ts.createProgram(fileNames, options);
+    const emitResult = program.emit();
     let compileErrors = false;
-    let preDiagnostics = ts.getPreEmitDiagnostics(program);
+    const preDiagnostics = ts.getPreEmitDiagnostics(program);
 
-    let allDiagnostics = [...preDiagnostics, ...emitResult.diagnostics];
+    const allDiagnostics = [...preDiagnostics, ...emitResult.diagnostics];
 
     allDiagnostics.forEach(diagnostic => {
-        let lineAndCharacter = diagnostic.file!.getLineAndCharacterOfPosition(diagnostic.start!);
-        let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+        const lineAndCharacter = diagnostic.file!.getLineAndCharacterOfPosition(diagnostic.start!);
+        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
         console.log(`${diagnostic.file!.fileName} (${lineAndCharacter.line + 1},${lineAndCharacter.character + 1}): ${message}`);
         compileErrors = true;
     });

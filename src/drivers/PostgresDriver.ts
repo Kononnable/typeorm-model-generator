@@ -8,7 +8,7 @@ export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
 
     GetAllTablesQuery = async (schema: string) => {
-        let response: {
+        const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
         }[] = (await this.Connection.query(
@@ -21,7 +21,7 @@ export class PostgresDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: {
             table_name: string;
             column_name: string;
             udt_name: string;
@@ -62,7 +62,7 @@ export class PostgresDriver extends AbstractDriver {
                         ? null
                         : resp.column_default;
 
-                    var columnTypes = this.MatchColumnTypes(
+                    const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
                         resp.udt_name
                     );
@@ -338,7 +338,10 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "ARRAY":
-                let z = this.MatchColumnTypes(udt_name.substring(1), udt_name);
+                const z = this.MatchColumnTypes(
+                    udt_name.substring(1),
+                    udt_name
+                );
                 ret.ts_type = z.ts_type;
                 ret.sql_type = z.sql_type;
                 ret.is_array = true;
@@ -368,7 +371,7 @@ export class PostgresDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: {
             tablename: string;
             indexname: string;
             columnname: string;
@@ -433,7 +436,7 @@ export class PostgresDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: {
             tablewithforeignkey: string;
             fk_partno: number;
             foreignkeycolumn: string;
@@ -509,7 +512,7 @@ export class PostgresDriver extends AbstractDriver {
     }
     async DisconnectFromServer() {
         if (this.Connection) {
-            let promise = new Promise<boolean>((resolve, reject) => {
+            const promise = new Promise<boolean>((resolve, reject) => {
                 this.Connection.end(err => {
                     if (!err) {
                         resolve(true);
@@ -544,7 +547,7 @@ export class PostgresDriver extends AbstractDriver {
             ssl: ssl
         });
 
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.connect(err => {
                 if (!err) {
                     resolve(true);
@@ -572,7 +575,7 @@ export class PostgresDriver extends AbstractDriver {
         await this.Connection.query(`DROP DATABASE ${dbName}; `);
     }
     async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let resp = await this.Connection.query(
+        const resp = await this.Connection.query(
             `SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `
         );
         return resp.rowCount > 0;

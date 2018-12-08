@@ -1,14 +1,16 @@
-import { AbstractDriver } from "./AbstractDriver";
 import * as MYSQL from "mysql";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class MysqlDriver extends AbstractDriver {
-    readonly EngineName: string = "MySQL";
+    public readonly EngineName: string = "MySQL";
 
-    GetAllTablesQuery = async (schema: string) => {
-        let response = this.ExecQuery<{
+    private Connection: MYSQL.Connection;
+
+    public GetAllTablesQuery = async (schema: string) => {
+        const response = this.ExecQuery<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
         }>(`SELECT TABLE_SCHEMA, TABLE_NAME
@@ -18,11 +20,11 @@ export class MysqlDriver extends AbstractDriver {
         return response;
     };
 
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TABLE_NAME: string;
             COLUMN_NAME: string;
             COLUMN_DEFAULT: string;
@@ -40,14 +42,14 @@ export class MysqlDriver extends AbstractDriver {
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME == ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
                 .forEach(resp => {
-                    let colInfo: ColumnInfo = new ColumnInfo();
+                    const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.IS_NULLABLE == "YES";
-                    colInfo.is_generated = resp.IsIdentity == 1;
-                    colInfo.is_unique = resp.column_key == "UNI";
+                    colInfo.is_nullable = resp.IS_NULLABLE === "YES";
+                    colInfo.is_generated = resp.IsIdentity === 1;
+                    colInfo.is_unique = resp.column_key === "UNI";
                     colInfo.default = resp.COLUMN_DEFAULT;
                     colInfo.sql_type = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
@@ -55,7 +57,7 @@ export class MysqlDriver extends AbstractDriver {
                             colInfo.ts_type = "number";
                             break;
                         case "tinyint":
-                            if (resp.column_type == "tinyint(1)") {
+                            if (resp.column_type === "tinyint(1)") {
                                 colInfo.width = 1;
                                 colInfo.ts_type = "boolean";
                             } else {
@@ -173,7 +175,7 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sql_type
                         )
                     ) {
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION;
@@ -181,7 +183,7 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sql_type
                         )
                     ) {
                         colInfo.lenght =
@@ -192,8 +194,8 @@ export class MysqlDriver extends AbstractDriver {
                     if (
                         this.ColumnTypesWithWidth.some(
                             v =>
-                                v == colInfo.sql_type &&
-                                colInfo.ts_type != "boolean"
+                                v === colInfo.sql_type &&
+                                colInfo.ts_type !== "boolean"
                         )
                     ) {
                         colInfo.width =
@@ -202,16 +204,18 @@ export class MysqlDriver extends AbstractDriver {
                                 : null;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sql_type) {
+                        ent.Columns.push(colInfo);
+                    }
                 });
         });
         return entities;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TableName: string;
             IndexName: string;
             ColumnName: string;
@@ -224,23 +228,23 @@ export class MysqlDriver extends AbstractDriver {
             `);
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TableName == ent.EntityName)
+                .filter(filterVal => filterVal.TableName === ent.EntityName)
                 .forEach(resp => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(
-                            filterVal => filterVal.name == resp.IndexName
+                            filterVal => filterVal.name === resp.IndexName
                         ).length > 0
                     ) {
                         indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name == resp.IndexName
+                            filterVal => filterVal.name === resp.IndexName
                         )!;
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.IndexName;
-                        indexInfo.isUnique = resp.is_unique == 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
+                        indexInfo.isUnique = resp.is_unique === 1;
+                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.ColumnName;
@@ -250,11 +254,11 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TableWithForeignKey: string;
             FK_PartNo: number;
             ForeignKeyColumn: string;
@@ -280,19 +284,19 @@ export class MysqlDriver extends AbstractDriver {
             TABLE_SCHEMA = SCHEMA()
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
-        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id == resp.object_id
+                val => val.object_id === resp.object_id
             );
-            if (rels == undefined) {
-                rels = <RelationTempInfo>{};
+            if (rels === undefined) {
+                rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.onDelete == "NO_ACTION" ? null : resp.onDelete;
+                    resp.onDelete === "NO_ACTION" ? null : resp.onDelete;
                 rels.actionOnUpdate =
-                    resp.onUpdate == "NO_ACTION" ? null : resp.onUpdate;
+                    resp.onUpdate === "NO_ACTION" ? null : resp.onUpdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;
@@ -307,8 +311,8 @@ export class MysqlDriver extends AbstractDriver {
         );
         return entities;
     }
-    async DisconnectFromServer() {
-        let promise = new Promise<boolean>((resolve, reject) => {
+    public async DisconnectFromServer() {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.end(err => {
                 if (!err) {
                     resolve(true);
@@ -322,11 +326,11 @@ export class MysqlDriver extends AbstractDriver {
                 }
             });
         });
-        if (this.Connection) await promise;
+        if (this.Connection) {
+            await promise;
+        }
     }
-
-    private Connection: MYSQL.Connection;
-    async ConnectToServer(
+    public async ConnectToServer(
         database: string,
         server: string,
         port: number,
@@ -337,26 +341,26 @@ export class MysqlDriver extends AbstractDriver {
         let config: MYSQL.ConnectionConfig;
         if (ssl) {
             config = {
-                database: database,
+                database,
                 host: server,
-                port: port,
-                user: user,
-                password: password,
+                port,
+                user,
+                password,
                 ssl: {
                     rejectUnauthorized: false
                 }
             };
         } else {
             config = {
-                database: database,
+                database,
                 host: server,
-                port: port,
-                user: user,
-                password: password
+                port,
+                user,
+                password
             };
         }
 
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = MYSQL.createConnection(config);
 
             this.Connection.connect(err => {
@@ -375,28 +379,28 @@ export class MysqlDriver extends AbstractDriver {
 
         await promise;
     }
-    async CreateDB(dbName: string) {
+    public async CreateDB(dbName: string) {
         await this.ExecQuery<any>(`CREATE DATABASE ${dbName}; `);
     }
-    async UseDB(dbName: string) {
+    public async UseDB(dbName: string) {
         await this.ExecQuery<any>(`USE ${dbName}; `);
     }
-    async DropDB(dbName: string) {
+    public async DropDB(dbName: string) {
         await this.ExecQuery<any>(`DROP DATABASE ${dbName}; `);
     }
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let resp = await this.ExecQuery<any>(
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
+        const resp = await this.ExecQuery<any>(
             `SHOW DATABASES LIKE '${dbName}' `
         );
         return resp.length > 0;
     }
-    async ExecQuery<T>(sql: string): Promise<Array<T>> {
-        let ret: Array<T> = [];
-        let query = this.Connection.query(sql);
-        let stream = query.stream({});
-        let promise = new Promise<boolean>((resolve, reject) => {
+    public async ExecQuery<T>(sql: string): Promise<T[]> {
+        const ret: T[] = [];
+        const query = this.Connection.query(sql);
+        const stream = query.stream({});
+        const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", chunk => {
-                ret.push(<T>(<any>chunk));
+                ret.push((chunk as any) as T);
             });
             stream.on("error", err => reject(err));
             stream.on("end", () => resolve(true));
