@@ -8,24 +8,24 @@ import {Index,Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, OneToOne, O
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
 {{#Columns}}
 
-   {{^relations}}{{#is_generated}} @PrimaryGeneratedColumn({
-        type:"{{sql_type}}", {{/is_generated}}{{^is_generated}} @Column("{{sql_type}}",{ {{#is_nullable}}
-        nullable:true,{{/is_nullable}}{{^is_nullable}}
-        nullable:false,{{/is_nullable}}{{#isPrimary}}
-        primary:{{isPrimary}},{{/isPrimary}}{{/is_generated}}{{#is_unique}}
-        unique: true,{{/is_unique}}{{#lenght}}
+   {{^relations}}{{#isGenerated}} @PrimaryGeneratedColumn({
+        type:"{{sqlType}}", {{/isGenerated}}{{^isGenerated}} @Column("{{sqlType}}",{ {{#isNullable}}
+        nullable:true,{{/isNullable}}{{^isNullable}}
+        nullable:false,{{/isNullable}}{{#isPrimary}}
+        primary:{{isPrimary}},{{/isPrimary}}{{/isGenerated}}{{#isUnique}}
+        unique: true,{{/isUnique}}{{#lenght}}
         length:{{.}},{{/lenght}}{{#width}}
         width:{{.}},{{/width}}{{#default}}
         default:"{{.}}",{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#enumOptions}}
-        enum:[{{.}}],{{/enumOptions}}{{#is_array}}
-        array:{{is_array}},{{/is_array}}
+        enum:[{{.}}],{{/enumOptions}}{{#isArray}}
+        array:{{isArray}},{{/isArray}}
         name:"{{sqlName}}"
         })
-    {{printPropertyVisibility}}{{toPropertyName tsName}}:{{ts_type}}{{#is_nullable}} | null{{/is_nullable}};
+    {{printPropertyVisibility}}{{toPropertyName tsName}}:{{tsType}}{{#isNullable}} | null{{/isNullable}};
         {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../is_nullable}} nullable:false,{{/../is_nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#if (or actionOnDelete actionOnUpdate ) }}{{#actionOnDelete}},{ onDelete: '{{.}}' ,{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{/if}}{{/if}}){{#isOwner}}
+    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../isNullable}} nullable:false,{{/../isNullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#if (or actionOnDelete actionOnUpdate ) }}{{#actionOnDelete}},{ onDelete: '{{.}}' ,{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{/if}}{{/if}}){{#isOwner}}
     {{#if isManyToMany}}@JoinTable(){{else}}@JoinColumn({ name:'{{ ../sqlName}}'}){{/if}}{{/isOwner}}
     {{#if (or isOneToMany isManyToMany)}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
     {{else}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat (toEntityName relatedTable) ' | null')}};
@@ -33,7 +33,7 @@ import {Index,Entity, PrimaryColumn, PrimaryGeneratedColumn, Column, OneToOne, O
     {{#if relationIdField }}
 
     @RelationId(({{../../EntityName}}: {{../../EntityName}}) => {{../../EntityName}}.{{toPropertyName ../tsName}})
-    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../ts_type}}{{else}}{{toLazy (concat  ../ts_type "[]")}}{{/if}};{{/if}}{{/relations}}
+    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
     constructor(init?: Partial<{{toEntityName EntityName}}>) {

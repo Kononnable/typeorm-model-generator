@@ -10,7 +10,7 @@ import * as TomgUtils from "./Utils";
 export class Engine {
     constructor(
         private driver: AbstractDriver,
-        public Options: EngineOptions
+        public Options: IEngineOptions
     ) {}
 
     public async createModelFromDatabase(): Promise<boolean> {
@@ -88,7 +88,7 @@ export class Engine {
                 });
             });
             element.GenerateConstructor = this.Options.constructor;
-            element.Imports.filter(function(elem, index, self) {
+            element.Imports.filter((elem, index, self) => {
                 return index === self.indexOf(elem);
             });
             let casedFileName = "";
@@ -186,13 +186,13 @@ export class Engine {
             }
         });
         Handlebars.registerHelper({
-            eq: (v1, v2) => v1 === v2,
-            ne: (v1, v2) => v1 !== v2,
-            lt: (v1, v2) => v1 < v2,
-            gt: (v1, v2) => v1 > v2,
-            lte: (v1, v2) => v1 <= v2,
-            gte: (v1, v2) => v1 >= v2,
             and: (v1, v2) => v1 && v2,
+            eq: (v1, v2) => v1 === v2,
+            gt: (v1, v2) => v1 > v2,
+            gte: (v1, v2) => v1 >= v2,
+            lt: (v1, v2) => v1 < v2,
+            lte: (v1, v2) => v1 <= v2,
+            ne: (v1, v2) => v1 !== v2,
             or: (v1, v2) => v1 || v2
         });
     }
@@ -214,7 +214,7 @@ export class Engine {
         );
     }
     private createTypeOrmConfig(resultPath) {
-        if (this.Options.schemaName == "") {
+        if (this.Options.schemaName === "") {
             fs.writeFileSync(
                 path.resolve(resultPath, "ormconfig.json"),
                 `[
@@ -258,7 +258,7 @@ export class Engine {
         }
     }
 }
-export interface EngineOptions {
+export interface IEngineOptions {
     host: string;
     port: number;
     databaseName: string;

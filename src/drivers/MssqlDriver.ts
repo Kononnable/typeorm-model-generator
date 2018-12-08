@@ -1,27 +1,28 @@
-import { AbstractDriver } from "./AbstractDriver";
 import * as MSSQL from "mssql";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class MssqlDriver extends AbstractDriver {
-    GetAllTablesQuery = async (schema: string) => {
+    private Connection: MSSQL.ConnectionPool;
+    public GetAllTablesQuery = async (schema: string) => {
         const request = new MSSQL.Request(this.Connection);
-        const response: {
+        const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
-        }[] = (await request.query(
+        }> = (await request.query(
             `SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema})`
         )).recordset;
         return response;
     };
 
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: {
+        const response: Array<{
             TABLE_NAME: string;
             COLUMN_NAME: string;
             COLUMN_DEFAULT: string;
@@ -32,7 +33,7 @@ export class MssqlDriver extends AbstractDriver {
             NUMERIC_SCALE: number;
             IsIdentity: number;
             IsUnique: number;
-        }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+        }> = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
    COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
    (SELECT count(*)
@@ -52,113 +53,113 @@ export class MssqlDriver extends AbstractDriver {
                     return filterVal.TABLE_NAME == ent.EntityName;
                 })
                 .forEach(resp => {
-                    let colInfo: ColumnInfo = new ColumnInfo();
+                    const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.IS_NULLABLE == "YES";
-                    colInfo.is_generated = resp.IsIdentity == 1;
-                    colInfo.is_unique = resp.IsUnique == 1;
+                    colInfo.isNullable = resp.IS_NULLABLE == "YES";
+                    colInfo.isGenerated = resp.IsIdentity == 1;
+                    colInfo.isUnique = resp.IsUnique == 1;
                     colInfo.default = resp.COLUMN_DEFAULT;
-                    colInfo.sql_type = resp.DATA_TYPE;
+                    colInfo.sqlType = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "bigint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "bit":
-                            colInfo.ts_type = "boolean";
+                            colInfo.tsType = "boolean";
                             break;
                         case "decimal":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "int":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "money":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "numeric":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "smallmoney":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "tinyint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "float":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "real":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "date":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "datetime2":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "datetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "datetimeoffset":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "smalldatetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "time":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "char":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "text":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "varchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "nchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "ntext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "nvarchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "binary":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "image":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "varbinary":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "hierarchyid":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "sql_variant":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "timestamp":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "uniqueidentifier":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "xml":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "geometry":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "geography":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         default:
                             TomgUtils.LogError(
@@ -173,7 +174,7 @@ export class MssqlDriver extends AbstractDriver {
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sql_type
+                            v => v == colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION;
@@ -181,7 +182,7 @@ export class MssqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sql_type
+                            v => v == colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
@@ -190,23 +191,25 @@ export class MssqlDriver extends AbstractDriver {
                                 : null;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.sqlType) {
+                        ent.Columns.push(colInfo);
+                    }
                 });
         });
         return entities;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: {
+        const response: Array<{
             TableName: string;
             IndexName: string;
             ColumnName: string;
             is_unique: number;
             is_primary_key: number;
-        }[] = (await request.query(`SELECT
+        }> = (await request.query(`SELECT
      TableName = t.name,
      IndexName = ind.name,
      ColumnName = col.name,
@@ -230,8 +233,8 @@ ORDER BY
             response
                 .filter(filterVal => filterVal.TableName == ent.EntityName)
                 .forEach(resp => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(filterVal => {
                             return filterVal.name == resp.IndexName;
@@ -241,7 +244,7 @@ ORDER BY
                             return filterVal.name == resp.IndexName;
                         })[0];
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.IndexName;
                         indexInfo.isUnique = resp.is_unique == 1;
                         indexInfo.isPrimaryKey = resp.is_primary_key == 1;
@@ -254,12 +257,12 @@ ORDER BY
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: {
+        const response: Array<{
             TableWithForeignKey: string;
             FK_PartNo: number;
             ForeignKeyColumn: string;
@@ -268,7 +271,7 @@ ORDER BY
             onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             object_id: number;
-        }[] = (await request.query(`select
+        }> = (await request.query(`select
     parentTable.name as TableWithForeignKey,
     fkc.constraint_column_id as FK_PartNo,
      parentColumn.name as ForeignKeyColumn,
@@ -295,13 +298,13 @@ where
     fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
 order by
     TableWithForeignKey, FK_PartNo`)).recordset;
-        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
                 val => val.object_id == resp.object_id
             );
             if (rels == undefined) {
-                rels = <RelationTempInfo>{};
+                rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 switch (resp.onDelete) {
@@ -340,12 +343,12 @@ order by
         );
         return entities;
     }
-    async DisconnectFromServer() {
-        if (this.Connection) await this.Connection.close();
+    public async DisconnectFromServer() {
+        if (this.Connection) {
+            await this.Connection.close();
+        }
     }
-
-    private Connection: MSSQL.ConnectionPool;
-    async ConnectToServer(
+    public async ConnectToServer(
         database: string,
         server: string,
         port: number,
@@ -353,16 +356,16 @@ order by
         password: string,
         ssl: boolean
     ) {
-        let config: MSSQL.config = {
-            database: database,
-            server: server,
-            port: port,
-            user: user,
-            password: password,
+        const config: MSSQL.config = {
+            database,
             options: {
-                encrypt: ssl,
-                appName: "typeorm-model-generator"
-            }
+                appName: "typeorm-model-generator",
+                encrypt: ssl
+            },
+            password,
+            port,
+            server,
+            user
         };
 
         const promise = new Promise<boolean>((resolve, reject) => {
@@ -382,19 +385,19 @@ order by
 
         await promise;
     }
-    async CreateDB(dbName: string) {
+    public async CreateDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`CREATE DATABASE ${dbName}; `);
     }
-    async UseDB(dbName: string) {
+    public async UseDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`USE ${dbName}; `);
     }
-    async DropDB(dbName: string) {
+    public async DropDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`DROP DATABASE ${dbName}; `);
     }
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
         const request = new MSSQL.Request(this.Connection);
         const resp = await request.query(
             `SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `

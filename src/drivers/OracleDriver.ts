@@ -42,7 +42,7 @@ export class OracleDriver extends AbstractDriver {
             DATA_PRECISION: number;
             DATA_SCALE: number;
             IDENTITY_COLUMN: string;
-            IS_UNIQUE: Number;
+            IS_UNIQUE: number;
         }> = (await this.Connection
             .execute(`SELECT utc.TABLE_NAME, utc.COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
             DATA_PRECISION, DATA_SCALE, IDENTITY_COLUMN,
@@ -58,102 +58,102 @@ export class OracleDriver extends AbstractDriver {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.NULLABLE === "Y";
-                    colInfo.is_generated = resp.IDENTITY_COLUMN === "YES";
+                    colInfo.isNullable = resp.NULLABLE === "Y";
+                    colInfo.isGenerated = resp.IDENTITY_COLUMN === "YES";
                     colInfo.default =
                         !resp.DATA_DEFAULT || resp.DATA_DEFAULT.includes('"')
                             ? null
                             : resp.DATA_DEFAULT;
-                    colInfo.is_unique = resp.IS_UNIQUE > 0;
+                    colInfo.isUnique = resp.IS_UNIQUE > 0;
                     resp.DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
-                    colInfo.sql_type = resp.DATA_TYPE.toLowerCase();
+                    colInfo.sqlType = resp.DATA_TYPE.toLowerCase();
                     switch (resp.DATA_TYPE.toLowerCase()) {
                         case "char":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "nchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "nvarchar2":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "varchar2":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "long":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "raw":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "long raw":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "number":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "numeric":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "float":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "dec":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "decimal":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "integer":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "int":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "real":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "double precision":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "date":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp with time zone":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp with local time zone":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "interval year to month":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "interval day to second":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "bfile":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "blob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "clob":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "nclob":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "rowid":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "urowid":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         default:
                             TomgUtils.LogError(
@@ -163,7 +163,7 @@ export class OracleDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.DATA_PRECISION;
@@ -171,14 +171,14 @@ export class OracleDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
                             resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : null;
                     }
 
-                    if (colInfo.sql_type) {
+                    if (colInfo.sqlType) {
                         ent.Columns.push(colInfo);
                     }
                 });
@@ -254,13 +254,13 @@ export class OracleDriver extends AbstractDriver {
         ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`))
             .rows!;
 
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
                 val => val.object_id === resp.CONSTRAINT_NAME
             );
             if (rels === undefined) {
-                rels = {} as RelationTempInfo;
+                rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
@@ -296,23 +296,23 @@ export class OracleDriver extends AbstractDriver {
         let config: any;
         if (user === String(process.env.ORACLE_UsernameSys)) {
             config /*Oracle.IConnectionAttributes*/ = {
-                user,
-                password,
                 connectString: `${server}:${port}/${database}`,
                 externalAuth: ssl,
-                privilege: this.Oracle.SYSDBA
+                password,
+                privilege: this.Oracle.SYSDBA,
+                user
             };
         } else {
             config /*Oracle.IConnectionAttributes*/ = {
-                user,
-                password,
                 connectString: `${server}:${port}/${database}`,
-                externalAuth: ssl
+                externalAuth: ssl,
+                password,
+                user
             };
         }
         const that = this;
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Oracle.getConnection(config, function(err, connection) {
+            this.Oracle.getConnection(config, (err, connection) => {
                 if (!err) {
                     that.Connection = connection;
                     resolve(true);
@@ -338,7 +338,9 @@ export class OracleDriver extends AbstractDriver {
         );
         await this.Connection.execute(`GRANT CONNECT TO ${dbName}`);
     }
-    public async UseDB(dbName: string) {}
+    public async UseDB(dbName: string) {
+        // not supported
+    }
     public async DropDB(dbName: string) {
         await this.Connection.execute(`DROP USER ${dbName} CASCADE`);
     }

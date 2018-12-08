@@ -47,121 +47,121 @@ export class MysqlDriver extends AbstractDriver {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.IS_NULLABLE === "YES";
-                    colInfo.is_generated = resp.IsIdentity === 1;
-                    colInfo.is_unique = resp.column_key === "UNI";
+                    colInfo.isNullable = resp.IS_NULLABLE === "YES";
+                    colInfo.isGenerated = resp.IsIdentity === 1;
+                    colInfo.isUnique = resp.column_key === "UNI";
                     colInfo.default = resp.COLUMN_DEFAULT;
-                    colInfo.sql_type = resp.DATA_TYPE;
+                    colInfo.sqlType = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "int":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "tinyint":
                             if (resp.column_type === "tinyint(1)") {
                                 colInfo.width = 1;
-                                colInfo.ts_type = "boolean";
+                                colInfo.tsType = "boolean";
                             } else {
-                                colInfo.ts_type = "number";
+                                colInfo.tsType = "number";
                             }
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "mediumint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "bigint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "float":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "double":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "decimal":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "date":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "datetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "time":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "year":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "char":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "varchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "blob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "text":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "tinyblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "tinytext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "mediumblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "mediumtext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "longblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "longtext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "enum":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             colInfo.enumOptions = resp.column_type
                                 .substring(5, resp.column_type.length - 1)
                                 .replace(/\'/gi, '"');
                             break;
                         case "json":
-                            colInfo.ts_type = "Object";
+                            colInfo.tsType = "Object";
                             break;
                         case "binary":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "geometry":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "point":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "linestring":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "polygon":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multipoint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multilinestring":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multipolygon":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "geometrycollection":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         default:
                             TomgUtils.LogError(
@@ -175,7 +175,7 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION;
@@ -183,7 +183,7 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
@@ -194,8 +194,8 @@ export class MysqlDriver extends AbstractDriver {
                     if (
                         this.ColumnTypesWithWidth.some(
                             v =>
-                                v === colInfo.sql_type &&
-                                colInfo.ts_type !== "boolean"
+                                v === colInfo.sqlType &&
+                                colInfo.tsType !== "boolean"
                         )
                     ) {
                         colInfo.width =
@@ -204,7 +204,7 @@ export class MysqlDriver extends AbstractDriver {
                                 : null;
                     }
 
-                    if (colInfo.sql_type) {
+                    if (colInfo.sqlType) {
                         ent.Columns.push(colInfo);
                     }
                 });
@@ -284,13 +284,13 @@ export class MysqlDriver extends AbstractDriver {
             TABLE_SCHEMA = SCHEMA()
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
                 val => val.object_id === resp.object_id
             );
             if (rels === undefined) {
-                rels = {} as RelationTempInfo;
+                rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
@@ -343,20 +343,20 @@ export class MysqlDriver extends AbstractDriver {
             config = {
                 database,
                 host: server,
-                port,
-                user,
                 password,
+                port,
                 ssl: {
                     rejectUnauthorized: false
-                }
+                },
+                user
             };
         } else {
             config = {
                 database,
                 host: server,
+                password,
                 port,
-                user,
-                password
+                user
             };
         }
 

@@ -10,7 +10,7 @@ export class NamingStrategy extends AbstractNamingStrategy {
     ): string {
         const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
         const ownerEntity = dbModel.entities.find(
-            v => v.EntityName == relation.ownerTable
+            v => v.EntityName === relation.ownerTable
         )!;
 
         let columnName =
@@ -25,19 +25,19 @@ export class NamingStrategy extends AbstractNamingStrategy {
                 columnName.toLowerCase().lastIndexOf("id")
             );
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1]))) {
+        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1]))) {
+        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
         columnName += isRelationToMany ? "s" : "";
 
         if (
-            relation.relationType != "ManyToMany" &&
-            columnOldName != columnName
+            relation.relationType !== "ManyToMany" &&
+            columnOldName !== columnName
         ) {
-            if (ownerEntity.Columns.some(v => v.tsName == columnName)) {
+            if (ownerEntity.Columns.some(v => v.tsName === columnName)) {
                 columnName = columnName + "_";
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
@@ -48,8 +48,8 @@ export class NamingStrategy extends AbstractNamingStrategy {
                     if (
                         ownerEntity.Columns.every(
                             v =>
-                                v.tsName != columnName ||
-                                columnName == columnOldName
+                                v.tsName !== columnName ||
+                                columnName === columnOldName
                         )
                     ) {
                         break;

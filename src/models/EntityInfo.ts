@@ -13,13 +13,13 @@ export class EntityInfo {
         const imports: string[] = [];
         this.Columns.forEach(column => {
             column.relations.forEach(relation => {
-                if (this.EntityName != relation.relatedTable) {
+                if (this.EntityName !== relation.relatedTable) {
                     imports.push(relation.relatedTable);
                 }
             });
         });
         this.UniqueImports = imports.filter(
-            (elem, index, self) => index == self.indexOf(elem)
+            (elem, index, self) => index === self.indexOf(elem)
         );
     }
 }

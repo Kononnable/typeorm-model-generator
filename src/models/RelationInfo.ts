@@ -21,15 +21,15 @@ export class RelationInfo {
     public relationIdField: boolean = false;
 
     get isOneToMany(): boolean {
-        return this.relationType == "OneToMany";
+        return this.relationType === "OneToMany";
     }
     get isManyToMany(): boolean {
-        return this.relationType == "ManyToMany";
+        return this.relationType === "ManyToMany";
     }
     get isOneToOne(): boolean {
-        return this.relationType == "OneToOne";
+        return this.relationType === "OneToOne";
     }
     get isManyToOne(): boolean {
-        return this.relationType == "ManyToOne";
+        return this.relationType === "ManyToOne";
     }
 }

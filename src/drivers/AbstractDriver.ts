@@ -288,7 +288,7 @@ export abstract class AbstractDriver {
     }
 
     public GetRelationsFromRelationTempInfo(
-        relationsTemp: RelationTempInfo[],
+        relationsTemp: IRelationTempInfo[],
         entities: EntityInfo[]
     ) {
         relationsTemp.forEach(relationTmp => {
@@ -356,9 +356,9 @@ export abstract class AbstractDriver {
                 let isOneToMany: boolean;
                 isOneToMany = false;
                 const index = ownerEntity.Indexes.find(
-                    index =>
-                        index.isUnique &&
-                        index.columns.some(
+                    ind =>
+                        ind.isUnique &&
+                        ind.columns.some(
                             col => col.name === ownerColumn!.tsName
                         )
                 );

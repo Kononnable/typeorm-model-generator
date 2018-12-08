@@ -4,9 +4,9 @@ export class ColumnInfo {
     public tsName: string = "";
     public sqlName: string = "";
     public default: string | null = null;
-    public is_nullable: boolean = false;
-    public is_unique: boolean = false;
-    public ts_type:
+    public isNullable: boolean = false;
+    public isUnique: boolean = false;
+    public tsType:
         | "number"
         | "string"
         | "boolean"
@@ -16,12 +16,12 @@ export class ColumnInfo {
         | "string | Object"
         | "string | string[]"
         | "any";
-    public sql_type: string;
+    public sqlType: string;
     public lenght: number | null = null;
     public width: number | null = null;
     public isPrimary: boolean = false;
-    public is_generated: boolean = false;
-    public is_array: boolean = false;
+    public isGenerated: boolean = false;
+    public isArray: boolean = false;
     public numericPrecision: number | null = null;
     public numericScale: number | null = null;
     public enumOptions: string | null = null;

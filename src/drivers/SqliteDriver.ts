@@ -6,7 +6,7 @@ import { AbstractDriver } from "./AbstractDriver";
 export class SqliteDriver extends AbstractDriver {
     public sqlite = require("sqlite3").verbose();
     public db: any;
-    public tablesWithGeneratedPrimaryKey: String[] = new Array<String>();
+    public tablesWithGeneratedPrimaryKey: string[] = new Array<string>();
     public GetAllTablesQuery: any;
 
     public async GetAllTables(schema: string): Promise<EntityInfo[]> {
@@ -43,103 +43,103 @@ export class SqliteDriver extends AbstractDriver {
                 const colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.tsName = resp.name;
                 colInfo.sqlName = resp.name;
-                colInfo.is_nullable = resp.notnull == 0;
+                colInfo.isNullable = resp.notnull === 0;
                 colInfo.isPrimary = resp.pk > 0;
                 colInfo.default = resp.dflt_value ? resp.dflt_value : null;
-                colInfo.sql_type = resp.type
+                colInfo.sqlType = resp.type
                     .replace(/\([0-9 ,]+\)/g, "")
                     .toLowerCase()
                     .trim();
-                colInfo.is_generated =
+                colInfo.isGenerated =
                     colInfo.isPrimary &&
                     this.tablesWithGeneratedPrimaryKey.includes(ent.EntityName);
-                switch (colInfo.sql_type) {
+                switch (colInfo.sqlType) {
                     case "int":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "integer":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "int2":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "int8":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "tinyint":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "smallint":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "mediumint":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "bigint":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "unsigned big int":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "character":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "varchar":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "varying character":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "nchar":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "native character":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "nvarchar":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "text":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "blob":
-                        colInfo.ts_type = "Buffer";
+                        colInfo.tsType = "Buffer";
                         break;
                     case "clob":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "real":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "double":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "double precision":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "float":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "numeric":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "decimal":
-                        colInfo.ts_type = "number";
+                        colInfo.tsType = "number";
                         break;
                     case "boolean":
-                        colInfo.ts_type = "boolean";
+                        colInfo.tsType = "boolean";
                         break;
                     case "date":
-                        colInfo.ts_type = "string";
+                        colInfo.tsType = "string";
                         break;
                     case "datetime":
-                        colInfo.ts_type = "Date";
+                        colInfo.tsType = "Date";
                         break;
                     default:
-                        console.log(colInfo.sql_type.toLowerCase().trim());
+                        console.log(colInfo.sqlType.toLowerCase().trim());
                         TomgUtils.LogError(
                             `Unknown column type: ${
-                                colInfo.sql_type
+                                colInfo.sqlType
                             }  table name: ${ent.EntityName} column name: ${
                                 resp.name
                             }`
@@ -149,7 +149,7 @@ export class SqliteDriver extends AbstractDriver {
                 const options = resp.type.match(/\([0-9 ,]+\)/g);
                 if (
                     this.ColumnTypesWithPrecision.some(
-                        v => v == colInfo.sql_type
+                        v => v === colInfo.sqlType
                     ) &&
                     options
                 ) {
@@ -162,7 +162,7 @@ export class SqliteDriver extends AbstractDriver {
                 }
                 if (
                     this.ColumnTypesWithLength.some(
-                        v => v == colInfo.sql_type
+                        v => v === colInfo.sqlType
                     ) &&
                     options
                 ) {
@@ -174,8 +174,8 @@ export class SqliteDriver extends AbstractDriver {
                 if (
                     this.ColumnTypesWithWidth.some(
                         v =>
-                            v == colInfo.sql_type &&
-                            colInfo.ts_type != "boolean"
+                            v === colInfo.sqlType &&
+                            colInfo.tsType !== "boolean"
                     ) &&
                     options
                 ) {
@@ -185,7 +185,7 @@ export class SqliteDriver extends AbstractDriver {
                     ) as any;
                 }
 
-                if (colInfo.sql_type) {
+                if (colInfo.sqlType) {
                     ent.Columns.push(colInfo);
                 }
             });
@@ -216,26 +216,26 @@ export class SqliteDriver extends AbstractDriver {
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.name;
+                            return filterVal.name === resp.name;
                         }).length > 0
                     ) {
                         indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name == resp.name
+                            filterVal => filterVal.name === resp.name
                         )!;
                     } else {
                         indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.name;
-                        indexInfo.isUnique = resp.unique == 1;
+                        indexInfo.isUnique = resp.unique === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = element.name;
                     if (
-                        indexColumnsResponse.length == 1 &&
+                        indexColumnsResponse.length === 1 &&
                         indexInfo.isUnique
                     ) {
                         ent.Columns.filter(
-                            v => v.tsName == indexColumnInfo.name
-                        ).map(v => (v.is_unique = true));
+                            v => v.tsName === indexColumnInfo.name
+                        ).map(v => (v.isUnique = true));
                     }
                     indexInfo.columns.push(indexColumnInfo);
                 });
@@ -259,15 +259,15 @@ export class SqliteDriver extends AbstractDriver {
                 on_delete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
                 match: string;
             }>(`PRAGMA foreign_key_list('${entity.EntityName}');`);
-            const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+            const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
             response.forEach(resp => {
-                const rels = {} as RelationTempInfo;
+                const rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.on_delete == "NO ACTION" ? null : resp.on_delete;
+                    resp.on_delete === "NO ACTION" ? null : resp.on_delete;
                 rels.actionOnUpdate =
-                    resp.on_update == "NO ACTION" ? null : resp.on_update;
+                    resp.on_update === "NO ACTION" ? null : resp.on_update;
                 rels.ownerTable = entity.EntityName;
                 rels.referencedTable = resp.table;
                 relationsTemp.push(rels);
@@ -296,7 +296,9 @@ export class SqliteDriver extends AbstractDriver {
         await this.UseDB(database);
     }
 
-    public async CreateDB(dbName: string) {}
+    public async CreateDB(dbName: string) {
+        // not supported
+    }
     public async UseDB(dbName: string) {
         const promise = new Promise<boolean>((resolve, reject) => {
             this.db = new this.sqlite.Database(dbName, err => {
@@ -310,7 +312,9 @@ export class SqliteDriver extends AbstractDriver {
         });
         return promise;
     }
-    public async DropDB(dbName: string) {}
+    public async DropDB(dbName: string) {
+        // not supported
+    }
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
         return true;
     }
@@ -319,7 +323,7 @@ export class SqliteDriver extends AbstractDriver {
         let ret: any;
         const promise = new Promise<boolean>((resolve, reject) => {
             this.db.serialize(() => {
-                this.db.all(sql, [], function(err, row) {
+                this.db.all(sql, [], (err, row) => {
                     if (!err) {
                         ret = row;
                         resolve(true);

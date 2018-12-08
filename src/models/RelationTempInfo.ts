@@ -1,4 +1,4 @@
-interface RelationTempInfo {
+interface IRelationTempInfo {
     ownerTable: string;
     ownerColumnsNames: string[];
     referencedTable: string;

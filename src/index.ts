@@ -17,13 +17,13 @@ const argv = Yargs.usage(
 )
     .option("h", {
         alias: "host",
-        describe: "IP adress/Hostname for database server",
-        default: "127.0.0.1"
+        default: "127.0.0.1",
+        describe: "IP adress/Hostname for database server"
     })
     .option("d", {
         alias: "database",
-        describe: "Database name(or path for sqlite)",
-        demand: true
+        demand: true,
+        describe: "Database name(or path for sqlite)"
     })
     .option("u", {
         alias: "user",
@@ -31,8 +31,8 @@ const argv = Yargs.usage(
     })
     .option("x", {
         alias: "pass",
-        describe: "Password for database server",
-        default: ""
+        default: "",
+        describe: "Password for database server"
     })
     .option("p", {
         alias: "port",
@@ -40,14 +40,14 @@ const argv = Yargs.usage(
     })
     .option("e", {
         alias: "engine",
-        describe: "Database engine",
         choices: ["mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"],
-        default: "mssql"
+        default: "mssql",
+        describe: "Database engine"
     })
     .option("o", {
         alias: "output",
-        describe: "Where to place generated models",
-        default: path.resolve(process.cwd(), "output")
+        default: path.resolve(process.cwd(), "output"),
+        describe: "Where to place generated models"
     })
     .option("s", {
         alias: "schema",
@@ -60,50 +60,50 @@ const argv = Yargs.usage(
     })
     .option("noConfig", {
         boolean: true,
-        describe: `Doesn't create tsconfig.json and ormconfig.json`,
-        default: false
+        default: false,
+        describe: `Doesn't create tsconfig.json and ormconfig.json`
     })
     .option("cf", {
         alias: "case-file",
-        describe: "Convert file names to specified case",
         choices: ["pascal", "param", "camel", "none"],
-        default: "none"
+        default: "none",
+        describe: "Convert file names to specified case"
     })
     .option("ce", {
         alias: "case-entity",
-        describe: "Convert class names to specified case",
         choices: ["pascal", "camel", "none"],
-        default: "none"
+        default: "none",
+        describe: "Convert class names to specified case"
     })
     .option("cp", {
         alias: "case-property",
-        describe: "Convert property names to specified case",
         choices: ["pascal", "camel", "none"],
-        default: "none"
+        default: "none",
+        describe: "Convert property names to specified case"
     })
     .option("pv", {
         alias: "property-visibility",
-        describe: "Defines which visibility should have the generated property",
         choices: ["public", "protected", "private", "none"],
-        default: "none"
+        default: "none",
+        describe: "Defines which visibility should have the generated property"
     })
     .option("lazy", {
-        describe: "Generate lazy relations",
         boolean: true,
-        default: false
+        default: false,
+        describe: "Generate lazy relations"
     })
     .option("namingStrategy", {
         describe: "Use custom naming strategy"
     })
     .option("relationIds", {
-        describe: "Generate RelationId fields",
         boolean: true,
-        default: false
+        default: false,
+        describe: "Generate RelationId fields"
     })
     .option("generateConstructor", {
-        describe: "Generate constructor allowing partial initialization",
         boolean: true,
-        default: false
+        default: false,
+        describe: "Generate constructor allowing partial initialization"
     }).argv;
 
 let driver: AbstractDriver;
@@ -147,7 +147,7 @@ switch (argv.e) {
         throw new Error("Database engine not recognized.");
 }
 let namingStrategy: AbstractNamingStrategy;
-if (argv.namingStrategy && argv.namingStrategy != "") {
+if (argv.namingStrategy && argv.namingStrategy !== "") {
     const req = require(argv.namingStrategy);
     namingStrategy = new req.NamingStrategy();
 } else {
@@ -155,24 +155,24 @@ if (argv.namingStrategy && argv.namingStrategy != "") {
 }
 
 const engine = new Engine(driver, {
-    host: argv.h,
-    port: parseInt(argv.p) || standardPort,
+    constructor: argv.generateConstructor,
+    convertCaseEntity: argv.ce,
+    convertCaseFile: argv.cf,
+    convertCaseProperty: argv.cp,
     databaseName: argv.d ? argv.d.toString() : null,
-    user: argv.u ? argv.u.toString() : standardUser,
-    password: argv.x ? argv.x.toString() : null,
     databaseType: argv.e,
+    host: argv.h,
+    lazy: argv.lazy,
+    namingStrategy,
+    noConfigs: argv.noConfig,
+    password: argv.x ? argv.x.toString() : null,
+    port: parseInt(argv.p, 10) || standardPort,
+    propertyVisibility: argv.pv,
+    relationIds: argv.relationIds,
     resultsPath: argv.o ? argv.o.toString() : null,
     schemaName: argv.s ? argv.s.toString() : standardSchema,
     ssl: argv.ssl,
-    noConfigs: argv.noConfig,
-    convertCaseFile: argv.cf,
-    convertCaseEntity: argv.ce,
-    convertCaseProperty: argv.cp,
-    propertyVisibility: argv.pv,
-    lazy: argv.lazy,
-    constructor: argv.generateConstructor,
-    relationIds: argv.relationIds,
-    namingStrategy
+    user: argv.u ? argv.u.toString() : standardUser
 });
 
 console.log(TomgUtils.packageVersion());
