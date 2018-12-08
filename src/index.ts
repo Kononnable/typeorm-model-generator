@@ -148,6 +148,7 @@ switch (argv.e) {
 }
 let namingStrategy: AbstractNamingStrategy;
 if (argv.namingStrategy && argv.namingStrategy !== "") {
+    // tslint:disable-next-line:no-var-requires
     const req = require(argv.namingStrategy);
     namingStrategy = new req.NamingStrategy();
 } else {

@@ -50,15 +50,15 @@ export class MssqlDriver extends AbstractDriver {
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
-                    return filterVal.TABLE_NAME == ent.EntityName;
+                    return filterVal.TABLE_NAME === ent.EntityName;
                 })
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
                     colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.isNullable = resp.IS_NULLABLE == "YES";
-                    colInfo.isGenerated = resp.IsIdentity == 1;
-                    colInfo.isUnique = resp.IsUnique == 1;
+                    colInfo.isNullable = resp.IS_NULLABLE === "YES";
+                    colInfo.isGenerated = resp.IsIdentity === 1;
+                    colInfo.isUnique = resp.IsUnique === 1;
                     colInfo.default = resp.COLUMN_DEFAULT;
                     colInfo.sqlType = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
@@ -174,7 +174,7 @@ export class MssqlDriver extends AbstractDriver {
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sqlType
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.NUMERIC_PRECISION;
@@ -182,7 +182,7 @@ export class MssqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sqlType
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
@@ -207,8 +207,8 @@ export class MssqlDriver extends AbstractDriver {
             TableName: string;
             IndexName: string;
             ColumnName: string;
-            is_unique: number;
-            is_primary_key: number;
+            is_unique: boolean;
+            is_primary_key: boolean;
         }> = (await request.query(`SELECT
      TableName = t.name,
      IndexName = ind.name,
@@ -231,23 +231,23 @@ ORDER BY
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TableName == ent.EntityName)
+                .filter(filterVal => filterVal.TableName === ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
+                            return filterVal.name === resp.IndexName;
                         }).length > 0
                     ) {
                         indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
+                            return filterVal.name === resp.IndexName;
                         })[0];
                     } else {
                         indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.IndexName;
-                        indexInfo.isUnique = resp.is_unique == 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
+                        indexInfo.isUnique = resp.is_unique;
+                        indexInfo.isPrimaryKey = resp.is_primary_key;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.ColumnName;
@@ -301,9 +301,9 @@ order by
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id == resp.object_id
+                val => val.object_id === resp.object_id
             );
-            if (rels == undefined) {
+            if (rels === undefined) {
                 rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];

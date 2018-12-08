@@ -4,6 +4,8 @@
         "tslint:recommended", "tslint-config-prettier"
     ],
     "jsRules": {},
-    "rules": {},
+    "rules": {
+        "no-console":false
+    },
     "rulesDirectory": []
 }

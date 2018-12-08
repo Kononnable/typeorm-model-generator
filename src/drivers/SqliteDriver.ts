@@ -136,7 +136,6 @@ export class SqliteDriver extends AbstractDriver {
                         colInfo.tsType = "Date";
                         break;
                     default:
-                        console.log(colInfo.sqlType.toLowerCase().trim());
                         TomgUtils.LogError(
                             `Unknown column type: ${
                                 colInfo.sqlType
@@ -303,7 +302,11 @@ export class SqliteDriver extends AbstractDriver {
         const promise = new Promise<boolean>((resolve, reject) => {
             this.db = new this.sqlite.Database(dbName, err => {
                 if (err) {
-                    console.error(err.message);
+                    TomgUtils.LogError(
+                        "Error connecting to SQLite database.",
+                        false,
+                        err.message
+                    );
                     reject(err);
                     return;
                 }

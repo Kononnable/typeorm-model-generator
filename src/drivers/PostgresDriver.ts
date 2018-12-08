@@ -32,7 +32,7 @@ export class PostgresDriver extends AbstractDriver {
             numeric_precision: number;
             numeric_scale: number;
             isidentity: string;
-            isunique: number;
+            isunique: string;
         }> = (await this.Connection
             .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
@@ -50,14 +50,14 @@ export class PostgresDriver extends AbstractDriver {
             .rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.table_name == ent.EntityName)
+                .filter(filterVal => filterVal.table_name === ent.EntityName)
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.column_name;
                     colInfo.sqlName = resp.column_name;
-                    colInfo.isNullable = resp.is_nullable == "YES";
-                    colInfo.isGenerated = resp.isidentity == "YES";
-                    colInfo.isUnique = resp.isunique == 1;
+                    colInfo.isNullable = resp.is_nullable === "YES";
+                    colInfo.isGenerated = resp.isidentity === "YES";
+                    colInfo.isUnique = resp.isunique === "1";
                     colInfo.default = colInfo.isGenerated
                         ? null
                         : resp.column_default;
@@ -68,8 +68,8 @@ export class PostgresDriver extends AbstractDriver {
                     );
                     if (!columnTypes.sql_type || !columnTypes.ts_type) {
                         if (
-                            resp.data_type == "USER-DEFINED" ||
-                            resp.data_type == "ARRAY"
+                            resp.data_type === "USER-DEFINED" ||
+                            resp.data_type === "ARRAY"
                         ) {
                             TomgUtils.LogError(
                                 `Unknown ${resp.data_type} column type: ${
@@ -101,7 +101,7 @@ export class PostgresDriver extends AbstractDriver {
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sqlType
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.numeric_precision;
@@ -109,7 +109,7 @@ export class PostgresDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sqlType
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
@@ -119,7 +119,7 @@ export class PostgresDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v == colInfo.sqlType
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.width =
@@ -379,12 +379,12 @@ export class PostgresDriver extends AbstractDriver {
         i.relname as indexname,
         f.attname AS columnname,
         CASE
-            WHEN ix.indisunique = true THEN '1'
-            ELSE '0'
+            WHEN ix.indisunique = true THEN 1
+            ELSE 0
         END AS is_unique,
         CASE
-            WHEN ix.indisprimary='true' THEN '1'
-            ELSE '0'
+            WHEN ix.indisprimary='true' THEN 1
+            ELSE 0
         END AS is_primary_key
         FROM pg_attribute f
         JOIN pg_class c ON c.oid = f.attrelid
@@ -400,27 +400,27 @@ export class PostgresDriver extends AbstractDriver {
         ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.tablename == ent.EntityName)
+                .filter(filterVal => filterVal.tablename === ent.EntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
                         ent.Indexes.filter(
-                            filterVal => filterVal.name == resp.indexname
+                            filterVal => filterVal.name === resp.indexname
                         ).length > 0
                     ) {
                         indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name == resp.indexname
+                            filterVal => filterVal.name === resp.indexname
                         )!;
                     } else {
                         indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.indexname;
-                        indexInfo.isUnique = resp.is_unique == 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
+                        indexInfo.isUnique = resp.is_unique === 1;
+                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.columnname;
-                    if (resp.is_primary_key == 0) {
+                    if (resp.is_primary_key === 0) {
                         indexInfo.isPrimaryKey = false;
                     }
                     indexInfo.columns.push(indexColumnInfo);
@@ -483,16 +483,16 @@ export class PostgresDriver extends AbstractDriver {
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id == resp.object_id
+                val => val.object_id === resp.object_id
             );
-            if (rels == undefined) {
+            if (rels === undefined) {
                 rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.ondelete == "NO ACTION" ? null : resp.ondelete;
+                    resp.ondelete === "NO ACTION" ? null : resp.ondelete;
                 rels.actionOnUpdate =
-                    resp.onupdate == "NO ACTION" ? null : resp.onupdate;
+                    resp.onupdate === "NO ACTION" ? null : resp.onupdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.tablewithforeignkey;
                 rels.referencedTable = resp.tablereferenced;
