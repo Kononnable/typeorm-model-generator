@@ -1,12 +1,12 @@
 import { RelationInfo } from "./RelationInfo";
 
 export class ColumnInfo {
-    tsName: string = "";
-    sqlName: string = "";
-    default: string | null = null;
-    is_nullable: boolean = false;
-    is_unique: boolean = false;
-    ts_type:
+    public tsName: string = "";
+    public sqlName: string = "";
+    public default: string | null = null;
+    public isNullable: boolean = false;
+    public isUnique: boolean = false;
+    public tsType:
         | "number"
         | "string"
         | "boolean"
@@ -16,16 +16,16 @@ export class ColumnInfo {
         | "string | Object"
         | "string | string[]"
         | "any";
-    sql_type: string;
-    lenght: number | null = null;
-    width: number | null = null;
-    isPrimary: boolean = false;
-    is_generated: boolean = false;
-    is_array: boolean = false;
-    numericPrecision: number | null = null;
-    numericScale: number | null = null;
-    enumOptions: string | null = null;
-    relations: RelationInfo[];
+    public sqlType: string;
+    public lenght: number | null = null;
+    public width: number | null = null;
+    public isPrimary: boolean = false;
+    public isGenerated: boolean = false;
+    public isArray: boolean = false;
+    public numericPrecision: number | null = null;
+    public numericScale: number | null = null;
+    public enumOptions: string | null = null;
+    public relations: RelationInfo[];
     constructor() {
         this.relations = [];
     }

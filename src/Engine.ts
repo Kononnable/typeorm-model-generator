@@ -1,20 +1,20 @@
+import changeCase = require("change-case");
+import fs = require("fs");
+import * as Handlebars from "handlebars";
+import path = require("path");
+import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { DatabaseModel } from "./models/DatabaseModel";
-import * as Handlebars from "handlebars";
-import fs = require("fs");
-import path = require("path");
 import * as TomgUtils from "./Utils";
-import changeCase = require("change-case");
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 
 export class Engine {
     constructor(
         private driver: AbstractDriver,
-        public Options: EngineOptions
+        public Options: IEngineOptions
     ) {}
 
     public async createModelFromDatabase(): Promise<boolean> {
-        let dbModel = await this.getEntitiesInfo(
+        const dbModel = await this.getEntitiesInfo(
             this.Options.databaseName,
             this.Options.host,
             this.Options.port,
@@ -60,18 +60,24 @@ export class Engine {
     }
     private createModelFromMetadata(databaseModel: DatabaseModel) {
         this.createHandlebarsHelpers();
-        let templatePath = path.resolve(__dirname, "../../src/entity.mst");
-        let template = fs.readFileSync(templatePath, "UTF-8");
-        let resultPath = this.Options.resultsPath;
-        if (!fs.existsSync(resultPath)) fs.mkdirSync(resultPath);
+        const templatePath = path.resolve(__dirname, "../../src/entity.mst");
+        const template = fs.readFileSync(templatePath, "UTF-8");
+        const resultPath = this.Options.resultsPath;
+        if (!fs.existsSync(resultPath)) {
+            fs.mkdirSync(resultPath);
+        }
         let entitesPath = resultPath;
         if (!this.Options.noConfigs) {
             this.createTsConfigFile(resultPath);
             this.createTypeOrmConfig(resultPath);
             entitesPath = path.resolve(resultPath, "./entities");
-            if (!fs.existsSync(entitesPath)) fs.mkdirSync(entitesPath);
+            if (!fs.existsSync(entitesPath)) {
+                fs.mkdirSync(entitesPath);
+            }
         }
-        let compliedTemplate = Handlebars.compile(template, { noEscape: true });
+        const compliedTemplate = Handlebars.compile(template, {
+            noEscape: true
+        });
         databaseModel.entities.forEach(element => {
             element.Imports = [];
             element.Columns.forEach(column => {
@@ -82,7 +88,7 @@ export class Engine {
                 });
             });
             element.GenerateConstructor = this.Options.constructor;
-            element.Imports.filter(function(elem, index, self) {
+            element.Imports.filter((elem, index, self) => {
                 return index === self.indexOf(elem);
             });
             let casedFileName = "";
@@ -100,11 +106,11 @@ export class Engine {
                     casedFileName = element.EntityName;
                     break;
             }
-            let resultFilePath = path.resolve(
+            const resultFilePath = path.resolve(
                 entitesPath,
                 casedFileName + ".ts"
             );
-            let rendered = compliedTemplate(element);
+            const rendered = compliedTemplate(element);
             fs.writeFileSync(resultFilePath, rendered, {
                 encoding: "UTF-8",
                 flag: "w"
@@ -112,9 +118,7 @@ export class Engine {
         });
     }
     private createHandlebarsHelpers() {
-        Handlebars.registerHelper("curly", open => {
-            return open ? "{" : "}";
-        });
+        Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
         Handlebars.registerHelper("toEntityName", str => {
             let retStr = "";
             switch (this.Options.convertCaseEntity) {
@@ -173,42 +177,27 @@ export class Engine {
             }
             return retStr;
         });
-        Handlebars.registerHelper("toLowerCase", str => {
-            return str.toLowerCase();
-        });
+        Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
         Handlebars.registerHelper("toLazy", str => {
-            if (this.Options.lazy) return `Promise<${str}>`;
-            else return str;
+            if (this.Options.lazy) {
+                return `Promise<${str}>`;
+            } else {
+                return str;
+            }
         });
         Handlebars.registerHelper({
-            eq: function(v1, v2) {
-                return v1 === v2;
-            },
-            ne: function(v1, v2) {
-                return v1 !== v2;
-            },
-            lt: function(v1, v2) {
-                return v1 < v2;
-            },
-            gt: function(v1, v2) {
-                return v1 > v2;
-            },
-            lte: function(v1, v2) {
-                return v1 <= v2;
-            },
-            gte: function(v1, v2) {
-                return v1 >= v2;
-            },
-            and: function(v1, v2) {
-                return v1 && v2;
-            },
-            or: function(v1, v2) {
-                return v1 || v2;
-            }
+            and: (v1, v2) => v1 && v2,
+            eq: (v1, v2) => v1 === v2,
+            gt: (v1, v2) => v1 > v2,
+            gte: (v1, v2) => v1 >= v2,
+            lt: (v1, v2) => v1 < v2,
+            lte: (v1, v2) => v1 <= v2,
+            ne: (v1, v2) => v1 !== v2,
+            or: (v1, v2) => v1 || v2
         });
     }
 
-    //TODO:Move to mustache template file
+    // TODO:Move to mustache template file
     private createTsConfigFile(resultPath) {
         fs.writeFileSync(
             path.resolve(resultPath, "tsconfig.json"),
@@ -225,7 +214,7 @@ export class Engine {
         );
     }
     private createTypeOrmConfig(resultPath) {
-        if (this.Options.schemaName == "") {
+        if (this.Options.schemaName === "") {
             fs.writeFileSync(
                 path.resolve(resultPath, "ormconfig.json"),
                 `[
@@ -269,7 +258,7 @@ export class Engine {
         }
     }
 }
-export interface EngineOptions {
+export interface IEngineOptions {
     host: string;
     port: number;
     databaseName: string;

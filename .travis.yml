@@ -3,6 +3,7 @@ node_js:
 - 10
 - 8
 - 6
+cache: npm
 sudo: required
 services:
 - docker
@@ -32,6 +33,7 @@ before_install:
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - if [ -z "$DOCKER_USERNAME" ]; then mv docker-compose-without-login.yml docker-compose.yml; fi
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; fi
+- docker-compose pull --parallel --ignore-pull-failures 
 - docker-compose up -d
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1
@@ -45,7 +47,6 @@ before_script:
 - npm link typescript
 - tsc
 - sleep 180
-- docker logs typeorm-mg-postgres
 
 after_script:
 - greenkeeper-lockfile-upload

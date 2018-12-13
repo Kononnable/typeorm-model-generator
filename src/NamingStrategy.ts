@@ -1,20 +1,17 @@
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { RelationInfo } from "./models/RelationInfo";
 import { DatabaseModel } from "./models/DatabaseModel";
+import { RelationInfo } from "./models/RelationInfo";
 
 export class NamingStrategy extends AbstractNamingStrategy {
-    relationName(
+    public relationName(
         columnOldName: string,
         relation: RelationInfo,
         dbModel: DatabaseModel
     ): string {
-        let isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        let ownerEntity = dbModel.entities.filter(v => {
-            return v.EntityName == relation.ownerTable;
-        })[0];
-        let referencedEntity = dbModel.entities.filter(v => {
-            return v.EntityName == relation.relatedTable;
-        })[0];
+        const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
+        const ownerEntity = dbModel.entities.find(
+            v => v.EntityName === relation.ownerTable
+        )!;
 
         let columnName =
             columnOldName[0].toLowerCase() +
@@ -28,19 +25,19 @@ export class NamingStrategy extends AbstractNamingStrategy {
                 columnName.toLowerCase().lastIndexOf("id")
             );
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1]))) {
+        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1]))) {
+        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
         columnName += isRelationToMany ? "s" : "";
 
         if (
-            relation.relationType != "ManyToMany" &&
-            columnOldName != columnName
+            relation.relationType !== "ManyToMany" &&
+            columnOldName !== columnName
         ) {
-            if (ownerEntity.Columns.some(v => v.tsName == columnName)) {
+            if (ownerEntity.Columns.some(v => v.tsName === columnName)) {
                 columnName = columnName + "_";
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
@@ -51,11 +48,12 @@ export class NamingStrategy extends AbstractNamingStrategy {
                     if (
                         ownerEntity.Columns.every(
                             v =>
-                                v.tsName != columnName ||
-                                columnName == columnOldName
+                                v.tsName !== columnName ||
+                                columnName === columnOldName
                         )
-                    )
+                    ) {
                         break;
+                    }
                 }
             }
         }
@@ -63,11 +61,11 @@ export class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 
-    entityName(entityName: string): string {
+    public entityName(entityName: string): string {
         return entityName;
     }
 
-    columnName(columnName: string): string {
+    public columnName(columnName: string): string {
         return columnName;
     }
 }

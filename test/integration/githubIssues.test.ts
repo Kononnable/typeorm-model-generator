@@ -1,14 +1,14 @@
 require('dotenv').config()
-import "reflect-metadata";
-import { createConnection, ConnectionOptions, Connection } from "typeorm";
+import { expect } from "chai";
 import fs = require('fs-extra');
 import path = require('path')
-import { Engine } from "../../src/Engine";
-import { expect } from "chai";
+import "reflect-metadata";
 import * as Sinon from 'sinon'
+import { Connection, ConnectionOptions, createConnection } from "typeorm";
+import { Engine } from "../../src/Engine";
 import { EntityFileToJson } from "../utils/EntityFileToJson";
-var chai = require('chai');
-var chaiSubset = require('chai-subset');
+const chai = require('chai');
+const chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
 
@@ -17,29 +17,30 @@ chai.use(chaiSubset);
 
 describe("GitHub issues", async function () {
     this.timeout(30000)
-    this.slow(5000)//compiling created models takes time
+    this.slow(5000)// compiling created models takes time
 
-    let dbDrivers: string[] = []
-    if (process.env.SQLITE_Skip == '0') dbDrivers.push('sqlite')
-    if (process.env.POSTGRES_Skip == '0') dbDrivers.push('postgres')
-    if (process.env.MYSQL_Skip == '0') dbDrivers.push('mysql')
-    if (process.env.MARIADB_Skip == '0') dbDrivers.push('mariadb')
-    if (process.env.MSSQL_Skip == '0') dbDrivers.push('mssql')
-    if (process.env.ORACLE_Skip == '0') dbDrivers.push('oracle')
+    const dbDrivers: string[] = []
+    if (process.env.SQLITE_Skip == '0') { dbDrivers.push('sqlite') }
+    if (process.env.POSTGRES_Skip == '0') { dbDrivers.push('postgres') }
+    if (process.env.MYSQL_Skip == '0') { dbDrivers.push('mysql') }
+    if (process.env.MARIADB_Skip == '0') { dbDrivers.push('mariadb') }
+    if (process.env.MSSQL_Skip == '0') { dbDrivers.push('mssql') }
+    if (process.env.ORACLE_Skip == '0') { dbDrivers.push('oracle') }
 
-    let examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/github-issues')
-    let examplesPathTS = path.resolve(process.cwd(), 'test/integration/github-issues')
-    let files = fs.readdirSync(examplesPathTS)
+    const examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/github-issues')
+    const examplesPathTS = path.resolve(process.cwd(), 'test/integration/github-issues')
+    const files = fs.readdirSync(examplesPathTS)
 
-    for (let folder of files) {
+    for (const folder of files) {
 
         describe(`#${folder}`, async function () {
-            for (let dbDriver of dbDrivers) {
+            for (const dbDriver of dbDrivers) {
 
                 switch (folder) {
                     case '39':
-                        if (dbDriver == 'mysql' || dbDriver == 'mariadb' || dbDriver == 'oracle' || dbDriver == 'sqlite')
+                        if (dbDriver == 'mysql' || dbDriver == 'mariadb' || dbDriver == 'oracle' || dbDriver == 'sqlite') {
                             continue;
+                        }
                         break;
                     default:
                         break;
@@ -47,9 +48,9 @@ describe("GitHub issues", async function () {
 
                 it(dbDriver, async function () {
 
-                    let filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
-                    let filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
-                    let resultsPath = path.resolve(process.cwd(), `output`)
+                    const filesOrgPathJS = path.resolve(examplesPathJS, folder, 'entity')
+                    const filesOrgPathTS = path.resolve(examplesPathTS, folder, 'entity')
+                    const resultsPath = path.resolve(process.cwd(), `output`)
                     fs.removeSync(resultsPath)
 
                     let engine: Engine;
@@ -74,7 +75,7 @@ describe("GitHub issues", async function () {
                             break;
                         default:
                             console.log(`Unknown engine type`);
-                            engine = <Engine>{}
+                            engine = {} as Engine
                             break;
                     }
 
@@ -87,24 +88,22 @@ describe("GitHub issues", async function () {
                     }
 
                     await engine.createModelFromDatabase()
-                    let filesGenPath = path.resolve(resultsPath, 'entities')
+                    const filesGenPath = path.resolve(resultsPath, 'entities')
 
-                    let filesOrg = fs.readdirSync(filesOrgPathTS).filter(function (this, val) { return val.toString().endsWith('.ts') })
-                    let filesGen = fs.readdirSync(filesGenPath).filter(function (this, val) { return val.toString().endsWith('.ts') })
+                    const filesOrg = fs.readdirSync(filesOrgPathTS).filter((val) => val.toString().endsWith('.ts'))
+                    const filesGen = fs.readdirSync(filesGenPath).filter((val) =>  val.toString().endsWith('.ts'))
 
                     expect(filesOrg, 'Errors detected in model comparision').to.be.deep.equal(filesGen)
 
-                    for (let file of filesOrg) {
-                        let entftj = new EntityFileToJson();
-                        let jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPathTS, file)))
-                        let jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
+                    for (const file of filesOrg) {
+                        const entftj = new EntityFileToJson();
+                        const jsonEntityOrg = entftj.convert(fs.readFileSync(path.resolve(filesOrgPathTS, file)))
+                        const jsonEntityGen = entftj.convert(fs.readFileSync(path.resolve(filesGenPath, file)))
                         expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(jsonEntityOrg)
                     }
                     const currentDirectoryFiles = fs.readdirSync(filesGenPath).
-                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => {
-                            return path.resolve(filesGenPath, v)
-                        })
-                    let compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
+                        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v =>  path.resolve(filesGenPath, v))
+                    const compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
                         experimentalDecorators: true,
                         sourceMap: false,
                         emitDecoratorMetadata: true,

@@ -1,27 +1,27 @@
-import { AbstractDriver } from "./AbstractDriver";
 import * as PG from "pg";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class PostgresDriver extends AbstractDriver {
     private Connection: PG.Client;
 
-    GetAllTablesQuery = async (schema: string) => {
-        let response: {
+    public GetAllTablesQuery = async (schema: string) => {
+        const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
-        }[] = (await this.Connection.query(
+        }> = (await this.Connection.query(
             `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
         )).rows;
         return response;
     };
 
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             table_name: string;
             column_name: string;
             udt_name: string;
@@ -32,8 +32,8 @@ export class PostgresDriver extends AbstractDriver {
             numeric_precision: number;
             numeric_scale: number;
             isidentity: string;
-            isunique: number;
-        }[] = (await this.Connection
+            isunique: string;
+        }> = (await this.Connection
             .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
             case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
@@ -50,28 +50,26 @@ export class PostgresDriver extends AbstractDriver {
             .rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.table_name == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.table_name === ent.EntityName)
                 .forEach(resp => {
-                    let colInfo: ColumnInfo = new ColumnInfo();
+                    const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.column_name;
                     colInfo.sqlName = resp.column_name;
-                    colInfo.is_nullable = resp.is_nullable == "YES";
-                    colInfo.is_generated = resp.isidentity == "YES";
-                    colInfo.is_unique = resp.isunique == 1;
-                    colInfo.default = colInfo.is_generated
+                    colInfo.isNullable = resp.is_nullable === "YES";
+                    colInfo.isGenerated = resp.isidentity === "YES";
+                    colInfo.isUnique = resp.isunique === "1";
+                    colInfo.default = colInfo.isGenerated
                         ? null
                         : resp.column_default;
 
-                    var columnTypes = this.MatchColumnTypes(
+                    const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
                         resp.udt_name
                     );
                     if (!columnTypes.sql_type || !columnTypes.ts_type) {
                         if (
-                            resp.data_type == "USER-DEFINED" ||
-                            resp.data_type == "ARRAY"
+                            resp.data_type === "USER-DEFINED" ||
+                            resp.data_type === "ARRAY"
                         ) {
                             TomgUtils.LogError(
                                 `Unknown ${resp.data_type} column type: ${
@@ -91,19 +89,19 @@ export class PostgresDriver extends AbstractDriver {
                         }
                         return;
                     }
-                    colInfo.sql_type = columnTypes.sql_type;
-                    colInfo.ts_type = columnTypes.ts_type;
-                    colInfo.is_array = columnTypes.is_array;
-                    if (colInfo.is_array) {
-                        colInfo.ts_type = <any>colInfo.ts_type
+                    colInfo.sqlType = columnTypes.sql_type;
+                    colInfo.tsType = columnTypes.ts_type;
+                    colInfo.isArray = columnTypes.is_array;
+                    if (colInfo.isArray) {
+                        colInfo.tsType = colInfo.tsType
                             .split("|")
                             .map(x => x.replace("|", "").trim() + "[]")
-                            .join(" | ");
+                            .join(" | ") as any;
                     }
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.numericPrecision = resp.numeric_precision;
@@ -111,7 +109,7 @@ export class PostgresDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.lenght =
@@ -121,7 +119,7 @@ export class PostgresDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.sqlType
                         )
                     ) {
                         colInfo.width =
@@ -129,7 +127,7 @@ export class PostgresDriver extends AbstractDriver {
                                 ? resp.character_maximum_length
                                 : null;
                     }
-                    if (colInfo.sql_type && colInfo.ts_type) {
+                    if (colInfo.sqlType && colInfo.tsType) {
                         ent.Columns.push(colInfo);
                     }
                 });
@@ -137,8 +135,8 @@ export class PostgresDriver extends AbstractDriver {
         return entities;
     }
 
-    MatchColumnTypes(data_type: string, udt_name: string) {
-        let ret: {
+    public MatchColumnTypes(dataType: string, udtName: string) {
+        const ret: {
             ts_type:
                 | "number"
                 | "string"
@@ -153,8 +151,8 @@ export class PostgresDriver extends AbstractDriver {
             sql_type: string | null;
             is_array: boolean;
         } = { ts_type: null, sql_type: null, is_array: false };
-        ret.sql_type = data_type;
-        switch (data_type) {
+        ret.sql_type = dataType;
+        switch (dataType) {
             case "int2":
                 ret.ts_type = "number";
                 break;
@@ -340,15 +338,15 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "ARRAY":
-                let z = this.MatchColumnTypes(udt_name.substring(1), udt_name);
+                const z = this.MatchColumnTypes(udtName.substring(1), udtName);
                 ret.ts_type = z.ts_type;
                 ret.sql_type = z.sql_type;
                 ret.is_array = true;
                 break;
             case "USER-DEFINED":
-                ret.sql_type = udt_name;
+                ret.sql_type = udtName;
                 ret.ts_type = "string";
-                switch (udt_name) {
+                switch (udtName) {
                     case "citext":
                     case "hstore":
                     case "geometry":
@@ -366,27 +364,27 @@ export class PostgresDriver extends AbstractDriver {
         }
         return ret;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             tablename: string;
             indexname: string;
             columnname: string;
             is_unique: number;
             is_primary_key: number;
-        }[] = (await this.Connection.query(`SELECT
+        }> = (await this.Connection.query(`SELECT
         c.relname AS tablename,
         i.relname as indexname,
         f.attname AS columnname,
         CASE
-            WHEN ix.indisunique = true THEN '1'
-            ELSE '0'
+            WHEN ix.indisunique = true THEN 1
+            ELSE 0
         END AS is_unique,
         CASE
-            WHEN ix.indisprimary='true' THEN '1'
-            ELSE '0'
+            WHEN ix.indisprimary='true' THEN 1
+            ELSE 0
         END AS is_primary_key
         FROM pg_attribute f
         JOIN pg_class c ON c.oid = f.attrelid
@@ -402,29 +400,27 @@ export class PostgresDriver extends AbstractDriver {
         ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.tablename == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.tablename === ent.EntityName)
                 .forEach(resp => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.indexname;
-                        }).length > 0
+                        ent.Indexes.filter(
+                            filterVal => filterVal.name === resp.indexname
+                        ).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.indexname;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name === resp.indexname
+                        )!;
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.indexname;
-                        indexInfo.isUnique = resp.is_unique == 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
+                        indexInfo.isUnique = resp.is_unique === 1;
+                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.columnname;
-                    if (resp.is_primary_key == 0) {
+                    if (resp.is_primary_key === 0) {
                         indexInfo.isPrimaryKey = false;
                     }
                     indexInfo.columns.push(indexColumnInfo);
@@ -433,11 +429,11 @@ export class PostgresDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        let response: {
+        const response: Array<{
             tablewithforeignkey: string;
             fk_partno: number;
             foreignkeycolumn: string;
@@ -446,7 +442,7 @@ export class PostgresDriver extends AbstractDriver {
             ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             object_id: string;
-        }[] = (await this.Connection.query(`SELECT
+        }> = (await this.Connection.query(`SELECT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -484,19 +480,19 @@ export class PostgresDriver extends AbstractDriver {
                 AND att2.attrelid = con.conrelid
                 AND att2.attnum = con.parent
                 and rc.constraint_name= con.conname`)).rows;
-        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.object_id;
-            });
-            if (rels == undefined) {
-                rels = <RelationTempInfo>{};
+            let rels = relationsTemp.find(
+                val => val.object_id === resp.object_id
+            );
+            if (rels === undefined) {
+                rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.ondelete == "NO ACTION" ? null : resp.ondelete;
+                    resp.ondelete === "NO ACTION" ? null : resp.ondelete;
                 rels.actionOnUpdate =
-                    resp.onupdate == "NO ACTION" ? null : resp.onupdate;
+                    resp.onupdate === "NO ACTION" ? null : resp.onupdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.tablewithforeignkey;
                 rels.referencedTable = resp.tablereferenced;
@@ -511,9 +507,9 @@ export class PostgresDriver extends AbstractDriver {
         );
         return entities;
     }
-    async DisconnectFromServer() {
+    public async DisconnectFromServer() {
         if (this.Connection) {
-            let promise = new Promise<boolean>((resolve, reject) => {
+            const promise = new Promise<boolean>((resolve, reject) => {
                 this.Connection.end(err => {
                     if (!err) {
                         resolve(true);
@@ -531,7 +527,7 @@ export class PostgresDriver extends AbstractDriver {
         }
     }
 
-    async ConnectToServer(
+    public async ConnectToServer(
         database: string,
         server: string,
         port: number,
@@ -540,15 +536,15 @@ export class PostgresDriver extends AbstractDriver {
         ssl: boolean
     ) {
         this.Connection = new PG.Client({
-            database: database,
+            database,
             host: server,
-            port: port,
-            user: user,
-            password: password,
-            ssl: ssl
+            password,
+            port,
+            ssl,
+            user
         });
 
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.connect(err => {
                 if (!err) {
                     resolve(true);
@@ -566,17 +562,17 @@ export class PostgresDriver extends AbstractDriver {
         await promise;
     }
 
-    async CreateDB(dbName: string) {
+    public async CreateDB(dbName: string) {
         await this.Connection.query(`CREATE DATABASE ${dbName}; `);
     }
-    async UseDB(dbName: string) {
+    public async UseDB(dbName: string) {
         await this.Connection.query(`USE ${dbName}; `);
     }
-    async DropDB(dbName: string) {
+    public async DropDB(dbName: string) {
         await this.Connection.query(`DROP DATABASE ${dbName}; `);
     }
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let resp = await this.Connection.query(
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
+        const resp = await this.Connection.query(
             `SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `
         );
         return resp.rowCount > 0;

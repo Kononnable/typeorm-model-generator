@@ -9,13 +9,16 @@ export function LogError(
     console.error(`${packageVersion()}  node@${process.version}`);
     console.error(
         `If you think this is a bug please open an issue including this log on ${
-            (<any>packagejson).bugs.url
+            (packagejson as any).bugs.url
         }`
     );
-    if (isABug && !errObject) errObject = new Error().stack;
-    if (!!errObject) console.error(errObject);
-    // process.abort();
+    if (isABug && !errObject) {
+        errObject = new Error().stack;
+    }
+    if (!!errObject) {
+        console.error(errObject);
+    }
 }
 export function packageVersion() {
-    return `${(<any>packagejson).name}@${(<any>packagejson).version}`;
+    return `${(packagejson as any).name}@${(packagejson as any).version}`;
 }

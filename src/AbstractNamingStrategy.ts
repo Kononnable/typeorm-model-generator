@@ -1,14 +1,14 @@
-import { RelationInfo } from "./models/RelationInfo";
 import { DatabaseModel } from "./models/DatabaseModel";
+import { RelationInfo } from "./models/RelationInfo";
 
 export abstract class AbstractNamingStrategy {
-    abstract relationName(
+    public abstract relationName(
         columnName: string,
         relation: RelationInfo,
         dbModel: DatabaseModel
     ): string;
 
-    abstract entityName(entityName: string): string;
+    public abstract entityName(entityName: string): string;
 
-    abstract columnName(columnName: string): string;
+    public abstract columnName(columnName: string): string;
 }
