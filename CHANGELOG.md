@@ -1,10 +1,9 @@
 # Changelog
 
-## 0.2.24
-* Allow to define property visibility, by using --pv
-
 ## 0.2.23
 * added column type to generated `@PrimaryGeneratedColumn` decorator
+* allow to define property visibility, by using --pv
+* fixes some problems with duplicated relationships on mysql database
 
 ## 0.2.22
 * fixed naming stategy for guid ended column names
