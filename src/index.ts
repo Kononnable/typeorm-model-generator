@@ -92,6 +92,12 @@ const argv = Yargs.usage(
         default: false,
         describe: "Generate lazy relations"
     })
+    .option("a", {
+        alias: "active-record",
+        boolean: true,
+        default: false,
+        describe: "Use ActiveRecord syntax for generated models"
+    })
     .option("namingStrategy", {
         describe: "Use custom naming strategy"
     })
@@ -164,6 +170,7 @@ const engine = new Engine(driver, {
     databaseType: argv.e,
     host: argv.h,
     lazy: argv.lazy,
+    activeRecord: argv.a,
     namingStrategy,
     noConfigs: argv.noConfig,
     password: argv.x ? argv.x.toString() : null,

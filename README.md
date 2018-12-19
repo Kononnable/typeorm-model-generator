@@ -56,6 +56,8 @@ Options:
   --cp, --case-property  Convert property names to specified case
                           [choices: "pascal", "camel", "none"] [default: "none"]
   --lazy                 Generate lazy relations      [boolean] [default: false]
+  -a, --active-record    Generate models that use the ActiveRecord syntax
+                                                      [boolean] [default: false]
   --namingStrategy       Use custom naming strategy
   --relationIds          Generate RelationId fields   [boolean] [default: false]
   --generateConstructor  Generate constructor allowing partial initialization
