@@ -8,6 +8,7 @@ export class EntityInfo {
     public Indexes: IndexInfo[];
     public Schema: string;
     public GenerateConstructor: boolean;
+    public IsActiveRecord: boolean;
 
     public relationImports() {
         const imports: string[] = [];

@@ -71,7 +71,8 @@ export async function createMSSQLModels(filesOrgPath: string, resultsPath: strin
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
     conn = await createConnection(connOpt)
@@ -143,7 +144,8 @@ export async function createPostgresModels(filesOrgPath: string, resultsPath: st
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
     conn = await createConnection(connOpt)
@@ -207,7 +209,8 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
     conn = await createConnection(connOpt)
@@ -269,7 +272,8 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
     return engine;
@@ -323,7 +327,8 @@ export async function createMariaDBModels(filesOrgPath: string, resultsPath: str
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
 
@@ -380,7 +385,8 @@ export async function createOracleDBModels(filesOrgPath: string, resultsPath: st
             lazy: false,
             constructor: false,
             namingStrategy,
-            relationIds: false
+            relationIds: false,
+            activeRecord: false
         });
 
     return engine;

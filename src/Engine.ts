@@ -88,6 +88,7 @@ export class Engine {
                 });
             });
             element.GenerateConstructor = this.Options.constructor;
+            element.IsActiveRecord = this.Options.activeRecord;
             element.Imports.filter((elem, index, self) => {
                 return index === self.indexOf(elem);
             });
@@ -274,6 +275,7 @@ export interface IEngineOptions {
     convertCaseProperty: "pascal" | "camel" | "none";
     propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
+    activeRecord: boolean;
     constructor: boolean;
     namingStrategy: AbstractNamingStrategy;
     relationIds: boolean;
