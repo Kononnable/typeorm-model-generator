@@ -267,7 +267,7 @@ export class MysqlDriver extends AbstractDriver {
             onDelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             object_id: string;
-        }>(`SELECT DISTINCT
+        }>(`SELECT
             CU.TABLE_NAME TableWithForeignKey,
             CU.ORDINAL_POSITION FK_PartNo,
             CU.COLUMN_NAME ForeignKeyColumn,
@@ -279,7 +279,8 @@ export class MysqlDriver extends AbstractDriver {
            FROM
             INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU
            JOIN
-            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
+            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
+                ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
             TABLE_SCHEMA = SCHEMA()
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
