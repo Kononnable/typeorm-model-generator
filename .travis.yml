@@ -9,12 +9,12 @@ services:
 - docker
 env:
   matrix:
-  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=postgres
-    POSTGRES_Password=!Passw0rd POSTGRES_Database=typeorm_mg POSTGRES_SSL=0  MYSQL_Skip=0
-    MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=root MYSQL_Password=!Passw0rd
-    MYSQL_Database=typeorm_mg MYSQL_SSL=1 MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
-    MARIADB_Username=root MARIADB_Password=!Passw0rd MARIADB_Database=typeorm_mg MARIADB_SSL=0
-    MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=!Passw0rd
+  - POSTGRES_Skip=0 POSTGRES_Host=localhost POSTGRES_Port=5432 POSTGRES_Username=test
+    POSTGRES_Password=test POSTGRES_Database=test POSTGRES_SSL=0  MYSQL_Skip=0
+    MYSQL_Host=localhost MYSQL_Port=3306 MYSQL_Username=test MYSQL_Password=test
+    MYSQL_Database=test MYSQL_SSL=0 MARIADB_Skip=0 MARIADB_Host=localhost MARIADB_Port=3307
+    MARIADB_Username=test MARIADB_Password=test MARIADB_Database=test MARIADB_SSL=0
+    MSSQL_Skip=0 MSSQL_Host=localhost MSSQL_Port=1433 MSSQL_Username=sa MSSQL_Password=Admin12345
     MSSQL_Database=typeorm_mg MSSQL_SSL=0
     ORACLE_Skip=0
     ORACLE_Host=localhost
@@ -33,7 +33,7 @@ before_install:
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - if [ -z "$DOCKER_USERNAME" ]; then mv docker-compose-without-login.yml docker-compose.yml; fi
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; fi
-- docker-compose pull --parallel --ignore-pull-failures 
+- docker-compose pull --parallel --ignore-pull-failures
 - docker-compose up -d
 - npm install -g npm@5
 - npm install -g greenkeeper-lockfile@1

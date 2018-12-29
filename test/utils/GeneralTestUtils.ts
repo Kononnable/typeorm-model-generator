@@ -226,7 +226,7 @@ export async function createSQLiteModels(filesOrgPath: string, resultsPath: stri
 export async function createMysqlModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MysqlDriver();
-    await driver.ConnectToServer(`mysql`, String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password), yn(process.env.MYSQL_SSL));
+    await driver.ConnectToServer(String(process.env.MYSQL_Database), String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password), yn(process.env.MYSQL_SSL));
 
     if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database))) {
         await driver.DropDB(String(process.env.MYSQL_Database));
@@ -281,7 +281,7 @@ export async function createMysqlModels(filesOrgPath: string, resultsPath: strin
 export async function createMariaDBModels(filesOrgPath: string, resultsPath: string): Promise<Engine> {
     let driver: AbstractDriver;
     driver = new MariaDbDriver();
-    await driver.ConnectToServer(`mysql`, String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password), yn(process.env.MARIADB_SSL));
+    await driver.ConnectToServer(String(process.env.MARIADB_Database), String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password), yn(process.env.MARIADB_SSL));
 
     if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database))) {
         await driver.DropDB(String(process.env.MARIADB_Database));
