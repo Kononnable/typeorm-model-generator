@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.24
+* fixes generation of default values
+* fixes generation of duplicate relations for mysql
+* added option for generating entities for AciveRecord pattern
+
 ## 0.2.23
 * added column type to generated `@PrimaryGeneratedColumn` decorator
 * allow to define property visibility, by using --pv
