@@ -16,7 +16,7 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         unique: true,{{/isUnique}}{{#lenght}}
         length:{{.}},{{/lenght}}{{#width}}
         width:{{.}},{{/width}}{{#default}}
-        default:"{{.}}",{{/default}}{{#numericPrecision}}
+        default: {{.}},{{/default}}{{#numericPrecision}}
         precision:{{.}},{{/numericPrecision}}{{#numericScale}}
         scale:{{.}},{{/numericScale}}{{#enumOptions}}
         enum:[{{.}}],{{/enumOptions}}{{#isArray}}

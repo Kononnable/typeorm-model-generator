@@ -50,7 +50,9 @@ export class MysqlDriver extends AbstractDriver {
                     colInfo.isNullable = resp.IS_NULLABLE === "YES";
                     colInfo.isGenerated = resp.IsIdentity === 1;
                     colInfo.isUnique = resp.column_key === "UNI";
-                    colInfo.default = resp.COLUMN_DEFAULT;
+                    colInfo.default = this.ReturnDefaultValueFunction(
+                        resp.COLUMN_DEFAULT
+                    );
                     colInfo.sqlType = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "int":
@@ -408,5 +410,14 @@ export class MysqlDriver extends AbstractDriver {
         });
         await promise;
         return ret;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal) {
+            return null;
+        }
+        if (defVal === "CURRENT_TIMESTAMP" || defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "'${defVal}'"`;
     }
 }

@@ -60,7 +60,7 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.isUnique = resp.isunique === "1";
                     colInfo.default = colInfo.isGenerated
                         ? null
-                        : resp.column_default;
+                        : this.ReturnDefaultValueFunction(resp.column_default);
 
                     const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
@@ -576,5 +576,15 @@ export class PostgresDriver extends AbstractDriver {
             `SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `
         );
         return resp.rowCount > 0;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal) {
+            return null;
+        }
+        defVal = defVal.replace(/'::[\w ]*/, "'");
+        if (defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "${defVal}"`;
     }
 }

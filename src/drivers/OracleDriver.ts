@@ -63,7 +63,9 @@ export class OracleDriver extends AbstractDriver {
                     colInfo.default =
                         !resp.DATA_DEFAULT || resp.DATA_DEFAULT.includes('"')
                             ? null
-                            : resp.DATA_DEFAULT;
+                            : this.ReturnDefaultValueFunction(
+                                  resp.DATA_DEFAULT
+                              );
                     colInfo.isUnique = resp.IS_UNIQUE > 0;
                     resp.DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
                     colInfo.sqlType = resp.DATA_TYPE.toLowerCase();
@@ -349,5 +351,17 @@ export class OracleDriver extends AbstractDriver {
             `select count(*) as CNT from dba_users where username='${dbName.toUpperCase()}'`
         );
         return x.rows[0][0] > 0 || x.rows[0].CNT;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal) {
+            return null;
+        }
+        if (defVal.endsWith(" ")) {
+            defVal = defVal.slice(0, -1);
+        }
+        if (defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "${defVal}"`;
     }
 }

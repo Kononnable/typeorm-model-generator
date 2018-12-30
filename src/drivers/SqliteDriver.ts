@@ -45,7 +45,9 @@ export class SqliteDriver extends AbstractDriver {
                 colInfo.sqlName = resp.name;
                 colInfo.isNullable = resp.notnull === 0;
                 colInfo.isPrimary = resp.pk > 0;
-                colInfo.default = resp.dflt_value ? resp.dflt_value : null;
+                colInfo.default = this.ReturnDefaultValueFunction(
+                    resp.dflt_value
+                );
                 colInfo.sqlType = resp.type
                     .replace(/\([0-9 ,]+\)/g, "")
                     .toLowerCase()
@@ -343,5 +345,14 @@ export class SqliteDriver extends AbstractDriver {
         });
         await promise;
         return ret;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal) {
+            return null;
+        }
+        if (defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "${defVal}"`;
     }
 }

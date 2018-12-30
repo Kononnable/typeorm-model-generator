@@ -59,7 +59,9 @@ export class MssqlDriver extends AbstractDriver {
                     colInfo.isNullable = resp.IS_NULLABLE === "YES";
                     colInfo.isGenerated = resp.IsIdentity === 1;
                     colInfo.isUnique = resp.IsUnique === 1;
-                    colInfo.default = resp.COLUMN_DEFAULT;
+                    colInfo.default = this.ReturnDefaultValueFunction(
+                        resp.COLUMN_DEFAULT
+                    );
                     colInfo.sqlType = resp.DATA_TYPE;
                     switch (resp.DATA_TYPE) {
                         case "bigint":
@@ -403,5 +405,17 @@ order by
             `SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `
         );
         return resp.recordset.length > 0;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal) {
+            return null;
+        }
+        if (defVal.startsWith("(") && defVal.endsWith(")")) {
+            defVal = defVal.slice(1, -1);
+        }
+        if (defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "${defVal}"`;
     }
 }

@@ -65,7 +65,7 @@ describe('MssqlDriver', function () {
                     response.recordset = new fakeRecordset();
                     response.recordset.push({
                         TABLE_NAME: 'name', CHARACTER_MAXIMUM_LENGTH: 0,
-                        COLUMN_DEFAULT: 'a', COLUMN_NAME: 'name', DATA_TYPE: 'int',
+                        COLUMN_DEFAULT: "'a'", COLUMN_NAME: 'name', DATA_TYPE: 'int',
                         IS_NULLABLE: 'YES', NUMERIC_PRECISION: 0, NUMERIC_SCALE: 0,
                         IsIdentity: 1
                     })
@@ -82,7 +82,7 @@ describe('MssqlDriver', function () {
         const expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
         expected[0].Columns.push({
             lenght: null,
-            default: 'a',
+            default: `() => "'a'"`,
             isNullable: true,
             isPrimary: false,
             isGenerated: true,
