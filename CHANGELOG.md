@@ -1,14 +1,18 @@
 # Changelog
 
+## 0.2.25
+* fixed naming strategy changing entity name in db
+* fixed proper relation generation when unique index have more columns
+
 ## 0.2.24
-* fixes generation of default values
-* fixes generation of duplicate relations for mysql
+* fixed generation of default values
+* fixed generation of duplicate relations for mysql
 * added option for generating entities for AciveRecord pattern
 
 ## 0.2.23
 * added column type to generated `@PrimaryGeneratedColumn` decorator
 * allow to define property visibility, by using --pv
-* fixes some problems with duplicated relationships on mysql database
+* fixed some problems with duplicated relationships on mysql database
 
 ## 0.2.22
 * fixed naming stategy for guid ended column names
