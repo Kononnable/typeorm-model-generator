@@ -358,9 +358,8 @@ export abstract class AbstractDriver {
                 const index = ownerEntity.Indexes.find(
                     ind =>
                         ind.isUnique &&
-                        ind.columns.some(
-                            col => col.name === ownerColumn!.tsName
-                        )
+                        ind.columns.length === 1 &&
+                        ind.columns[0].name === ownerColumn!.tsName
                 );
                 isOneToMany = !index;
 

@@ -4,9 +4,9 @@ import {quests} from "./quests";
 
 
 @Entity("feedextrainfo")
-@Index("feedExtraInfo_FeedOwnerId_idx",["feedOwnerId",])
-@Index("feedExtraInfo_ReaderId_idx",["readerId",])
-@Index("feedExtraInfo_QuestId_idx",["questId",])
+@Index("feedExtraInfo_FeedOwnerId_idx",["feedOwnerId",],{unique:true})
+@Index("feedExtraInfo_ReaderId_idx",["readerId",],{unique:true})
+@Index("feedExtraInfo_QuestId_idx",["questId",],{unique:true})
 export class feedextrainfo {
 
 
