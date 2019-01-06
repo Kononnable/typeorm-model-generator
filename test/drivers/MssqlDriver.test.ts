@@ -49,7 +49,8 @@ describe('MssqlDriver', function () {
         const result = await driver.GetAllTables('schema')
         const expectedResult = [] as EntityInfo[];
         const y = new EntityInfo();
-        y.EntityName = 'name'
+        y.tsEntityName = 'name'
+        y.sqlEntityName = 'name'
         y.Schema='schema'
         y.Columns = [] as ColumnInfo[];
         y.Indexes = [] as IndexInfo[];
@@ -75,7 +76,7 @@ describe('MssqlDriver', function () {
 
         const entities = [] as EntityInfo[];
         const y = new EntityInfo();
-        y.EntityName = 'name'
+        y.tsEntityName = 'name'
         y.Columns = [] as ColumnInfo[];
         y.Indexes = [] as IndexInfo[];
         entities.push(y)

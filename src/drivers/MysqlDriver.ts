@@ -42,7 +42,7 @@ export class MysqlDriver extends AbstractDriver {
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
@@ -230,7 +230,7 @@ export class MysqlDriver extends AbstractDriver {
             `);
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TableName === ent.EntityName)
+                .filter(filterVal => filterVal.TableName === ent.tsEntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;

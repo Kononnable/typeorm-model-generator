@@ -16,11 +16,11 @@ export class SqliteDriver extends AbstractDriver {
         );
         rows.forEach(val => {
             const ent: EntityInfo = new EntityInfo();
-            ent.EntityName = val.tbl_name;
+            ent.tsEntityName = val.tbl_name;
             ent.Columns = [] as ColumnInfo[];
             ent.Indexes = [] as IndexInfo[];
             if (val.sql.includes("AUTOINCREMENT")) {
-                this.tablesWithGeneratedPrimaryKey.push(ent.EntityName);
+                this.tablesWithGeneratedPrimaryKey.push(ent.tsEntityName);
             }
             ret.push(ent);
         });
@@ -38,7 +38,7 @@ export class SqliteDriver extends AbstractDriver {
                 notnull: number;
                 dflt_value: string;
                 pk: number;
-            }>(`PRAGMA table_info('${ent.EntityName}');`);
+            }>(`PRAGMA table_info('${ent.tsEntityName}');`);
             response.forEach(resp => {
                 const colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.tsName = resp.name;
@@ -54,7 +54,9 @@ export class SqliteDriver extends AbstractDriver {
                     .trim();
                 colInfo.isGenerated =
                     colInfo.isPrimary &&
-                    this.tablesWithGeneratedPrimaryKey.includes(ent.EntityName);
+                    this.tablesWithGeneratedPrimaryKey.includes(
+                        ent.tsEntityName
+                    );
                 switch (colInfo.sqlType) {
                     case "int":
                         colInfo.tsType = "number";
@@ -141,7 +143,7 @@ export class SqliteDriver extends AbstractDriver {
                         TomgUtils.LogError(
                             `Unknown column type: ${
                                 colInfo.sqlType
-                            }  table name: ${ent.EntityName} column name: ${
+                            }  table name: ${ent.tsEntityName} column name: ${
                                 resp.name
                             }`
                         );
@@ -205,7 +207,7 @@ export class SqliteDriver extends AbstractDriver {
                 unique: number;
                 origin: string;
                 partial: number;
-            }>(`PRAGMA index_list('${ent.EntityName}');`);
+            }>(`PRAGMA index_list('${ent.tsEntityName}');`);
             for (const resp of response) {
                 const indexColumnsResponse = await this.ExecQuery<{
                     seqno: number;
@@ -259,7 +261,7 @@ export class SqliteDriver extends AbstractDriver {
                 on_update: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
                 on_delete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
                 match: string;
-            }>(`PRAGMA foreign_key_list('${entity.EntityName}');`);
+            }>(`PRAGMA foreign_key_list('${entity.tsEntityName}');`);
             const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
             response.forEach(resp => {
                 const rels = {} as IRelationTempInfo;
@@ -269,7 +271,7 @@ export class SqliteDriver extends AbstractDriver {
                     resp.on_delete === "NO ACTION" ? null : resp.on_delete;
                 rels.actionOnUpdate =
                     resp.on_update === "NO ACTION" ? null : resp.on_update;
-                rels.ownerTable = entity.EntityName;
+                rels.ownerTable = entity.tsEntityName;
                 rels.referencedTable = resp.table;
                 relationsTemp.push(rels);
                 rels.ownerColumnsNames.push(resp.from);

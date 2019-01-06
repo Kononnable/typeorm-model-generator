@@ -50,7 +50,7 @@ export class PostgresDriver extends AbstractDriver {
             .rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.table_name === ent.EntityName)
+                .filter(filterVal => filterVal.table_name === ent.tsEntityName)
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.column_name;
@@ -400,7 +400,7 @@ export class PostgresDriver extends AbstractDriver {
         ORDER BY c.relname,f.attname;`)).rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.tablename === ent.EntityName)
+                .filter(filterVal => filterVal.tablename === ent.tsEntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;

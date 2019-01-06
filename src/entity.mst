@@ -3,9 +3,9 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 {{/each}}
 
 
-@Entity("{{EntityName}}"{{#Schema}},{schema:"{{.}}"}{{/Schema}})
+@Entity("{{sqlEntityName}}"{{#Schema}},{schema:"{{.}}"}{{/Schema}})
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
-{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
+{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
 {{#Columns}}
 
    {{^relations}}{{#isGenerated}} @PrimaryGeneratedColumn({
@@ -32,11 +32,11 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
     {{/if}}
     {{#if relationIdField }}
 
-    @RelationId(({{../../EntityName}}: {{../../EntityName}}) => {{../../EntityName}}.{{toPropertyName ../tsName}})
+    @RelationId(({{../../tsEntityName}}: {{../../tsEntityName}}) => {{../../tsEntityName}}.{{toPropertyName ../tsName}})
     {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
-    constructor(init?: Partial<{{toEntityName EntityName}}>) {
+    constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
 		Object.assign(this, init);
 	}
     {{/if}}

@@ -10,7 +10,7 @@ export class NamingStrategy extends AbstractNamingStrategy {
     ): string {
         const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
         const ownerEntity = dbModel.entities.find(
-            v => v.EntityName === relation.ownerTable
+            v => v.tsEntityName === relation.ownerTable
         )!;
 
         let columnName =

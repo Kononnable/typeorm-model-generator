@@ -82,7 +82,7 @@ export class Engine {
             element.Imports = [];
             element.Columns.forEach(column => {
                 column.relations.forEach(relation => {
-                    if (element.EntityName !== relation.relatedTable) {
+                    if (element.tsEntityName !== relation.relatedTable) {
                         element.Imports.push(relation.relatedTable);
                     }
                 });
@@ -95,16 +95,16 @@ export class Engine {
             let casedFileName = "";
             switch (this.Options.convertCaseFile) {
                 case "camel":
-                    casedFileName = changeCase.camelCase(element.EntityName);
+                    casedFileName = changeCase.camelCase(element.tsEntityName);
                     break;
                 case "param":
-                    casedFileName = changeCase.paramCase(element.EntityName);
+                    casedFileName = changeCase.paramCase(element.tsEntityName);
                     break;
                 case "pascal":
-                    casedFileName = changeCase.pascalCase(element.EntityName);
+                    casedFileName = changeCase.pascalCase(element.tsEntityName);
                     break;
                 case "none":
-                    casedFileName = element.EntityName;
+                    casedFileName = element.tsEntityName;
                     break;
             }
             const resultFilePath = path.resolve(

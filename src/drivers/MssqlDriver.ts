@@ -50,7 +50,7 @@ export class MssqlDriver extends AbstractDriver {
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
-                    return filterVal.TABLE_NAME === ent.EntityName;
+                    return filterVal.TABLE_NAME === ent.tsEntityName;
                 })
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
@@ -233,7 +233,7 @@ ORDER BY
      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TableName === ent.EntityName)
+                .filter(filterVal => filterVal.TableName === ent.tsEntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;

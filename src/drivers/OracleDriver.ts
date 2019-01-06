@@ -53,7 +53,7 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
@@ -206,7 +206,7 @@ export class OracleDriver extends AbstractDriver {
 
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.EntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
                 .forEach(resp => {
                     let indexInfo: IndexInfo = {} as IndexInfo;
                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;

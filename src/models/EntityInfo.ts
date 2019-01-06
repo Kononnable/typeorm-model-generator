@@ -1,7 +1,8 @@
 import { ColumnInfo } from "./ColumnInfo";
 
 export class EntityInfo {
-    public EntityName: string;
+    public tsEntityName: string;
+    public sqlEntityName: string;
     public Columns: ColumnInfo[];
     public Imports: string[];
     public UniqueImports: string[];
@@ -14,7 +15,7 @@ export class EntityInfo {
         const imports: string[] = [];
         this.Columns.forEach(column => {
             column.relations.forEach(relation => {
-                if (this.EntityName !== relation.relatedTable) {
+                if (this.tsEntityName !== relation.relatedTable) {
                     imports.push(relation.relatedTable);
                 }
             });
