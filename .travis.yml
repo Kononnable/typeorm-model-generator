@@ -29,11 +29,11 @@ env:
     SQLITE_Skip=0
     SQLITE_Database=/tmp/sqlitedb.db
 before_install:
-- export images=mysql,mariadb,postgres,mssql
+- images=(mysql mariadb postgres mssql)
 - sudo service mysql stop
 - sudo service postgresql stop
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
-- if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; else export images=$images,oracle,oracle_client; fi
+- if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; else images=(${images[@]} oracle oracle_client); fi
 - docker-compose pull --parallel --ignore-pull-failures $images
 - docker-compose up -d $images
 - npm install -g npm@5
