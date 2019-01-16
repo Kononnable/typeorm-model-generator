@@ -141,6 +141,9 @@ export class MysqlDriver extends AbstractDriver {
                         case "binary":
                             colInfo.tsType = "Buffer";
                             break;
+                        case "varbinary":
+                            colInfo.tsType = "Buffer";
+                            break;
                         case "geometry":
                             colInfo.tsType = "string";
                             break;
