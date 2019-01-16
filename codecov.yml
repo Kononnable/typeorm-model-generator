@@ -2,3 +2,8 @@ parsers:
     javascript:
         enable_partials: yes
 comment: off
+coverage:
+  status:
+    project:
+      default:
+        threshold: 50
