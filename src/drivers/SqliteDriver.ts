@@ -4,6 +4,10 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class SqliteDriver extends AbstractDriver {
+    public readonly standardPort = 0;
+    public readonly standardUser = "";
+    public readonly standardSchema = "";
+
     public sqlite = require("sqlite3").verbose();
     public db: any;
     public tablesWithGeneratedPrimaryKey: string[] = new Array<string>();

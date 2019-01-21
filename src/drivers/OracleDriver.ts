@@ -4,6 +4,10 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class OracleDriver extends AbstractDriver {
+    public readonly standardPort = 1521;
+    public readonly standardUser = "SYS";
+    public readonly standardSchema = "";
+
     public Oracle: any;
 
     private Connection: any /*Oracle.IConnection*/;

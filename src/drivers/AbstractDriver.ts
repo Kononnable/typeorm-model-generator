@@ -11,6 +11,10 @@ import { RelationInfo } from "../models/RelationInfo";
 import * as TomgUtils from "../Utils";
 
 export abstract class AbstractDriver {
+    public abstract standardPort: number;
+    public abstract standardSchema: string;
+    public abstract standardUser: string;
+
     public ColumnTypesWithWidth: WithWidthColumnType[] = [
         "tinyint",
         "smallint",
@@ -53,7 +57,6 @@ export abstract class AbstractDriver {
         "binary",
         "varbinary"
     ];
-    public namingStrategy: AbstractNamingStrategy;
     public generateRelationsIds: boolean;
 
     public abstract GetAllTablesQuery: (
@@ -64,104 +67,6 @@ export abstract class AbstractDriver {
             TABLE_NAME: string;
         }>
     >;
-    public changeColumnNames(dbModel: DatabaseModel) {
-        dbModel.entities.forEach(entity => {
-            entity.Columns.forEach(column => {
-                const newName = this.namingStrategy.columnName(column.tsName);
-                entity.Indexes.forEach(index => {
-                    index.columns
-                        .filter(column2 => column2.name === column.tsName)
-                        .forEach(column2 => (column2.name = newName));
-                });
-                dbModel.entities.forEach(entity2 => {
-                    entity2.Columns.forEach(column2 => {
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.relatedColumn === column.tsName
-                            )
-                            .map(v => (v.relatedColumn = newName));
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.ownerColumn === column.tsName
-                            )
-                            .map(v => (v.ownerColumn = newName));
-                    });
-                });
-
-                column.tsName = newName;
-            });
-        });
-    }
-    public changeEntityNames(dbModel: DatabaseModel) {
-        dbModel.entities.forEach(entity => {
-            const newName = this.namingStrategy.entityName(entity.tsEntityName);
-            dbModel.entities.forEach(entity2 => {
-                entity2.Columns.forEach(column => {
-                    column.relations.forEach(relation => {
-                        if (relation.ownerTable === entity.tsEntityName) {
-                            relation.ownerTable = newName;
-                        }
-                        if (relation.relatedTable === entity.tsEntityName) {
-                            relation.relatedTable = newName;
-                        }
-                    });
-                });
-            });
-            entity.tsEntityName = newName;
-        });
-    }
-    public changeRelationNames(dbModel: DatabaseModel) {
-        dbModel.entities.forEach(entity => {
-            entity.Columns.forEach(column => {
-                column.relations.forEach(relation => {
-                    const newName = this.namingStrategy.relationName(
-                        column.tsName,
-                        relation,
-                        dbModel
-                    );
-                    dbModel.entities.forEach(entity2 => {
-                        entity2.Columns.forEach(column2 => {
-                            column2.relations.forEach(relation2 => {
-                                if (
-                                    relation2.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation2.ownerColumn === column.tsName
-                                ) {
-                                    relation2.ownerColumn = newName;
-                                }
-                                if (
-                                    relation2.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation2.relatedColumn === column.tsName
-                                ) {
-                                    relation2.relatedColumn = newName;
-                                }
-                                if (relation.isOwner) {
-                                    entity.Indexes.forEach(ind => {
-                                        ind.columns
-                                            .filter(
-                                                col =>
-                                                    col.name === column.tsName
-                                            )
-                                            .forEach(
-                                                col => (col.name = newName)
-                                            );
-                                    });
-                                }
-                            });
-                        });
-                    });
-                    column.tsName = newName;
-                });
-            });
-        });
-    }
 
     public FindManyToManyRelations(dbModel: DatabaseModel) {
         const manyToManyEntities = dbModel.entities.filter(
@@ -242,12 +147,10 @@ export abstract class AbstractDriver {
         password: string,
         schema: string,
         ssl: boolean,
-        namingStrategy: AbstractNamingStrategy,
         relationIds: boolean
     ): Promise<DatabaseModel> {
         this.generateRelationsIds = relationIds;
         const dbModel = {} as DatabaseModel;
-        this.namingStrategy = namingStrategy;
         await this.ConnectToServer(database, server, port, user, password, ssl);
         const sqlEscapedSchema = "'" + schema.split(",").join("','") + "'";
         dbModel.entities = await this.GetAllTables(sqlEscapedSchema);
@@ -260,7 +163,6 @@ export abstract class AbstractDriver {
         await this.DisconnectFromServer();
         this.FindManyToManyRelations(dbModel);
         this.FindPrimaryColumnsFromIndexes(dbModel);
-        this.ApplyNamingStrategy(dbModel);
         return dbModel;
     }
 
@@ -478,10 +380,4 @@ export abstract class AbstractDriver {
     public abstract async DropDB(dbName: string);
     public abstract async UseDB(dbName: string);
     public abstract async CheckIfDBExists(dbName: string): Promise<boolean>;
-
-    private ApplyNamingStrategy(dbModel: DatabaseModel) {
-        this.changeRelationNames(dbModel);
-        this.changeEntityNames(dbModel);
-        this.changeColumnNames(dbModel);
-    }
 }

@@ -5,6 +5,10 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class MssqlDriver extends AbstractDriver {
+    public readonly standardPort = 1433;
+    public readonly standardSchema = "dbo";
+    public readonly standardUser = "sa";
+
     private Connection: MSSQL.ConnectionPool;
     public GetAllTablesQuery = async (schema: string) => {
         const request = new MSSQL.Request(this.Connection);

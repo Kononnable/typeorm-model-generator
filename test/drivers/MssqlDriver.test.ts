@@ -28,7 +28,6 @@ describe('MssqlDriver', function () {
 
     beforeEach(() => {
         driver = new MssqlDriver();
-        driver.namingStrategy = new NamingStrategy();
     })
 
     afterEach(() => {

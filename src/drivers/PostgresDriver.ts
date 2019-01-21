@@ -5,6 +5,10 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class PostgresDriver extends AbstractDriver {
+    public readonly standardPort = 5432;
+    public readonly standardUser = "postgres";
+    public readonly standardSchema = "public";
+
     private Connection: PG.Client;
 
     public GetAllTablesQuery = async (schema: string) => {

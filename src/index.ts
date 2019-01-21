@@ -1,14 +1,7 @@
 import path = require("path");
 import * as Yargs from "yargs";
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { AbstractDriver } from "./drivers/AbstractDriver";
-import { MariaDbDriver } from "./drivers/MariaDbDriver";
-import { MssqlDriver } from "./drivers/MssqlDriver";
-import { MysqlDriver } from "./drivers/MysqlDriver";
-import { OracleDriver } from "./drivers/OracleDriver";
-import { PostgresDriver } from "./drivers/PostgresDriver";
-import { SqliteDriver } from "./drivers/SqliteDriver";
-import { Engine } from "./Engine";
+import { Engine, IConnectionOptions, IGenerationOptions } from "./Engine";
 import { NamingStrategy } from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
@@ -112,46 +105,11 @@ const argv = Yargs.usage(
         describe: "Generate constructor allowing partial initialization"
     }).argv;
 
-let driver: AbstractDriver;
-let standardPort: number;
-let standardSchema: string = "";
-let standardUser: string = "";
-switch (argv.e) {
-    case "mssql":
-        driver = new MssqlDriver();
-        standardPort = 1433;
-        standardSchema = "dbo";
-        standardUser = "sa";
-        break;
-    case "postgres":
-        driver = new PostgresDriver();
-        standardPort = 5432;
-        standardSchema = "public";
-        standardUser = "postgres";
-        break;
-    case "mysql":
-        driver = new MysqlDriver();
-        standardPort = 3306;
-        standardUser = "root";
-        break;
-    case "mariadb":
-        driver = new MariaDbDriver();
-        standardPort = 3306;
-        standardUser = "root";
-        break;
-    case "oracle":
-        driver = new OracleDriver();
-        standardPort = 1521;
-        standardUser = "SYS";
-        break;
-    case "sqlite":
-        driver = new SqliteDriver();
-        standardPort = 0;
-        break;
-    default:
-        TomgUtils.LogError("Database engine not recognized.", false);
-        throw new Error("Database engine not recognized.");
-}
+const driver = Engine.createDriver(argv.e);
+const standardPort = driver.standardPort;
+const standardSchema = driver.standardPort;
+const standardUser = driver.standardPort;
+
 let namingStrategy: AbstractNamingStrategy;
 if (argv.namingStrategy && argv.namingStrategy !== "") {
     // tslint:disable-next-line:no-var-requires
@@ -160,34 +118,39 @@ if (argv.namingStrategy && argv.namingStrategy !== "") {
 } else {
     namingStrategy = new NamingStrategy();
 }
-
-const engine = new Engine(driver, {
+const connectionOptions: IConnectionOptions = {
+    databaseName: argv.d ? argv.d.toString() : null,
+    databaseType: argv.e,
+    host: argv.h,
+    password: argv.x ? argv.x.toString() : null,
+    port: parseInt(argv.p, 10) || standardPort,
+    schemaName: argv.s ? argv.s.toString() : standardSchema,
+    ssl: argv.ssl,
+    user: argv.u ? argv.u.toString() : standardUser
+};
+const generationOptions: IGenerationOptions = {
+    activeRecord: argv.a,
     constructor: argv.generateConstructor,
     convertCaseEntity: argv.ce,
     convertCaseFile: argv.cf,
     convertCaseProperty: argv.cp,
-    databaseName: argv.d ? argv.d.toString() : null,
-    databaseType: argv.e,
-    host: argv.h,
     lazy: argv.lazy,
-    activeRecord: argv.a,
     namingStrategy,
     noConfigs: argv.noConfig,
-    password: argv.x ? argv.x.toString() : null,
-    port: parseInt(argv.p, 10) || standardPort,
     propertyVisibility: argv.pv,
     relationIds: argv.relationIds,
-    resultsPath: argv.o ? argv.o.toString() : null,
-    schemaName: argv.s ? argv.s.toString() : standardSchema,
-    ssl: argv.ssl,
-    user: argv.u ? argv.u.toString() : standardUser
-});
+    resultsPath: argv.o ? argv.o.toString() : null
+};
 
 console.log(TomgUtils.packageVersion());
 console.log(
     `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
 );
-engine.createModelFromDatabase().then(() => {
+Engine.createModelFromDatabase(
+    driver,
+    connectionOptions,
+    generationOptions
+).then(() => {
     console.info(
         `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
     );

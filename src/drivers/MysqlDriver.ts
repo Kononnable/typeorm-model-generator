@@ -6,6 +6,9 @@ import { AbstractDriver } from "./AbstractDriver";
 
 export class MysqlDriver extends AbstractDriver {
     public readonly EngineName: string = "MySQL";
+    public readonly standardPort = 3306;
+    public readonly standardUser = "root";
+    public readonly standardSchema = "";
 
     private Connection: MYSQL.Connection;
 

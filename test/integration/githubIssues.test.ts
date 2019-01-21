@@ -5,12 +5,13 @@ import path = require('path')
 import "reflect-metadata";
 import * as Sinon from 'sinon'
 import { Connection, ConnectionOptions, createConnection } from "typeorm";
-import { Engine } from "../../src/Engine";
+import { Engine, IConnectionOptions, IGenerationOptions } from "../../src/Engine";
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
+import { AbstractDriver } from "../../src/drivers/AbstractDriver";
 
 chai.use(chaiSubset);
 
@@ -19,13 +20,7 @@ describe("GitHub issues", async function () {
     this.timeout(30000)
     this.slow(5000)// compiling created models takes time
 
-    const dbDrivers: string[] = []
-    if (process.env.SQLITE_Skip == '0') { dbDrivers.push('sqlite') }
-    if (process.env.POSTGRES_Skip == '0') { dbDrivers.push('postgres') }
-    if (process.env.MYSQL_Skip == '0') { dbDrivers.push('mysql') }
-    if (process.env.MARIADB_Skip == '0') { dbDrivers.push('mariadb') }
-    if (process.env.MSSQL_Skip == '0') { dbDrivers.push('mssql') }
-    if (process.env.ORACLE_Skip == '0') { dbDrivers.push('oracle') }
+    const dbDrivers: string[] = GTU.getEnabledDbDrivers();
 
     const examplesPathJS = path.resolve(process.cwd(), 'dist/test/integration/github-issues')
     const examplesPathTS = path.resolve(process.cwd(), 'test/integration/github-issues')
@@ -53,41 +48,18 @@ describe("GitHub issues", async function () {
                     const resultsPath = path.resolve(process.cwd(), `output`)
                     fs.removeSync(resultsPath)
 
-                    let engine: Engine;
-                    switch (dbDriver) {
-                        case 'sqlite':
-                            engine = await GTU.createSQLiteModels(filesOrgPathJS, resultsPath)
-                            break;
-                        case 'postgres':
-                            engine = await GTU.createPostgresModels(filesOrgPathJS, resultsPath)
-                            break;
-                        case 'mysql':
-                            engine = await GTU.createMysqlModels(filesOrgPathJS, resultsPath)
-                            break;
-                        case 'mariadb':
-                            engine = await GTU.createMariaDBModels(filesOrgPathJS, resultsPath)
-                            break;
-                        case 'mssql':
-                            engine = await GTU.createMSSQLModels(filesOrgPathJS, resultsPath)
-                            break;
-                        case 'oracle':
-                            engine = await GTU.createOracleDBModels(filesOrgPathJS, resultsPath)
-                            break;
-                        default:
-                            console.log(`Unknown engine type`);
-                            engine = {} as Engine
-                            break;
-                    }
+                    const driver = Engine.createDriver(dbDriver);
+                    const [connectionOptions, generationOptions] = await GTU.getDriverAndOptions(dbDriver, filesOrgPathJS, resultsPath);
 
                     switch (folder) {
                         case '65':
-                            engine.Options.relationIds = true;
+                            generationOptions.relationIds = true;
                             break;
                         default:
                             break;
                     }
 
-                    await engine.createModelFromDatabase()
+                    await Engine.createModelFromDatabase(driver,connectionOptions,generationOptions)
                     const filesGenPath = path.resolve(resultsPath, 'entities')
 
                     const filesOrg = fs.readdirSync(filesOrgPathTS).filter((val) => val.toString().endsWith('.ts'))
