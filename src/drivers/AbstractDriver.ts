@@ -3,7 +3,6 @@ import {
     WithPrecisionColumnType,
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
-import { AbstractNamingStrategy } from "../AbstractNamingStrategy";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { DatabaseModel } from "../models/DatabaseModel";
 import { EntityInfo } from "../models/EntityInfo";

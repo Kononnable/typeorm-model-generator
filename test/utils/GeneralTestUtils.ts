@@ -2,7 +2,6 @@ import path = require('path')
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn"
-import { AbstractNamingStrategy } from "../../src/AbstractNamingStrategy";
 import { AbstractDriver } from "../../src/drivers/AbstractDriver";
 import { MariaDbDriver } from "../../src/drivers/MariaDbDriver";
 import { MssqlDriver } from "../../src/drivers/MssqlDriver";
@@ -10,22 +9,22 @@ import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
 import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { SqliteDriver } from "../../src/drivers/SqliteDriver";
-import { Engine, IConnectionOptions, IGenerationOptions } from "../../src/Engine";
+import { IConnectionOptions, IGenerationOptions } from "../../src/Engine";
 import { NamingStrategy } from "../../src/NamingStrategy";
 
-export function getGenerationOptions():IGenerationOptions{
+export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     return {
-    resultsPath: "",
-    noConfigs: false,
-    convertCaseEntity: 'none',
-    convertCaseFile: 'none',
-    convertCaseProperty: 'none',
-    propertyVisibility: 'none',
-    lazy: false,
-    constructor: false,
-    namingStrategy: new NamingStrategy(),
-    relationIds: false,
-    activeRecord: false
+        resultsPath: resultsPath,
+        noConfigs: false,
+        convertCaseEntity: 'none',
+        convertCaseFile: 'none',
+        convertCaseProperty: 'none',
+        propertyVisibility: 'none',
+        lazy: false,
+        constructor: false,
+        namingStrategy: new NamingStrategy(),
+        relationIds: false,
+        activeRecord: false
     }
 }
 
@@ -64,17 +63,8 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
     if (conn.isConnected) {
         await conn.close()
     }
-    conn = await createConnection(connOpt)
-    queryRunner = conn.createQueryRunner()
-    for (const sch of schemas.split(',')) {
-        await queryRunner.createSchema(sch, true);
-    }
-    await conn.synchronize();
-    if (conn.isConnected) {
-        await conn.close()
-    }
 
-    const connectionOptions:IConnectionOptions = {
+    const connectionOptions: IConnectionOptions = {
         host: String(process.env.MSSQL_Host),
         port: Number(process.env.MSSQL_Port),
         databaseName: String(process.env.MSSQL_Database),
@@ -84,7 +74,6 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
         schemaName: 'dbo,sch1,sch2',
         ssl: yn(process.env.MSSQL_SSL),
     }
-
 
     return connectionOptions;
 }
@@ -124,18 +113,7 @@ export async function createPostgresModels(filesOrgPath: string): Promise<IConne
         await conn.close()
     }
 
-        conn = await createConnection(connOpt)
-        queryRunner = conn.createQueryRunner()
-        for (const sch of schemas.split(',')) {
-            await queryRunner.createSchema(sch, true);
-        }
-        await conn.synchronize();
-        if (conn.isConnected) {
-            await conn.close()
-        }
-
-
-    const connectionOptions:IConnectionOptions={
+    const connectionOptions: IConnectionOptions = {
         host: String(process.env.POSTGRES_Host),
         port: Number(process.env.POSTGRES_Port),
         databaseName: String(process.env.POSTGRES_Database),
@@ -144,7 +122,6 @@ export async function createPostgresModels(filesOrgPath: string): Promise<IConne
         databaseType: 'postgres',
         schemaName: 'public,sch1,sch2',
         ssl: yn(process.env.POSTGRES_SSL),
-
     }
 
     return connectionOptions;
@@ -170,21 +147,13 @@ export async function createSQLiteModels(filesOrgPath: string): Promise<IConnect
     }
 
     let conn = await createConnection(connOpt)
-    let queryRunner = conn.createQueryRunner()
     await conn.synchronize();
 
     if (conn.isConnected) {
         await conn.close()
     }
-    conn = await createConnection(connOpt)
-    queryRunner = conn.createQueryRunner()
-    await conn.synchronize();
-    if (conn.isConnected) {
-        await conn.close()
-    }
 
-
-    const connectionOptions:IConnectionOptions={
+    const connectionOptions: IConnectionOptions = {
         host: '',
         port: 0,
         databaseName: String(process.env.SQLITE_Database),
@@ -193,7 +162,6 @@ export async function createSQLiteModels(filesOrgPath: string): Promise<IConnect
         databaseType: 'sqlite',
         schemaName: '',
         ssl: false,
-
     }
 
     return connectionOptions;
@@ -227,8 +195,7 @@ export async function createMysqlModels(filesOrgPath: string): Promise<IConnecti
         await conn.close()
     }
 
-
-    const connectionOptions:IConnectionOptions={
+    const connectionOptions: IConnectionOptions = {
         host: String(process.env.MYSQL_Host),
         port: Number(process.env.MYSQL_Port),
         databaseName: String(process.env.MYSQL_Database),
@@ -237,7 +204,6 @@ export async function createMysqlModels(filesOrgPath: string): Promise<IConnecti
         databaseType: 'mysql',
         schemaName: 'ignored',
         ssl: yn(process.env.MYSQL_SSL),
-
     }
 
     return connectionOptions;
@@ -270,8 +236,7 @@ export async function createMariaDBModels(filesOrgPath: string): Promise<IConnec
         await conn.close()
     }
 
-
-    const connectionOptions:IConnectionOptions={
+    const connectionOptions: IConnectionOptions = {
         host: String(process.env.MARIADB_Host),
         port: Number(process.env.MARIADB_Port),
         databaseName: String(process.env.MARIADB_Database),
@@ -280,7 +245,6 @@ export async function createMariaDBModels(filesOrgPath: string): Promise<IConnec
         databaseType: 'mariadb',
         schemaName: 'ignored',
         ssl: yn(process.env.MARIADB_SSL),
-
     }
 
     return connectionOptions;
@@ -314,7 +278,7 @@ export async function createOracleDBModels(filesOrgPath: string): Promise<IConne
         await conn.close()
     }
 
-    const connectionOptions:IConnectionOptions = {
+    const connectionOptions: IConnectionOptions = {
         host: String(process.env.ORACLE_Host),
         port: Number(process.env.ORACLE_Port),
         databaseName: String(process.env.ORACLE_Database),
@@ -323,7 +287,6 @@ export async function createOracleDBModels(filesOrgPath: string): Promise<IConne
         databaseType: 'oracle',
         schemaName: String(process.env.ORACLE_Username),
         ssl: yn(process.env.ORACLE_SSL),
-
     }
 
     return connectionOptions;
@@ -370,34 +333,22 @@ export function getEnabledDbDrivers() {
     return dbDrivers;
 }
 
-export async function getDriverAndOptions(dbDriver: string, filesOrgPathJS: string, resultsPath: string): Promise<[IConnectionOptions,IGenerationOptions]> {
-
-    let connectionOptions: IConnectionOptions;
-    let generationOptions = getGenerationOptions();
-      switch (dbDriver) {
+export function createModelsInDb(dbDriver: string, filesOrgPathJS: string): Promise<IConnectionOptions> {
+    switch (dbDriver) {
         case 'sqlite':
-            connectionOptions = await createSQLiteModels(filesOrgPathJS);
-            break;
+            return createSQLiteModels(filesOrgPathJS);
         case 'postgres':
-            connectionOptions = await createPostgresModels(filesOrgPathJS);
-            break;
+            return createPostgresModels(filesOrgPathJS);
         case 'mysql':
-            connectionOptions = await createMysqlModels(filesOrgPathJS);
-            break;
+            return createMysqlModels(filesOrgPathJS);
         case 'mariadb':
-            connectionOptions = await createMariaDBModels(filesOrgPathJS);
-            break;
+            return createMariaDBModels(filesOrgPathJS);
         case 'mssql':
-            connectionOptions = await createMSSQLModels(filesOrgPathJS);
-            break;
+            return createMSSQLModels(filesOrgPathJS);
         case 'oracle':
-            connectionOptions = await createOracleDBModels(filesOrgPathJS);
-            break;
+            return createOracleDBModels(filesOrgPathJS);
         default:
             console.log(`Unknown engine type`);
             throw new Error("Unknown engine type");
     }
-    generationOptions.resultsPath = resultsPath;
-    return [connectionOptions, generationOptions];
 }
-

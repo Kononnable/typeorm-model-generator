@@ -3,20 +3,18 @@ import { expect } from "chai";
 import fs = require('fs-extra');
 import path = require('path')
 import "reflect-metadata";
-import { Engine, IConnectionOptions, IGenerationOptions } from "../../src/Engine";
+import { Engine } from "../../src/Engine";
 import { EntityFileToJson } from "../utils/EntityFileToJson";
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
+import chai = require('chai');
+import chaiSubset = require('chai-subset');
 import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
-import { AbstractDriver } from "../../src/drivers/AbstractDriver";
 
 chai.use(chaiSubset);
 
 describe("TypeOrm examples", async function () {
     this.timeout(30000)
     this.slow(5000)// compiling created models takes time
-
 
     const dbDrivers: string[] = GTU.getEnabledDbDrivers();
 
@@ -34,7 +32,8 @@ describe("TypeOrm examples", async function () {
                     fs.removeSync(resultsPath)
 
                     const driver=Engine.createDriver(dbDriver);
-                    const [connectionOptions, generationOptions] = await GTU.getDriverAndOptions(dbDriver, filesOrgPathJS, resultsPath);
+                    const connectionOptions = await GTU.createModelsInDb(dbDriver, filesOrgPathJS);
+                    const generationOptions = GTU.getGenerationOptions(resultsPath);
 
                     if (folder == 'sample18-lazy-relations') {
                         generationOptions.lazy = true;
