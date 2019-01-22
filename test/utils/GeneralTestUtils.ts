@@ -61,6 +61,7 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
         dropSchema: true,
         synchronize: false,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'mssql'
     }
 
     const schemas = 'dbo,sch1,sch2'
@@ -110,6 +111,7 @@ export async function createPostgresModels(filesOrgPath: string): Promise<IConne
         dropSchema: true,
         synchronize: false,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'postgres'
     }
 
     const schemas = 'public,sch1,sch2'
@@ -154,6 +156,7 @@ export async function createSQLiteModels(filesOrgPath: string): Promise<IConnect
         dropSchema: true,
         synchronize: false,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'sqlite'
     }
 
     let conn = await createConnection(connOpt)
@@ -197,6 +200,7 @@ export async function createMysqlModels(filesOrgPath: string): Promise<IConnecti
         dropSchema: true,
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'mysql'
     }
     const conn = await createConnection(connOpt)
 
@@ -237,6 +241,7 @@ export async function createMariaDBModels(filesOrgPath: string): Promise<IConnec
         dropSchema: true,
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'mariadb'
     }
     const conn = await createConnection(connOpt)
 
@@ -281,6 +286,7 @@ export async function createOracleDBModels(filesOrgPath: string): Promise<IConne
         port: Number(process.env.ORACLE_Port),
         synchronize: true,
         entities: [path.resolve(filesOrgPath, '*.js')],
+        name: 'oracle',
     }
     const conn = await createConnection(connOpt)
 

@@ -39,20 +39,7 @@ export async function createModelFromDatabase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
 ) {
-    function setRelationId(model: EntityInfo[]) {
-        if (generationOptions.relationIds) {
-            model.forEach(ent => {
-                ent.Columns.forEach(col => {
-                    col.relations.map(rel => {
-                        rel.relationIdField = rel.isOwner;
-                    });
-                });
-            });
-        }
-        return model;
-    }
-
-    let dbModel = await driver.GetDataFromServer(connectionOptions);
+    let dbModel = await dataCollectionPhase(driver, connectionOptions);
     if (dbModel.length === 0) {
         TomgUtils.LogError(
             "Tables not found in selected database. Skipping creation of typeorm model.",
@@ -60,11 +47,64 @@ export async function createModelFromDatabase(
         );
         return;
     }
-    dbModel = setRelationId(dbModel);
-    dbModel = ApplyNamingStrategy(generationOptions.namingStrategy, dbModel);
-    createModelFromMetadata(connectionOptions, generationOptions, dbModel);
+    dbModel = modelCustomizationPhase(dbModel, generationOptions);
+    modelGenerationPhase(connectionOptions, generationOptions, dbModel);
 }
-function createModelFromMetadata(
+export async function dataCollectionPhase(
+    driver: AbstractDriver,
+    connectionOptions: IConnectionOptions
+) {
+    return await driver.GetDataFromServer(connectionOptions);
+}
+
+export function modelCustomizationPhase(
+    dbModel: EntityInfo[],
+    generationOptions: IGenerationOptions
+) {
+    dbModel = setRelationId(generationOptions, dbModel);
+    dbModel = applyNamingStrategy(generationOptions.namingStrategy, dbModel);
+    dbModel = addImportsAndGenerationOptions(dbModel, generationOptions);
+    return dbModel;
+}
+
+function addImportsAndGenerationOptions(
+    dbModel: EntityInfo[],
+    generationOptions: IGenerationOptions
+) {
+    dbModel.forEach(element => {
+        element.Imports = [];
+        element.Columns.forEach(column => {
+            column.relations.forEach(relation => {
+                if (element.tsEntityName !== relation.relatedTable) {
+                    element.Imports.push(relation.relatedTable);
+                }
+            });
+        });
+        element.GenerateConstructor = generationOptions.constructor;
+        element.IsActiveRecord = generationOptions.activeRecord;
+        element.Imports.filter((elem, index, self) => {
+            return index === self.indexOf(elem);
+        });
+    });
+    return dbModel;
+}
+
+function setRelationId(
+    generationOptions: IGenerationOptions,
+    model: EntityInfo[]
+) {
+    if (generationOptions.relationIds) {
+        model.forEach(ent => {
+            ent.Columns.forEach(col => {
+                col.relations.map(rel => {
+                    rel.relationIdField = rel.isOwner;
+                });
+            });
+        });
+    }
+    return model;
+}
+export function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
     databaseModel: EntityInfo[]
@@ -89,19 +129,6 @@ function createModelFromMetadata(
         noEscape: true
     });
     databaseModel.forEach(element => {
-        element.Imports = [];
-        element.Columns.forEach(column => {
-            column.relations.forEach(relation => {
-                if (element.tsEntityName !== relation.relatedTable) {
-                    element.Imports.push(relation.relatedTable);
-                }
-            });
-        });
-        element.GenerateConstructor = generationOptions.constructor;
-        element.IsActiveRecord = generationOptions.activeRecord;
-        element.Imports.filter((elem, index, self) => {
-            return index === self.indexOf(elem);
-        });
         let casedFileName = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
@@ -267,7 +294,7 @@ function createTypeOrmConfig(
         );
     }
 }
-function ApplyNamingStrategy(
+function applyNamingStrategy(
     namingStrategy: NamingStrategy,
     dbModel: EntityInfo[]
 ) {
