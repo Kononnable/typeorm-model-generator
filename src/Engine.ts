@@ -164,12 +164,10 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         }
         return retStr;
     });
-    Handlebars.registerHelper(
-        "printPropertyVisibility",
-        () =>
-            generationOptions.propertyVisibility !== "none"
-                ? generationOptions.propertyVisibility + " "
-                : ""
+    Handlebars.registerHelper("printPropertyVisibility", () =>
+        generationOptions.propertyVisibility !== "none"
+            ? generationOptions.propertyVisibility + " "
+            : ""
     );
     Handlebars.registerHelper("toPropertyName", str => {
         let retStr = "";
