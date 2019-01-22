@@ -1,3 +1,4 @@
+import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
@@ -291,29 +292,26 @@ export class OracleDriver extends AbstractDriver {
             await this.Connection.close();
         }
     }
-    public async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
         let config: any;
-        if (user === String(process.env.ORACLE_UsernameSys)) {
+        if (connectionOptons.user === String(process.env.ORACLE_UsernameSys)) {
             config /*Oracle.IConnectionAttributes*/ = {
-                connectString: `${server}:${port}/${database}`,
-                externalAuth: ssl,
-                password,
+                connectString: `${connectionOptons.host}:${
+                    connectionOptons.port
+                }/${connectionOptons.databaseName}`,
+                externalAuth: connectionOptons.ssl,
+                password: connectionOptons.password,
                 privilege: this.Oracle.SYSDBA,
-                user
+                user: connectionOptons.user
             };
         } else {
             config /*Oracle.IConnectionAttributes*/ = {
-                connectString: `${server}:${port}/${database}`,
-                externalAuth: ssl,
-                password,
-                user
+                connectString: `${connectionOptons.host}:${
+                    connectionOptons.port
+                }/${connectionOptons.databaseName}`,
+                externalAuth: connectionOptons.ssl,
+                password: connectionOptons.password,
+                user: connectionOptons.user
             };
         }
         const that = this;

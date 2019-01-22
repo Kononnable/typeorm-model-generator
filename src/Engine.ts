@@ -10,213 +10,207 @@ import { MysqlDriver } from "./drivers/MysqlDriver";
 import { OracleDriver } from "./drivers/OracleDriver";
 import { PostgresDriver } from "./drivers/PostgresDriver";
 import { SqliteDriver } from "./drivers/SqliteDriver";
-import { DatabaseModel } from "./models/DatabaseModel";
+import { EntityInfo } from "./models/EntityInfo";
 import { NamingStrategy } from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
-export class Engine {
-    public static createDriver(driverName: string): AbstractDriver {
-        switch (driverName) {
-            case "mssql":
-                return new MssqlDriver();
-            case "postgres":
-                return new PostgresDriver();
-            case "mysql":
-                return new MysqlDriver();
-            case "mariadb":
-                return new MariaDbDriver();
-            case "oracle":
-                return new OracleDriver();
-            case "sqlite":
-                return new SqliteDriver();
-            default:
-                TomgUtils.LogError("Database engine not recognized.", false);
-                throw new Error("Database engine not recognized.");
-        }
+export function createDriver(driverName: string): AbstractDriver {
+    switch (driverName) {
+        case "mssql":
+            return new MssqlDriver();
+        case "postgres":
+            return new PostgresDriver();
+        case "mysql":
+            return new MysqlDriver();
+        case "mariadb":
+            return new MariaDbDriver();
+        case "oracle":
+            return new OracleDriver();
+        case "sqlite":
+            return new SqliteDriver();
+        default:
+            TomgUtils.LogError("Database engine not recognized.", false);
+            throw new Error("Database engine not recognized.");
     }
+}
 
-    public static async createModelFromDatabase(
-        driver: AbstractDriver,
-        connectionOptions: IConnectionOptions,
-        generationOptions: IGenerationOptions
-    ): Promise<boolean> {
-        const dbModel = await driver.GetDataFromServer(
-            connectionOptions.databaseName,
-            connectionOptions.host,
-            connectionOptions.port,
-            connectionOptions.user,
-            connectionOptions.password,
-            connectionOptions.schemaName,
-            connectionOptions.ssl,
-            generationOptions.relationIds
-        );
-        if (dbModel.entities.length > 0) {
-            this.ApplyNamingStrategy(dbModel, generationOptions.namingStrategy);
-            this.createModelFromMetadata(
-                dbModel,
-                connectionOptions,
-                generationOptions
-            );
-        } else {
-            TomgUtils.LogError(
-                "Tables not found in selected database. Skipping creation of typeorm model.",
-                false
-            );
-        }
-        return true;
-    }
-
-    private static createModelFromMetadata(
-        databaseModel: DatabaseModel,
-        connectionOptions: IConnectionOptions,
-        generationOptions: IGenerationOptions
-    ) {
-        this.createHandlebarsHelpers(generationOptions);
-        const templatePath = path.resolve(__dirname, "../../src/entity.mst");
-        const template = fs.readFileSync(templatePath, "UTF-8");
-        const resultPath = generationOptions.resultsPath;
-        if (!fs.existsSync(resultPath)) {
-            fs.mkdirSync(resultPath);
-        }
-        let entitesPath = resultPath;
-        if (!generationOptions.noConfigs) {
-            this.createTsConfigFile(resultPath);
-            this.createTypeOrmConfig(resultPath, connectionOptions);
-            entitesPath = path.resolve(resultPath, "./entities");
-            if (!fs.existsSync(entitesPath)) {
-                fs.mkdirSync(entitesPath);
-            }
-        }
-        const compliedTemplate = Handlebars.compile(template, {
-            noEscape: true
-        });
-        databaseModel.entities.forEach(element => {
-            element.Imports = [];
-            element.Columns.forEach(column => {
-                column.relations.forEach(relation => {
-                    if (element.tsEntityName !== relation.relatedTable) {
-                        element.Imports.push(relation.relatedTable);
-                    }
+export async function createModelFromDatabase(
+    driver: AbstractDriver,
+    connectionOptions: IConnectionOptions,
+    generationOptions: IGenerationOptions
+) {
+    function setRelationId(model: EntityInfo[]) {
+        if (generationOptions.relationIds) {
+            model.forEach(ent => {
+                ent.Columns.forEach(col => {
+                    col.relations.map(rel => {
+                        rel.relationIdField = rel.isOwner;
+                    });
                 });
             });
-            element.GenerateConstructor = generationOptions.constructor;
-            element.IsActiveRecord = generationOptions.activeRecord;
-            element.Imports.filter((elem, index, self) => {
-                return index === self.indexOf(elem);
-            });
-            let casedFileName = "";
-            switch (generationOptions.convertCaseFile) {
-                case "camel":
-                    casedFileName = changeCase.camelCase(element.tsEntityName);
-                    break;
-                case "param":
-                    casedFileName = changeCase.paramCase(element.tsEntityName);
-                    break;
-                case "pascal":
-                    casedFileName = changeCase.pascalCase(element.tsEntityName);
-                    break;
-                case "none":
-                    casedFileName = element.tsEntityName;
-                    break;
-            }
-            const resultFilePath = path.resolve(
-                entitesPath,
-                casedFileName + ".ts"
-            );
-            const rendered = compliedTemplate(element);
-            fs.writeFileSync(resultFilePath, rendered, {
-                encoding: "UTF-8",
-                flag: "w"
-            });
-        });
-    }
-    private static createHandlebarsHelpers(
-        generationOptions: IGenerationOptions
-    ) {
-        Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
-        Handlebars.registerHelper("toEntityName", str => {
-            let retStr = "";
-            switch (generationOptions.convertCaseEntity) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper("concat", (stra, strb) => {
-            return stra + strb;
-        });
-        Handlebars.registerHelper("toFileName", str => {
-            let retStr = "";
-            switch (generationOptions.convertCaseFile) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "param":
-                    retStr = changeCase.paramCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper(
-            "printPropertyVisibility",
-            () =>
-                generationOptions.propertyVisibility !== "none"
-                    ? generationOptions.propertyVisibility + " "
-                    : ""
-        );
-        Handlebars.registerHelper("toPropertyName", str => {
-            let retStr = "";
-            switch (generationOptions.convertCaseProperty) {
-                case "camel":
-                    retStr = changeCase.camelCase(str);
-                    break;
-                case "pascal":
-                    retStr = changeCase.pascalCase(str);
-                    break;
-                case "none":
-                    retStr = str;
-                    break;
-            }
-            return retStr;
-        });
-        Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
-        Handlebars.registerHelper("toLazy", str => {
-            if (generationOptions.lazy) {
-                return `Promise<${str}>`;
-            } else {
-                return str;
-            }
-        });
-        Handlebars.registerHelper({
-            and: (v1, v2) => v1 && v2,
-            eq: (v1, v2) => v1 === v2,
-            gt: (v1, v2) => v1 > v2,
-            gte: (v1, v2) => v1 >= v2,
-            lt: (v1, v2) => v1 < v2,
-            lte: (v1, v2) => v1 <= v2,
-            ne: (v1, v2) => v1 !== v2,
-            or: (v1, v2) => v1 || v2
-        });
+        }
+        return model;
     }
 
-    // TODO:Move to mustache template file
-    private static createTsConfigFile(resultPath) {
-        fs.writeFileSync(
-            path.resolve(resultPath, "tsconfig.json"),
-            `{"compilerOptions": {
+    let dbModel = await driver.GetDataFromServer(connectionOptions);
+    if (dbModel.length === 0) {
+        TomgUtils.LogError(
+            "Tables not found in selected database. Skipping creation of typeorm model.",
+            false
+        );
+        return;
+    }
+    dbModel = setRelationId(dbModel);
+    dbModel = ApplyNamingStrategy(generationOptions.namingStrategy, dbModel);
+    createModelFromMetadata(connectionOptions, generationOptions, dbModel);
+}
+function createModelFromMetadata(
+    connectionOptions: IConnectionOptions,
+    generationOptions: IGenerationOptions,
+    databaseModel: EntityInfo[]
+) {
+    createHandlebarsHelpers(generationOptions);
+    const templatePath = path.resolve(__dirname, "../../src/entity.mst");
+    const template = fs.readFileSync(templatePath, "UTF-8");
+    const resultPath = generationOptions.resultsPath;
+    if (!fs.existsSync(resultPath)) {
+        fs.mkdirSync(resultPath);
+    }
+    let entitesPath = resultPath;
+    if (!generationOptions.noConfigs) {
+        createTsConfigFile(resultPath);
+        createTypeOrmConfig(resultPath, connectionOptions);
+        entitesPath = path.resolve(resultPath, "./entities");
+        if (!fs.existsSync(entitesPath)) {
+            fs.mkdirSync(entitesPath);
+        }
+    }
+    const compliedTemplate = Handlebars.compile(template, {
+        noEscape: true
+    });
+    databaseModel.forEach(element => {
+        element.Imports = [];
+        element.Columns.forEach(column => {
+            column.relations.forEach(relation => {
+                if (element.tsEntityName !== relation.relatedTable) {
+                    element.Imports.push(relation.relatedTable);
+                }
+            });
+        });
+        element.GenerateConstructor = generationOptions.constructor;
+        element.IsActiveRecord = generationOptions.activeRecord;
+        element.Imports.filter((elem, index, self) => {
+            return index === self.indexOf(elem);
+        });
+        let casedFileName = "";
+        switch (generationOptions.convertCaseFile) {
+            case "camel":
+                casedFileName = changeCase.camelCase(element.tsEntityName);
+                break;
+            case "param":
+                casedFileName = changeCase.paramCase(element.tsEntityName);
+                break;
+            case "pascal":
+                casedFileName = changeCase.pascalCase(element.tsEntityName);
+                break;
+            case "none":
+                casedFileName = element.tsEntityName;
+                break;
+        }
+        const resultFilePath = path.resolve(entitesPath, casedFileName + ".ts");
+        const rendered = compliedTemplate(element);
+        fs.writeFileSync(resultFilePath, rendered, {
+            encoding: "UTF-8",
+            flag: "w"
+        });
+    });
+}
+
+function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
+    Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
+    Handlebars.registerHelper("toEntityName", str => {
+        let retStr = "";
+        switch (generationOptions.convertCaseEntity) {
+            case "camel":
+                retStr = changeCase.camelCase(str);
+                break;
+            case "pascal":
+                retStr = changeCase.pascalCase(str);
+                break;
+            case "none":
+                retStr = str;
+                break;
+        }
+        return retStr;
+    });
+    Handlebars.registerHelper("concat", (stra, strb) => {
+        return stra + strb;
+    });
+    Handlebars.registerHelper("toFileName", str => {
+        let retStr = "";
+        switch (generationOptions.convertCaseFile) {
+            case "camel":
+                retStr = changeCase.camelCase(str);
+                break;
+            case "param":
+                retStr = changeCase.paramCase(str);
+                break;
+            case "pascal":
+                retStr = changeCase.pascalCase(str);
+                break;
+            case "none":
+                retStr = str;
+                break;
+        }
+        return retStr;
+    });
+    Handlebars.registerHelper(
+        "printPropertyVisibility",
+        () =>
+            generationOptions.propertyVisibility !== "none"
+                ? generationOptions.propertyVisibility + " "
+                : ""
+    );
+    Handlebars.registerHelper("toPropertyName", str => {
+        let retStr = "";
+        switch (generationOptions.convertCaseProperty) {
+            case "camel":
+                retStr = changeCase.camelCase(str);
+                break;
+            case "pascal":
+                retStr = changeCase.pascalCase(str);
+                break;
+            case "none":
+                retStr = str;
+                break;
+        }
+        return retStr;
+    });
+    Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
+    Handlebars.registerHelper("toLazy", str => {
+        if (generationOptions.lazy) {
+            return `Promise<${str}>`;
+        } else {
+            return str;
+        }
+    });
+    Handlebars.registerHelper({
+        and: (v1, v2) => v1 && v2,
+        eq: (v1, v2) => v1 === v2,
+        gt: (v1, v2) => v1 > v2,
+        gte: (v1, v2) => v1 >= v2,
+        lt: (v1, v2) => v1 < v2,
+        lte: (v1, v2) => v1 <= v2,
+        ne: (v1, v2) => v1 !== v2,
+        or: (v1, v2) => v1 || v2
+    });
+}
+
+// TODO:Move to mustache template file
+function createTsConfigFile(resultPath) {
+    fs.writeFileSync(
+        path.resolve(resultPath, "tsconfig.json"),
+        `{"compilerOptions": {
         "lib": ["es5", "es6"],
         "target": "es6",
         "module": "commonjs",
@@ -225,17 +219,17 @@ export class Engine {
         "experimentalDecorators": true,
         "sourceMap": true
     }}`,
-            { encoding: "UTF-8", flag: "w" }
-        );
-    }
-    private static createTypeOrmConfig(
-        resultPath: string,
-        connectionOptions: IConnectionOptions
-    ) {
-        if (connectionOptions.schemaName === "") {
-            fs.writeFileSync(
-                path.resolve(resultPath, "ormconfig.json"),
-                `[
+        { encoding: "UTF-8", flag: "w" }
+    );
+}
+function createTypeOrmConfig(
+    resultPath: string,
+    connectionOptions: IConnectionOptions
+) {
+    if (connectionOptions.schemaName === "") {
+        fs.writeFileSync(
+            path.resolve(resultPath, "ormconfig.json"),
+            `[
   {
     "name": "default",
     "type": "${connectionOptions.databaseType}",
@@ -250,12 +244,12 @@ export class Engine {
     ]
   }
 ]`,
-                { encoding: "UTF-8", flag: "w" }
-            );
-        } else {
-            fs.writeFileSync(
-                path.resolve(resultPath, "ormconfig.json"),
-                `[
+            { encoding: "UTF-8", flag: "w" }
+        );
+    } else {
+        fs.writeFileSync(
+            path.resolve(resultPath, "ormconfig.json"),
+            `[
   {
     "name": "default",
     "type": "${connectionOptions.databaseType}",
@@ -271,89 +265,29 @@ export class Engine {
     ]
   }
 ]`,
-                { encoding: "UTF-8", flag: "w" }
-            );
-        }
+            { encoding: "UTF-8", flag: "w" }
+        );
     }
-    private static ApplyNamingStrategy(
-        dbModel: DatabaseModel,
-        namingStrategy: NamingStrategy
-    ) {
-        this.changeRelationNames(dbModel, namingStrategy);
-        this.changeEntityNames(dbModel, namingStrategy);
-        this.changeColumnNames(dbModel, namingStrategy);
-    }
-    private static changeColumnNames(
-        dbModel: DatabaseModel,
-        namingStrategy: NamingStrategy
-    ) {
-        dbModel.entities.forEach(entity => {
-            entity.Columns.forEach(column => {
-                const newName = namingStrategy.columnName(column.tsName);
-                entity.Indexes.forEach(index => {
-                    index.columns
-                        .filter(column2 => column2.name === column.tsName)
-                        .forEach(column2 => (column2.name = newName));
-                });
-                dbModel.entities.forEach(entity2 => {
-                    entity2.Columns.forEach(column2 => {
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.relatedColumn === column.tsName
-                            )
-                            .map(v => (v.relatedColumn = newName));
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.ownerColumn === column.tsName
-                            )
-                            .map(v => (v.ownerColumn = newName));
-                    });
-                });
+}
+function ApplyNamingStrategy(
+    namingStrategy: NamingStrategy,
+    dbModel: EntityInfo[]
+) {
+    dbModel = changeRelationNames(dbModel);
+    dbModel = changeEntityNames(dbModel);
+    dbModel = changeColumnNames(dbModel);
+    return dbModel;
 
-                column.tsName = newName;
-            });
-        });
-    }
-    private static changeEntityNames(
-        dbModel: DatabaseModel,
-        namingStrategy: NamingStrategy
-    ) {
-        dbModel.entities.forEach(entity => {
-            const newName = namingStrategy.entityName(entity.tsEntityName);
-            dbModel.entities.forEach(entity2 => {
-                entity2.Columns.forEach(column => {
-                    column.relations.forEach(relation => {
-                        if (relation.ownerTable === entity.tsEntityName) {
-                            relation.ownerTable = newName;
-                        }
-                        if (relation.relatedTable === entity.tsEntityName) {
-                            relation.relatedTable = newName;
-                        }
-                    });
-                });
-            });
-            entity.tsEntityName = newName;
-        });
-    }
-    private static changeRelationNames(
-        dbModel: DatabaseModel,
-        namingStrategy: NamingStrategy
-    ) {
-        dbModel.entities.forEach(entity => {
+    function changeRelationNames(model: EntityInfo[]) {
+        model.forEach(entity => {
             entity.Columns.forEach(column => {
                 column.relations.forEach(relation => {
                     const newName = namingStrategy.relationName(
                         column.tsName,
                         relation,
-                        dbModel
+                        model
                     );
-                    dbModel.entities.forEach(entity2 => {
+                    model.forEach(entity2 => {
                         entity2.Columns.forEach(column2 => {
                             column2.relations.forEach(relation2 => {
                                 if (
@@ -389,6 +323,62 @@ export class Engine {
                 });
             });
         });
+        return dbModel;
+    }
+
+    function changeColumnNames(model: EntityInfo[]) {
+        model.forEach(entity => {
+            entity.Columns.forEach(column => {
+                const newName = namingStrategy.columnName(column.tsName);
+                entity.Indexes.forEach(index => {
+                    index.columns
+                        .filter(column2 => column2.name === column.tsName)
+                        .forEach(column2 => (column2.name = newName));
+                });
+                model.forEach(entity2 => {
+                    entity2.Columns.forEach(column2 => {
+                        column2.relations
+                            .filter(
+                                relation =>
+                                    relation.relatedTable ===
+                                        entity.tsEntityName &&
+                                    relation.relatedColumn === column.tsName
+                            )
+                            .map(v => (v.relatedColumn = newName));
+                        column2.relations
+                            .filter(
+                                relation =>
+                                    relation.relatedTable ===
+                                        entity.tsEntityName &&
+                                    relation.ownerColumn === column.tsName
+                            )
+                            .map(v => (v.ownerColumn = newName));
+                    });
+                });
+
+                column.tsName = newName;
+            });
+        });
+        return model;
+    }
+    function changeEntityNames(entities: EntityInfo[]) {
+        entities.forEach(entity => {
+            const newName = namingStrategy.entityName(entity.tsEntityName);
+            entities.forEach(entity2 => {
+                entity2.Columns.forEach(column => {
+                    column.relations.forEach(relation => {
+                        if (relation.ownerTable === entity.tsEntityName) {
+                            relation.ownerTable = newName;
+                        }
+                        if (relation.relatedTable === entity.tsEntityName) {
+                            relation.relatedTable = newName;
+                        }
+                    });
+                });
+            });
+            entity.tsEntityName = newName;
+        });
+        return entities;
     }
 }
 

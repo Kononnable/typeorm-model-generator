@@ -7,7 +7,7 @@ import { EntityFileToJson } from "../utils/EntityFileToJson";
 import chai = require('chai');
 import chaiSubset = require('chai-subset');
 import * as ts from "typescript";
-import { Engine } from "../../src/Engine";
+import { createDriver, createModelFromDatabase } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils"
 
 chai.use(chaiSubset);
@@ -32,11 +32,11 @@ describe("Platform specyfic types", async function () {
                     const resultsPath = path.resolve(process.cwd(), `output`)
                     fs.removeSync(resultsPath)
 
-                    const driver = Engine.createDriver(dbDriver);
+                    const driver = createDriver(dbDriver);
                     const connectionOptions = await GTU.createModelsInDb(dbDriver, filesOrgPathJS);
                     const generationOptions = GTU.getGenerationOptions(resultsPath);
 
-                    await Engine.createModelFromDatabase(driver,connectionOptions,generationOptions)
+                    await createModelFromDatabase(driver,connectionOptions,generationOptions)
                     const filesGenPath = path.resolve(resultsPath, 'entities')
 
                     const filesOrg = fs.readdirSync(filesOrgPathTS).filter((val) => val.toString().endsWith('.ts'))

@@ -1,4 +1,5 @@
 import * as MYSQL from "mysql";
+import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
@@ -339,33 +340,26 @@ export class MysqlDriver extends AbstractDriver {
             await promise;
         }
     }
-    public async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
         let config: MYSQL.ConnectionConfig;
-        if (ssl) {
+        if (connectionOptons.ssl) {
             config = {
-                database,
-                host: server,
-                password,
-                port,
+                database: connectionOptons.databaseName,
+                host: connectionOptons.host,
+                password: connectionOptons.password,
+                port: connectionOptons.port,
                 ssl: {
                     rejectUnauthorized: false
                 },
-                user
+                user: connectionOptons.user
             };
         } else {
             config = {
-                database,
-                host: server,
-                password,
-                port,
-                user
+                database: connectionOptons.databaseName,
+                host: connectionOptons.host,
+                password: connectionOptons.password,
+                port: connectionOptons.port,
+                user: connectionOptons.user
             };
         }
 

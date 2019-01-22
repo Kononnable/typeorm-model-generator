@@ -1,4 +1,5 @@
 import * as PG from "pg";
+import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
@@ -531,21 +532,14 @@ export class PostgresDriver extends AbstractDriver {
         }
     }
 
-    public async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
         this.Connection = new PG.Client({
-            database,
-            host: server,
-            password,
-            port,
-            ssl,
-            user
+            database: connectionOptons.databaseName,
+            host: connectionOptons.host,
+            password: connectionOptons.password,
+            port: connectionOptons.port,
+            ssl: connectionOptons.ssl,
+            user: connectionOptons.user
         });
 
         const promise = new Promise<boolean>((resolve, reject) => {

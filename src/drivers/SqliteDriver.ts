@@ -1,3 +1,4 @@
+import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
@@ -292,15 +293,8 @@ export class SqliteDriver extends AbstractDriver {
         this.db.close();
     }
 
-    public async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
-        await this.UseDB(database);
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
+        await this.UseDB(connectionOptons.databaseName);
     }
 
     public async CreateDB(dbName: string) {

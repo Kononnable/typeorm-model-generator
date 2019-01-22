@@ -3,7 +3,7 @@ import { expect } from "chai";
 import fs = require('fs-extra');
 import path = require('path')
 import "reflect-metadata";
-import { Engine } from "../../src/Engine";
+import { createModelFromDatabase, createDriver } from "../../src/Engine";
 import { EntityFileToJson } from "../utils/EntityFileToJson";
 import chai = require('chai');
 import chaiSubset = require('chai-subset');
@@ -31,7 +31,7 @@ describe("TypeOrm examples", async function () {
                     const resultsPath = path.resolve(process.cwd(), `output`)
                     fs.removeSync(resultsPath)
 
-                    const driver=Engine.createDriver(dbDriver);
+                    const driver=createDriver(dbDriver);
                     const connectionOptions = await GTU.createModelsInDb(dbDriver, filesOrgPathJS);
                     const generationOptions = GTU.getGenerationOptions(resultsPath);
 
@@ -39,7 +39,7 @@ describe("TypeOrm examples", async function () {
                         generationOptions.lazy = true;
                     }
 
-                    await Engine.createModelFromDatabase(driver,connectionOptions,generationOptions)
+                    await createModelFromDatabase(driver,connectionOptions,generationOptions)
                     const filesGenPath = path.resolve(resultsPath, 'entities')
 
                     const filesOrg = fs.readdirSync(filesOrgPathTS).filter((val) => val.toString().endsWith('.ts'))

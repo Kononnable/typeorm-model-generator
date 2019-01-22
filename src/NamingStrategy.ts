@@ -1,15 +1,15 @@
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { DatabaseModel } from "./models/DatabaseModel";
+import { EntityInfo } from "./models/EntityInfo";
 import { RelationInfo } from "./models/RelationInfo";
 
 export class NamingStrategy extends AbstractNamingStrategy {
     public relationName(
         columnOldName: string,
         relation: RelationInfo,
-        dbModel: DatabaseModel
+        dbModel: EntityInfo[]
     ): string {
         const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        const ownerEntity = dbModel.entities.find(
+        const ownerEntity = dbModel.find(
             v => v.tsEntityName === relation.ownerTable
         )!;
 

@@ -1,4 +1,5 @@
 import * as MSSQL from "mssql";
+import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";
@@ -354,24 +355,17 @@ order by
             await this.Connection.close();
         }
     }
-    public async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
         const config: MSSQL.config = {
-            database,
+            database: connectionOptons.databaseName,
             options: {
                 appName: "typeorm-model-generator",
-                encrypt: ssl
+                encrypt: connectionOptons.ssl
             },
-            password,
-            port,
-            server,
-            user
+            password: connectionOptons.password,
+            port: connectionOptons.port,
+            server: connectionOptons.host,
+            user: connectionOptons.user
         };
 
         const promise = new Promise<boolean>((resolve, reject) => {

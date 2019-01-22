@@ -1,7 +1,12 @@
 import path = require("path");
 import * as Yargs from "yargs";
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { Engine, IConnectionOptions, IGenerationOptions } from "./Engine";
+import {
+    createDriver,
+    createModelFromDatabase,
+    IConnectionOptions,
+    IGenerationOptions
+} from "./Engine";
 import { NamingStrategy } from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
@@ -105,7 +110,7 @@ const argv = Yargs.usage(
         describe: "Generate constructor allowing partial initialization"
     }).argv;
 
-const driver = Engine.createDriver(argv.e);
+const driver = createDriver(argv.e);
 const standardPort = driver.standardPort;
 const standardSchema = driver.standardPort;
 const standardUser = driver.standardPort;
@@ -146,12 +151,10 @@ console.log(TomgUtils.packageVersion());
 console.log(
     `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
 );
-Engine.createModelFromDatabase(
-    driver,
-    connectionOptions,
-    generationOptions
-).then(() => {
-    console.info(
-        `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
-    );
-});
+createModelFromDatabase(driver, connectionOptions, generationOptions).then(
+    () => {
+        console.info(
+            `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
+        );
+    }
+);

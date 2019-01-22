@@ -32,7 +32,18 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
 
     let driver: AbstractDriver;
     driver = new MssqlDriver();
-    await driver.ConnectToServer(`master`, String(process.env.MSSQL_Host), Number(process.env.MSSQL_Port), String(process.env.MSSQL_Username), String(process.env.MSSQL_Password), yn(process.env.MSSQL_SSL));
+    const connectionOptions: IConnectionOptions = {
+        host: String(process.env.MSSQL_Host),
+        port: Number(process.env.MSSQL_Port),
+        databaseName: `master`,
+        user: String(process.env.MSSQL_Username),
+        password: String(process.env.MSSQL_Password),
+        databaseType: 'mssql',
+        schemaName: 'dbo,sch1,sch2',
+        ssl: yn(process.env.MSSQL_SSL),
+    }
+    await driver.ConnectToServer(connectionOptions);
+    connectionOptions.databaseName = String(process.env.MSSQL_Database);
 
     if (await driver.CheckIfDBExists(String(process.env.MSSQL_Database))) {
         await driver.DropDB(String(process.env.MSSQL_Database));
@@ -64,24 +75,24 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
         await conn.close()
     }
 
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MSSQL_Host),
-        port: Number(process.env.MSSQL_Port),
-        databaseName: String(process.env.MSSQL_Database),
-        user: String(process.env.MSSQL_Username),
-        password: String(process.env.MSSQL_Password),
-        databaseType: 'mssql',
-        schemaName: 'dbo,sch1,sch2',
-        ssl: yn(process.env.MSSQL_SSL),
-    }
-
     return connectionOptions;
 }
 
 export async function createPostgresModels(filesOrgPath: string): Promise<IConnectionOptions> {
     let driver: AbstractDriver;
     driver = new PostgresDriver();
-    await driver.ConnectToServer(`postgres`, String(process.env.POSTGRES_Host), Number(process.env.POSTGRES_Port), String(process.env.POSTGRES_Username), String(process.env.POSTGRES_Password), yn(process.env.POSTGRES_SSL));
+    const connectionOptions: IConnectionOptions = {
+        host: String(process.env.POSTGRES_Host),
+        port: Number(process.env.POSTGRES_Port),
+        databaseName: `postgres`,
+        user: String(process.env.POSTGRES_Username),
+        password: String(process.env.POSTGRES_Password),
+        databaseType: 'postgres',
+        schemaName: 'public,sch1,sch2',
+        ssl: yn(process.env.POSTGRES_SSL),
+    }
+    await driver.ConnectToServer(connectionOptions);
+    connectionOptions.databaseName = String(process.env.POSTGRES_Database);
 
     if (await driver.CheckIfDBExists(String(process.env.POSTGRES_Database))) {
         await driver.DropDB(String(process.env.POSTGRES_Database));
@@ -113,24 +124,23 @@ export async function createPostgresModels(filesOrgPath: string): Promise<IConne
         await conn.close()
     }
 
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.POSTGRES_Host),
-        port: Number(process.env.POSTGRES_Port),
-        databaseName: String(process.env.POSTGRES_Database),
-        user: String(process.env.POSTGRES_Username),
-        password: String(process.env.POSTGRES_Password),
-        databaseType: 'postgres',
-        schemaName: 'public,sch1,sch2',
-        ssl: yn(process.env.POSTGRES_SSL),
-    }
-
     return connectionOptions;
 }
 
 export async function createSQLiteModels(filesOrgPath: string): Promise<IConnectionOptions> {
     let driver: AbstractDriver;
     driver = new SqliteDriver();
-    await driver.ConnectToServer(String(process.env.SQLITE_Database), '', 0, '', '', false);
+    const connectionOptions: IConnectionOptions = {
+        host: '',
+        port: 0,
+        databaseName: String(process.env.SQLITE_Database),
+        user: '',
+        password: '',
+        databaseType: 'sqlite',
+        schemaName: '',
+        ssl: false,
+    }
+    await driver.ConnectToServer(connectionOptions);
 
     if (await driver.CheckIfDBExists(String(process.env.SQLITE_Database))) {
         await driver.DropDB(String(process.env.SQLITE_Database));
@@ -153,24 +163,23 @@ export async function createSQLiteModels(filesOrgPath: string): Promise<IConnect
         await conn.close()
     }
 
-    const connectionOptions: IConnectionOptions = {
-        host: '',
-        port: 0,
-        databaseName: String(process.env.SQLITE_Database),
-        user: '',
-        password: '',
-        databaseType: 'sqlite',
-        schemaName: '',
-        ssl: false,
-    }
-
     return connectionOptions;
 }
 
 export async function createMysqlModels(filesOrgPath: string): Promise<IConnectionOptions> {
     let driver: AbstractDriver;
     driver = new MysqlDriver();
-    await driver.ConnectToServer(String(process.env.MYSQL_Database), String(process.env.MYSQL_Host), Number(process.env.MYSQL_Port), String(process.env.MYSQL_Username), String(process.env.MYSQL_Password), yn(process.env.MYSQL_SSL));
+    const connectionOptions: IConnectionOptions = {
+        host: String(process.env.MYSQL_Host),
+        port: Number(process.env.MYSQL_Port),
+        databaseName: String(process.env.MYSQL_Database),
+        user: String(process.env.MYSQL_Username),
+        password: String(process.env.MYSQL_Password),
+        databaseType: 'mysql',
+        schemaName: 'ignored',
+        ssl: yn(process.env.MYSQL_SSL),
+    }
+    await driver.ConnectToServer(connectionOptions);
 
     if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database))) {
         await driver.DropDB(String(process.env.MYSQL_Database));
@@ -195,23 +204,22 @@ export async function createMysqlModels(filesOrgPath: string): Promise<IConnecti
         await conn.close()
     }
 
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MYSQL_Host),
-        port: Number(process.env.MYSQL_Port),
-        databaseName: String(process.env.MYSQL_Database),
-        user: String(process.env.MYSQL_Username),
-        password: String(process.env.MYSQL_Password),
-        databaseType: 'mysql',
-        schemaName: 'ignored',
-        ssl: yn(process.env.MYSQL_SSL),
-    }
-
     return connectionOptions;
 }
 export async function createMariaDBModels(filesOrgPath: string): Promise<IConnectionOptions> {
     let driver: AbstractDriver;
     driver = new MariaDbDriver();
-    await driver.ConnectToServer(String(process.env.MARIADB_Database), String(process.env.MARIADB_Host), Number(process.env.MARIADB_Port), String(process.env.MARIADB_Username), String(process.env.MARIADB_Password), yn(process.env.MARIADB_SSL));
+    const connectionOptions: IConnectionOptions = {
+        host: String(process.env.MARIADB_Host),
+        port: Number(process.env.MARIADB_Port),
+        databaseName: String(process.env.MARIADB_Database),
+        user: String(process.env.MARIADB_Username),
+        password: String(process.env.MARIADB_Password),
+        databaseType: 'mariadb',
+        schemaName: 'ignored',
+        ssl: yn(process.env.MARIADB_SSL),
+    }
+    await driver.ConnectToServer(connectionOptions);
 
     if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database))) {
         await driver.DropDB(String(process.env.MARIADB_Database));
@@ -236,24 +244,26 @@ export async function createMariaDBModels(filesOrgPath: string): Promise<IConnec
         await conn.close()
     }
 
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MARIADB_Host),
-        port: Number(process.env.MARIADB_Port),
-        databaseName: String(process.env.MARIADB_Database),
-        user: String(process.env.MARIADB_Username),
-        password: String(process.env.MARIADB_Password),
-        databaseType: 'mariadb',
-        schemaName: 'ignored',
-        ssl: yn(process.env.MARIADB_SSL),
-    }
-
     return connectionOptions;
 }
 
 export async function createOracleDBModels(filesOrgPath: string): Promise<IConnectionOptions> {
     let driver: AbstractDriver;
     driver = new OracleDriver();
-    await driver.ConnectToServer(String(process.env.ORACLE_Database), String(process.env.ORACLE_Host), Number(process.env.ORACLE_Port), String(process.env.ORACLE_UsernameSys), String(process.env.ORACLE_PasswordSys), yn(process.env.ORACLE_SSL));
+
+    const connectionOptions: IConnectionOptions = {
+        host: String(process.env.ORACLE_Host),
+        port: Number(process.env.ORACLE_Port),
+        databaseName: String(process.env.ORACLE_Database),
+        user: String(process.env.ORACLE_UsernameSys),
+        password: String(process.env.ORACLE_PasswordSys),
+        databaseType: 'oracle',
+        schemaName: String(process.env.ORACLE_Username),
+        ssl: yn(process.env.ORACLE_SSL),
+    }
+    await driver.ConnectToServer(connectionOptions);
+    connectionOptions.user = String(process.env.ORACLE_Username)
+    connectionOptions.password = String(process.env.ORACLE_Password)
 
     if (await driver.CheckIfDBExists(String(process.env.ORACLE_Username))) {
         await driver.DropDB(String(process.env.ORACLE_Username));
@@ -276,17 +286,6 @@ export async function createOracleDBModels(filesOrgPath: string): Promise<IConne
 
     if (conn.isConnected) {
         await conn.close()
-    }
-
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.ORACLE_Host),
-        port: Number(process.env.ORACLE_Port),
-        databaseName: String(process.env.ORACLE_Database),
-        user: String(process.env.ORACLE_Username),
-        password: String(process.env.ORACLE_Password),
-        databaseType: 'oracle',
-        schemaName: String(process.env.ORACLE_Username),
-        ssl: yn(process.env.ORACLE_SSL),
     }
 
     return connectionOptions;
