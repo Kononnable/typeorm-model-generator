@@ -59,11 +59,11 @@ export class PostgresDriver extends AbstractDriver {
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.column_name;
-                    colInfo.sqlName = resp.column_name;
-                    colInfo.isNullable = resp.is_nullable === "YES";
-                    colInfo.isGenerated = resp.isidentity === "YES";
-                    colInfo.isUnique = resp.isunique === "1";
-                    colInfo.default = colInfo.isGenerated
+                    colInfo.options.name = resp.column_name;
+                    colInfo.options.nullable = resp.is_nullable === "YES";
+                    colInfo.options.generated = resp.isidentity === "YES";
+                    colInfo.options.unique = resp.isunique === "1";
+                    colInfo.options.default = colInfo.options.generated
                         ? null
                         : this.ReturnDefaultValueFunction(resp.column_default);
 
@@ -94,10 +94,10 @@ export class PostgresDriver extends AbstractDriver {
                         }
                         return;
                     }
-                    colInfo.sqlType = columnTypes.sql_type;
+                    colInfo.options.type = columnTypes.sql_type as any;
                     colInfo.tsType = columnTypes.ts_type;
-                    colInfo.isArray = columnTypes.is_array;
-                    if (colInfo.isArray) {
+                    colInfo.options.array = columnTypes.is_array;
+                    if (colInfo.options.array) {
                         colInfo.tsType = colInfo.tsType
                             .split("|")
                             .map(x => x.replace("|", "").trim() + "[]")
@@ -106,33 +106,33 @@ export class PostgresDriver extends AbstractDriver {
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.numericPrecision = resp.numeric_precision;
-                        colInfo.numericScale = resp.numeric_scale;
+                        colInfo.options.precision = resp.numeric_precision;
+                        colInfo.options.scale = resp.numeric_scale;
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.lenght =
+                        colInfo.options.length =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
-                                : null;
+                                : undefined;
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.width =
+                        colInfo.options.width =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
-                                : null;
+                                : undefined;
                     }
-                    if (colInfo.sqlType && colInfo.tsType) {
+                    if (colInfo.options.type && colInfo.tsType) {
                         ent.Columns.push(colInfo);
                     }
                 });

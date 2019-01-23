@@ -62,18 +62,18 @@ export class OracleDriver extends AbstractDriver {
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
-                    colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.isNullable = resp.NULLABLE === "Y";
-                    colInfo.isGenerated = resp.IDENTITY_COLUMN === "YES";
-                    colInfo.default =
+                    colInfo.options.name = resp.COLUMN_NAME;
+                    colInfo.options.nullable = resp.NULLABLE === "Y";
+                    colInfo.options.generated = resp.IDENTITY_COLUMN === "YES";
+                    colInfo.options.default =
                         !resp.DATA_DEFAULT || resp.DATA_DEFAULT.includes('"')
                             ? null
                             : this.ReturnDefaultValueFunction(
                                   resp.DATA_DEFAULT
                               );
-                    colInfo.isUnique = resp.IS_UNIQUE > 0;
+                    colInfo.options.unique = resp.IS_UNIQUE > 0;
                     resp.DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
-                    colInfo.sqlType = resp.DATA_TYPE.toLowerCase();
+                    colInfo.options.type = resp.DATA_TYPE.toLowerCase() as any;
                     switch (resp.DATA_TYPE.toLowerCase()) {
                         case "char":
                             colInfo.tsType = "string";
@@ -170,22 +170,22 @@ export class OracleDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.numericPrecision = resp.DATA_PRECISION;
-                        colInfo.numericScale = resp.DATA_SCALE;
+                        colInfo.options.precision = resp.DATA_PRECISION;
+                        colInfo.options.scale = resp.DATA_SCALE;
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.lenght =
-                            resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : null;
+                        colInfo.options.length =
+                            resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : undefined;
                     }
 
-                    if (colInfo.sqlType) {
+                    if (colInfo.options.type) {
                         ent.Columns.push(colInfo);
                     }
                 });

@@ -1,4 +1,3 @@
-
 export class EntityFileToJson {
     public getEntityOptions(trimmedLine: string, ent: EntityJson) {
         const decoratorParameters = trimmedLine.slice(trimmedLine.indexOf('(') + 1, trimmedLine.lastIndexOf(')'))

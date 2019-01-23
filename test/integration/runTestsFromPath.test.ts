@@ -25,14 +25,14 @@ describe("Platform specyfic types", async function () {
     runTestsFromPath(testPartialPath, true);
 })
 describe("GitHub issues", async function () {
-    this.timeout(30000)
-    this.slow(5000)// compiling created models takes time
+    this.timeout(60000)
+    this.slow(30000)// compiling created models takes time
     const testPartialPath = 'test/integration/github-issues'
     runTestsFromPath(testPartialPath, false);
 })
 describe("TypeOrm examples", async function () {
-    this.timeout(30000)
-    this.slow(5000)// compiling created models takes time
+    this.timeout(60000)
+    this.slow(30000)// compiling created models takes time
     const testPartialPath = 'test/integration/examples'
     runTestsFromPath(testPartialPath, false);
 })

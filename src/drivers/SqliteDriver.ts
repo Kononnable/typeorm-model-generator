@@ -47,22 +47,22 @@ export class SqliteDriver extends AbstractDriver {
             response.forEach(resp => {
                 const colInfo: ColumnInfo = new ColumnInfo();
                 colInfo.tsName = resp.name;
-                colInfo.sqlName = resp.name;
-                colInfo.isNullable = resp.notnull === 0;
-                colInfo.isPrimary = resp.pk > 0;
-                colInfo.default = this.ReturnDefaultValueFunction(
+                colInfo.options.name = resp.name;
+                colInfo.options.nullable = resp.notnull === 0;
+                colInfo.options.primary = resp.pk > 0;
+                colInfo.options.default = this.ReturnDefaultValueFunction(
                     resp.dflt_value
                 );
-                colInfo.sqlType = resp.type
+                colInfo.options.type = resp.type
                     .replace(/\([0-9 ,]+\)/g, "")
                     .toLowerCase()
-                    .trim();
-                colInfo.isGenerated =
-                    colInfo.isPrimary &&
+                    .trim() as any;
+                colInfo.options.generated =
+                    colInfo.options.primary &&
                     this.tablesWithGeneratedPrimaryKey.includes(
                         ent.tsEntityName
                     );
-                switch (colInfo.sqlType) {
+                switch (colInfo.options.type) {
                     case "int":
                         colInfo.tsType = "number";
                         break;
@@ -147,7 +147,7 @@ export class SqliteDriver extends AbstractDriver {
                     default:
                         TomgUtils.LogError(
                             `Unknown column type: ${
-                                colInfo.sqlType
+                                colInfo.options.type
                             }  table name: ${ent.tsEntityName} column name: ${
                                 resp.name
                             }`
@@ -157,24 +157,24 @@ export class SqliteDriver extends AbstractDriver {
                 const options = resp.type.match(/\([0-9 ,]+\)/g);
                 if (
                     this.ColumnTypesWithPrecision.some(
-                        v => v === colInfo.sqlType
+                        v => v === colInfo.options.type
                     ) &&
                     options
                 ) {
-                    colInfo.numericPrecision = options[0]
+                    colInfo.options.precision = options[0]
                         .substring(1, options[0].length - 1)
                         .split(",")[0] as any;
-                    colInfo.numericScale = options[0]
+                    colInfo.options.scale = options[0]
                         .substring(1, options[0].length - 1)
                         .split(",")[1] as any;
                 }
                 if (
                     this.ColumnTypesWithLength.some(
-                        v => v === colInfo.sqlType
+                        v => v === colInfo.options.type
                     ) &&
                     options
                 ) {
-                    colInfo.lenght = options[0].substring(
+                    colInfo.options.length = options[0].substring(
                         1,
                         options[0].length - 1
                     ) as any;
@@ -182,18 +182,18 @@ export class SqliteDriver extends AbstractDriver {
                 if (
                     this.ColumnTypesWithWidth.some(
                         v =>
-                            v === colInfo.sqlType &&
+                            v === colInfo.options.type &&
                             colInfo.tsType !== "boolean"
                     ) &&
                     options
                 ) {
-                    colInfo.width = options[0].substring(
+                    colInfo.options.width = options[0].substring(
                         1,
                         options[0].length - 1
                     ) as any;
                 }
 
-                if (colInfo.sqlType) {
+                if (colInfo.options.type) {
                     ent.Columns.push(colInfo);
                 }
             });
@@ -243,7 +243,7 @@ export class SqliteDriver extends AbstractDriver {
                     ) {
                         ent.Columns.filter(
                             v => v.tsName === indexColumnInfo.name
-                        ).map(v => (v.isUnique = true));
+                        ).map(v => (v.options.unique = true));
                     }
                     indexInfo.columns.push(indexColumnInfo);
                 });

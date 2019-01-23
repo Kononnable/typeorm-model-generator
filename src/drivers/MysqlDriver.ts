@@ -50,21 +50,21 @@ export class MysqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
-                    colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.isNullable = resp.IS_NULLABLE === "YES";
-                    colInfo.isGenerated = resp.IsIdentity === 1;
-                    colInfo.isUnique = resp.column_key === "UNI";
-                    colInfo.default = this.ReturnDefaultValueFunction(
+                    colInfo.options.name = resp.COLUMN_NAME;
+                    colInfo.options.nullable = resp.IS_NULLABLE === "YES";
+                    colInfo.options.generated = resp.IsIdentity === 1;
+                    colInfo.options.unique = resp.column_key === "UNI";
+                    colInfo.options.default = this.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
-                    colInfo.sqlType = resp.DATA_TYPE;
+                    colInfo.options.type = resp.DATA_TYPE as any;
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.tsType = "number";
                             break;
                         case "tinyint":
                             if (resp.column_type === "tinyint(1)") {
-                                colInfo.width = 1;
+                                colInfo.options.width = 1;
                                 colInfo.tsType = "boolean";
                             } else {
                                 colInfo.tsType = "number";
@@ -135,7 +135,7 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "enum":
                             colInfo.tsType = "string";
-                            colInfo.enumOptions = resp.column_type
+                            colInfo.options.enum = resp.column_type
                                 .substring(5, resp.column_type.length - 1)
                                 .replace(/\'/gi, '"');
                             break;
@@ -184,36 +184,36 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                        colInfo.numericScale = resp.NUMERIC_SCALE;
+                        colInfo.options.precision = resp.NUMERIC_PRECISION;
+                        colInfo.options.scale = resp.NUMERIC_SCALE;
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.lenght =
+                        colInfo.options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : null;
+                                : undefined;
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
                             v =>
-                                v === colInfo.sqlType &&
+                                v === colInfo.options.type &&
                                 colInfo.tsType !== "boolean"
                         )
                     ) {
-                        colInfo.width =
+                        colInfo.options.width =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : null;
+                                : undefined;
                     }
 
-                    if (colInfo.sqlType) {
+                    if (colInfo.options.type) {
                         ent.Columns.push(colInfo);
                     }
                 });

@@ -60,14 +60,14 @@ export class MssqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     const colInfo: ColumnInfo = new ColumnInfo();
                     colInfo.tsName = resp.COLUMN_NAME;
-                    colInfo.sqlName = resp.COLUMN_NAME;
-                    colInfo.isNullable = resp.IS_NULLABLE === "YES";
-                    colInfo.isGenerated = resp.IsIdentity === 1;
-                    colInfo.isUnique = resp.IsUnique === 1;
-                    colInfo.default = this.ReturnDefaultValueFunction(
+                    colInfo.options.name = resp.COLUMN_NAME;
+                    colInfo.options.nullable = resp.IS_NULLABLE === "YES";
+                    colInfo.options.generated = resp.IsIdentity === 1;
+                    colInfo.options.unique = resp.IsUnique === 1;
+                    colInfo.options.default = this.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
-                    colInfo.sqlType = resp.DATA_TYPE;
+                    colInfo.options.type = resp.DATA_TYPE as any;
                     switch (resp.DATA_TYPE) {
                         case "bigint":
                             colInfo.tsType = "string";
@@ -181,24 +181,24 @@ export class MssqlDriver extends AbstractDriver {
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                        colInfo.numericScale = resp.NUMERIC_SCALE;
+                        colInfo.options.precision = resp.NUMERIC_PRECISION;
+                        colInfo.options.scale = resp.NUMERIC_SCALE;
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.sqlType
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.lenght =
+                        colInfo.options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : null;
+                                : undefined;
                     }
 
-                    if (colInfo.sqlType) {
+                    if (colInfo.options.type) {
                         ent.Columns.push(colInfo);
                     }
                 });

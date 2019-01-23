@@ -81,21 +81,16 @@ describe('MssqlDriver', function () {
         entities.push(y)
         const expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
         expected[0].Columns.push({
-            lenght: null,
-            default: `() => "'a'"`,
-            isNullable: true,
-            isPrimary: false,
-            isGenerated: true,
+            options: {
+                default: `() => "'a'"`,
+                nullable: true,
+                generated: true,
+                name: 'name',
+                unique:false,
+                type: 'int',
+            },
             tsName: 'name',
-            sqlName: 'name',
-            numericPrecision: null,
-            numericScale: null,
-            width: null,
-            sqlType: 'int',
             tsType: 'number',
-            enumOptions: null,
-            isUnique:false,
-            isArray:false,
             relations: [] as RelationInfo[],
         })
         const result = await driver.GetCoulmnsFromEntity(entities, 'schema');

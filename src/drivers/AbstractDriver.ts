@@ -342,10 +342,10 @@ export abstract class AbstractDriver {
                     primaryIndex.columns.some(
                         cIndex => cIndex.name === col.tsName
                     )
-            ).forEach(col => (col.isPrimary = true));
+            ).forEach(col => (col.options.primary = true));
             if (
                 !entity.Columns.some(v => {
-                    return v.isPrimary;
+                    return !!v.options.primary;
                 })
             ) {
                 TomgUtils.LogError(
