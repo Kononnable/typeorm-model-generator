@@ -12,32 +12,32 @@ import chai = require('chai');
 
 chai.use(chaiSubset);
 
-describe("Column default values", async function () {
+it("Column default values", async function () {
     const testPartialPath = 'test/integration/defaultValues'
-    this.timeout(30000)
-    this.slow(5000)// compiling created models takes time
-    runTestsFromPath(testPartialPath, true);
+    this.timeout(60000)
+    this.slow(10000)// compiling created models takes time
+    await runTestsFromPath(testPartialPath, true);
 })
-describe("Platform specyfic types", async function () {
-    this.timeout(30000)
-    this.slow(5000)// compiling created models takes time
+it("Platform specyfic types", async function () {
+    this.timeout(60000)
+    this.slow(10000)// compiling created models takes time
     const testPartialPath = 'test/integration/entityTypes'
-    runTestsFromPath(testPartialPath, true);
+    await runTestsFromPath(testPartialPath, true);
 })
 describe("GitHub issues", async function () {
     this.timeout(60000)
-    this.slow(30000)// compiling created models takes time
+    this.slow(10000)// compiling created models takes time
     const testPartialPath = 'test/integration/github-issues'
     runTestsFromPath(testPartialPath, false);
 })
 describe("TypeOrm examples", async function () {
     this.timeout(60000)
-    this.slow(30000)// compiling created models takes time
+    this.slow(10000)// compiling created models takes time
     const testPartialPath = 'test/integration/examples'
     runTestsFromPath(testPartialPath, false);
 })
 
-export function runTestsFromPath(testPartialPath: string, isDbSpecific: boolean) {
+export async function runTestsFromPath(testPartialPath: string, isDbSpecific: boolean) {
     const resultsPath = path.resolve(process.cwd(), `output`)
     if (!fs.existsSync(resultsPath)) {
         fs.mkdirSync(resultsPath);
@@ -51,13 +51,7 @@ export function runTestsFromPath(testPartialPath: string, isDbSpecific: boolean)
     }
     const files = fs.readdirSync(path.resolve(process.cwd(), testPartialPath));
     if (isDbSpecific) {
-        for (const dbDriver of dbDrivers) {
-            for (const folder of files) {
-                if (dbDriver == folder) {
-                   runTest(dbDriver, testPartialPath, folder);
-                }
-            }
-        }
+        await runTest(dbDrivers, testPartialPath, files);
     } else {
         for (const folder of files) {
             runTestForMultipleDrivers(folder, dbDrivers, testPartialPath);
@@ -71,29 +65,13 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
             const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, testName, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
             dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
-            const filesGenPath = path.resolve(resultsPath, 'entities');
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            const filesGenPath = path.resolve(resultsPath, 'entities');
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);
-            compileGeneratedModel(filesGenPath);
             return { dbModel, generationOptions, connectionOptions, resultsPath, filesOrgPathTS, dbDriver };
         })
-        ///TODO: Find first generated result and compile, compare only it
-        //       Then when all db drivers finished compare only generated dbModels to the first one
-
-
-        //const firstResult = await Promise.race(modelGenerationPromises);
-         const generatedData = await Promise.all(modelGenerationPromises)
-        // for (const iterator of generatedData) {
-
-        //     const filesGenPath = path.resolve(iterator.resultsPath, 'entities');
-        //     modelGenerationPhase(iterator.connectionOptions, iterator.generationOptions, iterator.dbModel);
-        //   //  compareGeneratedFiles(iterator.filesOrgPathTS, filesGenPath);
-        //   //  compileGeneratedModel(filesGenPath);
-        // }
-        // //expect(generatedData[1].dbModel).to.be.deep.eq(generatedData[2].dbModel, `Gennerated models differ for ${generatedData[1].dbDriver} and ${generatedData[2].dbDriver} `)
-        // for (const driverResult of generatedData) {
-        //     expect(firstResult.dbModel).to.be.deep.eq(driverResult.dbModel, `Gennerated models differ for ${firstResult.dbDriver} and ${driverResult.dbDriver} `)
-        // }
+        await Promise.all(modelGenerationPromises)
+        compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
     });
 
     function selectDriversForSpecyficTest() {
@@ -106,14 +84,20 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
     }
 }
 
-function runTest(dbDriver: string, testPartialPath: string, testName: string) {
-    it(dbDriver, async function () {
-        const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, testName, dbDriver);
-        await createModelFromDatabase(driver, connectionOptions, generationOptions);
-        const filesGenPath = path.resolve(resultsPath, 'entities');
-        compareGeneratedFiles(filesOrgPathTS, filesGenPath);
-        compileGeneratedModel(filesGenPath);
-    });
+async function runTest(dbDrivers: string[], testPartialPath: string, files: string[]) {
+
+    const modelGenerationPromises = dbDrivers.filter(driver => files.includes(driver))
+        .map(async dbDriver => {
+            const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
+            let dbModel = await dataCollectionPhase(driver, connectionOptions);
+            dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
+            modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            const filesGenPath = path.resolve(resultsPath, 'entities');
+            compareGeneratedFiles(filesOrgPathTS, filesGenPath);
+            return { dbModel, generationOptions, connectionOptions, resultsPath, filesOrgPathTS, dbDriver };
+        })
+    await Promise.all(modelGenerationPromises)
+    compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
 }
 
 function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
@@ -128,9 +112,12 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     }
 }
 
-function compileGeneratedModel(filesGenPath: string) {
-    const currentDirectoryFiles = fs.readdirSync(filesGenPath).
-        filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => path.resolve(filesGenPath, v));
+function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
+    let currentDirectoryFiles: string[] = [];
+    drivers.forEach(driver => {
+        currentDirectoryFiles.push(...fs.readdirSync(path.resolve(filesGenPath, driver, "entities")).
+            filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => path.resolve(filesGenPath, driver, "entities", v)));
+    });
     const compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
         experimentalDecorators: true,
         sourceMap: false,

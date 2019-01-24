@@ -8,7 +8,7 @@
         "start": " node ./dist/src/index.js",
         "compile": "npm run clean && tsc",
         "precommit": "npm run prettier && git update-index --again",
-        "test": "istanbul cover ./node_modules/mocha/bin/_mocha dist/test/**/*.test.js  -- -R spec",
+        "test": "istanbul cover ./node_modules/mocha/bin/_mocha dist/test/**/*.test.js  -- -R spec --bail",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage.json && codecov --file=./coverage/coverage.json ",
         "clean": "rimraf dist coverage output",
         "prettier": "prettier --write ./src/*.ts ./src/**/*.ts",
