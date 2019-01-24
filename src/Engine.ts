@@ -2,6 +2,7 @@ import changeCase = require("change-case");
 import fs = require("fs");
 import * as Handlebars from "handlebars";
 import path = require("path");
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { MariaDbDriver } from "./drivers/MariaDbDriver";
@@ -47,7 +48,11 @@ export async function createModelFromDatabase(
         );
         return;
     }
-    dbModel = modelCustomizationPhase(dbModel, generationOptions);
+    dbModel = modelCustomizationPhase(
+        dbModel,
+        generationOptions,
+        driver.defaultValues
+    );
     modelGenerationPhase(connectionOptions, generationOptions, dbModel);
 }
 export async function dataCollectionPhase(
@@ -59,14 +64,63 @@ export async function dataCollectionPhase(
 
 export function modelCustomizationPhase(
     dbModel: EntityInfo[],
-    generationOptions: IGenerationOptions
+    generationOptions: IGenerationOptions,
+    defaultValues: DataTypeDefaults
 ) {
     dbModel = setRelationId(generationOptions, dbModel);
     dbModel = applyNamingStrategy(generationOptions.namingStrategy, dbModel);
     dbModel = addImportsAndGenerationOptions(dbModel, generationOptions);
+    dbModel = removeColumnDefaultProperties(dbModel, defaultValues);
     return dbModel;
 }
-
+function removeColumnDefaultProperties(
+    dbModel: EntityInfo[],
+    defaultValues: DataTypeDefaults
+) {
+    if (!defaultValues) {
+        return dbModel;
+    }
+    dbModel.forEach(entity => {
+        entity.Columns.forEach(column => {
+            const defVal = defaultValues[column.options.type as any];
+            if (defVal) {
+                if (
+                    column.options.length &&
+                    defVal.length &&
+                    column.options.length === defVal.length
+                ) {
+                    column.options.length = undefined;
+                    //     console.log(`Default length for ${column.options.type}`)
+                }
+                if (
+                    column.options.precision &&
+                    defVal.precision &&
+                    column.options.precision === defVal.precision
+                ) {
+                    column.options.precision = undefined;
+                    //   console.log(`Default precision for ${column.options.type}`)
+                }
+                if (
+                    column.options.scale &&
+                    defVal.scale &&
+                    column.options.scale === defVal.scale
+                ) {
+                    column.options.scale = undefined;
+                    //     console.log(`Default scale for ${column.options.type}`)
+                }
+                if (
+                    column.options.width &&
+                    defVal.width &&
+                    column.options.width === defVal.width
+                ) {
+                    column.options.width = undefined;
+                    //     console.log(`Default width for ${column.options.type}`)
+                }
+            }
+        });
+    });
+    return dbModel;
+}
 function addImportsAndGenerationOptions(
     dbModel: EntityInfo[],
     generationOptions: IGenerationOptions

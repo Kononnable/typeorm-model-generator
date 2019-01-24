@@ -1,4 +1,7 @@
 import * as MSSQL from "mssql";
+import { ConnectionOptions } from "typeorm";
+import * as TypeormDriver from "typeorm/driver/sqlserver/SqlServerDriver";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
@@ -6,6 +9,9 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class MssqlDriver extends AbstractDriver {
+    public defaultValues: DataTypeDefaults = new TypeormDriver.SqlServerDriver({
+        options: { replication: undefined } as ConnectionOptions
+    } as any).dataTypeDefaults;
     public readonly standardPort = 1433;
     public readonly standardSchema = "dbo";
     public readonly standardUser = "sa";

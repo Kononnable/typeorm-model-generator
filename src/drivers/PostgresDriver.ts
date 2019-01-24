@@ -1,4 +1,7 @@
 import * as PG from "pg";
+import { ConnectionOptions } from "typeorm";
+import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
@@ -6,6 +9,9 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class PostgresDriver extends AbstractDriver {
+    public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
+        options: { replication: undefined } as ConnectionOptions
+    } as any).dataTypeDefaults;
     public readonly standardPort = 5432;
     public readonly standardUser = "postgres";
     public readonly standardSchema = "public";

@@ -70,7 +70,7 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
         const modelGenerationPromises = driversToRun.map(async (dbDriver) => {
             const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, testName, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
-            dbModel = modelCustomizationPhase(dbModel, generationOptions);
+            dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
             const filesGenPath = path.resolve(resultsPath, 'entities');
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);

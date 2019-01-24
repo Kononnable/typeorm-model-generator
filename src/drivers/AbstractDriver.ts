@@ -3,6 +3,7 @@ import {
     WithPrecisionColumnType,
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
@@ -13,6 +14,7 @@ export abstract class AbstractDriver {
     public abstract standardPort: number;
     public abstract standardSchema: string;
     public abstract standardUser: string;
+    public abstract defaultValues: DataTypeDefaults;
 
     public ColumnTypesWithWidth: WithWidthColumnType[] = [
         "tinyint",

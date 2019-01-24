@@ -1,4 +1,7 @@
 import * as MYSQL from "mysql";
+import { ConnectionOptions } from "typeorm";
+import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
@@ -6,6 +9,9 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class MysqlDriver extends AbstractDriver {
+    public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
+        options: { replication: undefined } as ConnectionOptions
+    } as any).dataTypeDefaults;
     public readonly EngineName: string = "MySQL";
     public readonly standardPort = 3306;
     public readonly standardUser = "root";

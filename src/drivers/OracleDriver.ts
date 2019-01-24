@@ -1,3 +1,5 @@
+import * as TypeormDriver from "typeorm/driver/oracle/OracleDriver";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../Engine";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
@@ -5,6 +7,9 @@ import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 
 export class OracleDriver extends AbstractDriver {
+    public defaultValues: DataTypeDefaults = new TypeormDriver.OracleDriver({
+        options: undefined
+    } as any).dataTypeDefaults;
     public readonly standardPort = 1521;
     public readonly standardUser = "SYS";
     public readonly standardSchema = "";
