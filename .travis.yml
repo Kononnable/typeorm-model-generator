@@ -28,11 +28,13 @@ env:
     SQLITE_Skip=0
     SQLITE_Database=/tmp/sqlitedb.db
 before_install:
-- images=(mysql mariadb postgres mssql)
 - sudo service mysql stop
 - sudo service postgresql stop
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; else images=(${images[@]} oracle oracle_client); fi
+- docker-compose pull --parallel --ignore-pull-failures ${images[@]}
+- docker-compose up -d ${images[@]}
+- images=(mysql mariadb postgres mssql)
 - echo ${images[@]}
 - docker-compose pull --parallel --ignore-pull-failures ${images[@]}
 - docker-compose up -d ${images[@]}
@@ -41,7 +43,7 @@ before_script:
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 - npm link typescript
 - tsc
-- sleep 240
+- sleep 120
 
 dd:
   secure: lONUbDz2a1LWId+Z2tTaxajK7MilX/XbQ875FYD6EE09DQ0xcoPdq2/KW5/pxuN1tz4QzTG7izMwra3XWtkBySxqFwJDUOibsgYVgn+EMMuPWNMNnQgXqTTmHbtbm1L1aSMHu4bCu4cJkJBX6503R0Kv4Hbdr2LFnSUI/9KqrevA1cVyksN71BlNBdRtvnHInwB5wNNvGULSLT+DR6qGytLGjq4ZF+pW7dH3A1LNGfDY4ivGPHt9eAWGHcVuESmudO1ADmf6XTZAJVdKqDy5eJguK48XyAqRmTc1vBxDJmCNDaU/mV6fkUoEkCjn9XfG5nJLOKviycc1j/OCuuWuqojmTlRInPGV8GDT8lNivwqLBMzvKoKgSQQROEVus4xzo64M808dFbUS30et3++O589X/7P9Wjmt+6HawcEsSq5TQfEutyB+tM9OwedTkB5Fwwmymuqx23zCAJ2orP7WoIG/ApmnKu6LmpoM340UxxSGkurztQP1OqFrf4u8kDVp9/xzqnd7qSfEd8iKvvb1bOykWGxx6dhyThCdSNyT5GQL3aub3LV6g0UB37lbhB+BVSrOAhN0r1cIWT2wr2mRxwoepObmrcNQ+AOUUXE/RcONsiEQr+STsEIjJb7bTANljRYMKpiPdsAdhvDaUZRyu8KBArTCDPotanzwQFERcw8=
