@@ -17,15 +17,25 @@ async function CliLogic() {
     let connectionOptions: IConnectionOptions;
     let generationOptions: IGenerationOptions;
     if (process.argv.length > 2) {
-        const retval = GetUtilParametersByArgs();
-        driver = retval.driver;
-        connectionOptions = retval.connectionOptions;
-        generationOptions = retval.generationOptions;
+        const retVal = GetUtilParametersByArgs();
+        connectionOptions = retVal.connectionOptions;
+        generationOptions = retVal.generationOptions;
+        driver = retVal.driver;
     } else {
-        const retval = await GetUtilParametersByInquirer();
-        driver = retval.driver;
-        connectionOptions = retval.connectionOptions;
-        generationOptions = retval.generationOptions;
+        if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
+            const retVal = await fs.readJson(
+                path.resolve(process.cwd(), ".tomg-config")
+            );
+            connectionOptions = retVal[0];
+            generationOptions = retVal[1];
+            generationOptions.namingStrategy = new NamingStrategy(); // TODO: For now there is no way to store custom naming strategy
+            driver = createDriver(connectionOptions.databaseType);
+        } else {
+            const retVal = await GetUtilParametersByInquirer();
+            driver = retVal.driver;
+            connectionOptions = retVal.connectionOptions;
+            generationOptions = retVal.generationOptions;
+        }
     }
     console.log(TomgUtils.packageVersion());
     console.log(
@@ -403,6 +413,20 @@ async function GetUtilParametersByInquirer() {
                 namingConventions.propertyCase;
             generationOptions.convertCaseEntity = namingConventions.entityCase;
         }
+    }
+    const saveConfig = ((await inquirer.prompt([
+        {
+            default: true,
+            message: "Save configuration to config file?",
+            name: "saveConfig",
+            type: "confirm"
+        }
+    ])) as any).saveConfig;
+    if (saveConfig) {
+        await fs.writeJson(path.resolve(process.cwd(), ".tomg-config"), [
+            connectionOptions,
+            generationOptions
+        ]);
     }
     return { driver, connectionOptions, generationOptions };
 }
