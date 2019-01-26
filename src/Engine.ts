@@ -3,7 +3,6 @@ import fs = require("fs");
 import * as Handlebars from "handlebars";
 import path = require("path");
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { MariaDbDriver } from "./drivers/MariaDbDriver";
 import { MssqlDriver } from "./drivers/MssqlDriver";
@@ -11,6 +10,8 @@ import { MysqlDriver } from "./drivers/MysqlDriver";
 import { OracleDriver } from "./drivers/OracleDriver";
 import { PostgresDriver } from "./drivers/PostgresDriver";
 import { SqliteDriver } from "./drivers/SqliteDriver";
+import { IConnectionOptions } from "./IConnectionOptions";
+import { IGenerationOptions } from "./IGenerationOptions";
 import { EntityInfo } from "./models/EntityInfo";
 import { NamingStrategy } from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
@@ -134,7 +135,7 @@ function addImportsAndGenerationOptions(
                 }
             });
         });
-        element.GenerateConstructor = generationOptions.constructor;
+        element.GenerateConstructor = generationOptions.generateConstructor;
         element.IsActiveRecord = generationOptions.activeRecord;
         element.Imports.filter((elem, index, self) => {
             return index === self.indexOf(elem);
@@ -459,28 +460,4 @@ function applyNamingStrategy(
         });
         return entities;
     }
-}
-
-export interface IConnectionOptions {
-    host: string;
-    port: number;
-    databaseName: string;
-    user: string;
-    password: string;
-    databaseType: string;
-    schemaName: string;
-    ssl: boolean;
-}
-export interface IGenerationOptions {
-    resultsPath: string;
-    noConfigs: boolean;
-    convertCaseFile: "pascal" | "param" | "camel" | "none";
-    convertCaseEntity: "pascal" | "camel" | "none";
-    convertCaseProperty: "pascal" | "camel" | "none";
-    propertyVisibility: "public" | "protected" | "private" | "none";
-    lazy: boolean;
-    activeRecord: boolean;
-    constructor: boolean;
-    namingStrategy: AbstractNamingStrategy;
-    relationIds: boolean;
 }

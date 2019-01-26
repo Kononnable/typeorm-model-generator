@@ -1,6 +1,6 @@
 import * as TypeormDriver from "typeorm/driver/oracle/OracleDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../Engine";
+import { IConnectionOptions } from "../IConnectionOptions";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";

@@ -9,7 +9,8 @@ import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 import { OracleDriver } from "../../src/drivers/OracleDriver";
 import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { SqliteDriver } from "../../src/drivers/SqliteDriver";
-import { IConnectionOptions, IGenerationOptions } from "../../src/Engine";
+import { IConnectionOptions } from "../../src/IConnectionOptions";
+import { IGenerationOptions } from "../../src/IGenerationOptions";
 import { NamingStrategy } from "../../src/NamingStrategy";
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
@@ -21,7 +22,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         convertCaseProperty: 'none',
         propertyVisibility: 'none',
         lazy: false,
-        constructor: false,
+        generateConstructor: false,
         namingStrategy: new NamingStrategy(),
         relationIds: false,
         activeRecord: false

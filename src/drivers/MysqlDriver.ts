@@ -2,7 +2,7 @@ import * as MYSQL from "mysql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../Engine";
+import { IConnectionOptions } from "../IConnectionOptions";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import * as TomgUtils from "../Utils";

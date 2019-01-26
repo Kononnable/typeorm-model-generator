@@ -4,7 +4,7 @@ import {
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../Engine";
+import { IConnectionOptions } from "../IConnectionOptions";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
 import { RelationInfo } from "../models/RelationInfo";
