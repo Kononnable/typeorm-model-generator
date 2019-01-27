@@ -68,8 +68,19 @@ export function modelCustomizationPhase(
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ) {
+    let namingStrategy: NamingStrategy;
+    if (
+        generationOptions.customNamingStrategyPath &&
+        generationOptions.customNamingStrategyPath !== ""
+    ) {
+        // tslint:disable-next-line:no-var-requires
+        const req = require(generationOptions.customNamingStrategyPath);
+        namingStrategy = new req.NamingStrategy();
+    } else {
+        namingStrategy = new NamingStrategy();
+    }
     dbModel = setRelationId(generationOptions, dbModel);
-    dbModel = applyNamingStrategy(generationOptions.namingStrategy, dbModel);
+    dbModel = applyNamingStrategy(namingStrategy, dbModel);
     dbModel = addImportsAndGenerationOptions(dbModel, generationOptions);
     dbModel = removeColumnDefaultProperties(dbModel, defaultValues);
     return dbModel;

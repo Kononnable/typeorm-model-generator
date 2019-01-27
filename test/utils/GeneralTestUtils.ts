@@ -11,7 +11,6 @@ import { PostgresDriver } from "../../src/drivers/PostgresDriver";
 import { SqliteDriver } from "../../src/drivers/SqliteDriver";
 import { IConnectionOptions } from "../../src/IConnectionOptions";
 import { IGenerationOptions } from "../../src/IGenerationOptions";
-import { NamingStrategy } from "../../src/NamingStrategy";
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     return {
@@ -23,7 +22,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         propertyVisibility: 'none',
         lazy: false,
         generateConstructor: false,
-        namingStrategy: new NamingStrategy(),
+        customNamingStrategyPath: "",
         relationIds: false,
         activeRecord: false
     }

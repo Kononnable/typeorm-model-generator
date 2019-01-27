@@ -2,17 +2,16 @@ import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
 import * as Yargs from "yargs";
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { AbstractDriver } from "./drivers/AbstractDriver";
 import { createDriver, createModelFromDatabase } from "./Engine";
 import { IConnectionOptions } from "./IConnectionOptions";
 import { IGenerationOptions } from "./IGenerationOptions";
-import { NamingStrategy } from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
 CliLogic();
 
 async function CliLogic() {
+    console.log(TomgUtils.packageVersion());
     let driver: AbstractDriver;
     let connectionOptions: IConnectionOptions;
     let generationOptions: IGenerationOptions;
@@ -23,12 +22,14 @@ async function CliLogic() {
         driver = retVal.driver;
     } else {
         if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using configuration file.`
+            );
             const retVal = await fs.readJson(
                 path.resolve(process.cwd(), ".tomg-config")
             );
             connectionOptions = retVal[0];
             generationOptions = retVal[1];
-            generationOptions.namingStrategy = new NamingStrategy(); // TODO: For now there is no way to store custom naming strategy
             driver = createDriver(connectionOptions.databaseType);
         } else {
             const retVal = await GetUtilParametersByInquirer();
@@ -37,7 +38,6 @@ async function CliLogic() {
             generationOptions = retVal.generationOptions;
         }
     }
-    console.log(TomgUtils.packageVersion());
     console.log(
         `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
     );
@@ -163,13 +163,12 @@ function GetUtilParametersByArgs() {
     const standardPort = driver.standardPort;
     const standardSchema = driver.standardSchema;
     const standardUser = driver.standardPort;
-    let namingStrategy: AbstractNamingStrategy;
+    let namingStrategyPath: string;
     if (argv.namingStrategy && argv.namingStrategy !== "") {
         // tslint:disable-next-line:no-var-requires
-        const req = require(argv.namingStrategy);
-        namingStrategy = new req.NamingStrategy();
+        namingStrategyPath = argv.namingStrategy;
     } else {
-        namingStrategy = new NamingStrategy();
+        namingStrategyPath = "";
     }
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
     (connectionOptions.databaseName = argv.d ? argv.d.toString() : null),
@@ -189,7 +188,7 @@ function GetUtilParametersByArgs() {
         (generationOptions.convertCaseFile = argv.cf),
         (generationOptions.convertCaseProperty = argv.cp),
         (generationOptions.lazy = argv.lazy),
-        (generationOptions.namingStrategy = namingStrategy),
+        (generationOptions.customNamingStrategyPath = namingStrategyPath),
         (generationOptions.noConfigs = argv.noConfig),
         (generationOptions.propertyVisibility = argv.pv),
         (generationOptions.relationIds = argv.relationIds),
@@ -378,10 +377,9 @@ async function GetUtilParametersByInquirer() {
 
             if (namingStrategyPath && namingStrategyPath !== "") {
                 // tslint:disable-next-line:no-var-requires
-                const req = require(namingStrategyPath);
-                generationOptions.namingStrategy = new req.NamingStrategy();
+                generationOptions.customNamingStrategyPath = namingStrategyPath;
             } else {
-                generationOptions.namingStrategy = new NamingStrategy();
+                generationOptions.customNamingStrategyPath = "";
             }
         }
         if (customizations.includes("namingConvention")) {
@@ -416,17 +414,22 @@ async function GetUtilParametersByInquirer() {
     }
     const saveConfig = ((await inquirer.prompt([
         {
-            default: true,
+            default: false,
             message: "Save configuration to config file?",
             name: "saveConfig",
             type: "confirm"
         }
     ])) as any).saveConfig;
     if (saveConfig) {
-        await fs.writeJson(path.resolve(process.cwd(), ".tomg-config"), [
-            connectionOptions,
-            generationOptions
-        ]);
+        await fs.writeJson(
+            path.resolve(process.cwd(), ".tomg-config"),
+            [connectionOptions, generationOptions],
+            { spaces: "\t" }
+        );
+        console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
+        console.warn(
+            `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Password was saved as plain text.\x1b[0m`
+        );
     }
     return { driver, connectionOptions, generationOptions };
 }

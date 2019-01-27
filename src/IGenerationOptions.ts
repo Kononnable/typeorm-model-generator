@@ -1,5 +1,3 @@
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { NamingStrategy } from "./NamingStrategy";
 export class IGenerationOptions {
     public resultsPath: string = "";
     public noConfigs: boolean = false;
@@ -11,6 +9,6 @@ export class IGenerationOptions {
     public lazy: boolean = false;
     public activeRecord: boolean = false;
     public generateConstructor: boolean = false;
-    public namingStrategy: AbstractNamingStrategy = new NamingStrategy();
+    public customNamingStrategyPath: string = "";
     public relationIds: boolean = false;
 }
