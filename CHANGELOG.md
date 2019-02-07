@@ -1,5 +1,12 @@
 # Changelog
 
+# 0.3.0
+* Wizard mode - you can now run model generation without passing any parameters and provide them step by step. It also allows you to save provided informations for future use
+* generated columns no longer contains options which are set by default in typeorm
+* added support for VARBINARY type on MySQL, MariaDb
+* fixed issue with case convertion and @RetlationId fields
+* a lot of internal work
+
 ## 0.2.25
 * fixed naming strategy changing entity name in db
 * fixed proper relation generation when unique index have more columns
