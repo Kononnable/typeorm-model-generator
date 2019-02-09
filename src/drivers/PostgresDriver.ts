@@ -453,7 +453,8 @@ export class PostgresDriver extends AbstractDriver {
             ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             object_id: string;
-        }> = (await this.Connection.query(`SELECT
+            // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
+        }> = (await this.Connection.query(`SELECT DISTINCT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -461,7 +462,7 @@ export class PostgresDriver extends AbstractDriver {
               att.attname AS foreignkeycolumnreferenced,
               delete_rule as ondelete,
               update_rule as onupdate,
-                con.conname as object_id
+                concat(con.conname,con.conrelid,con.confrelid) as object_id
                FROM (
                    SELECT
                      unnest(con1.conkey) AS parent,
@@ -469,7 +470,8 @@ export class PostgresDriver extends AbstractDriver {
                      con1.confrelid,
                      con1.conrelid,
                      cl_1.relname,
-                   con1.conname
+                   con1.conname,
+                   nspname
                    FROM
                      pg_class cl_1,
                      pg_namespace ns,
@@ -490,7 +492,8 @@ export class PostgresDriver extends AbstractDriver {
                 AND cl.oid = con.confrelid
                 AND att2.attrelid = con.conrelid
                 AND att2.attnum = con.parent
-                and rc.constraint_name= con.conname`)).rows;
+                AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
+                `)).rows;
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
