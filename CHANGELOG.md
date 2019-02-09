@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1
+* Fixed npx ussage(#146)
+
 # 0.3.0
 * Wizard mode - you can now run model generation without passing any parameters and provide them step by step. It also allows you to save provided informations for future use
 * generated columns no longer contains options which are set by default in typeorm
