@@ -2,8 +2,7 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 {{relationImports}}{{#each UniqueImports}}import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName this}}";
 {{/each}}
 
-
-@Entity("{{sqlEntityName}}"{{#Schema}},{schema:"{{.}}"}{{/Schema}})
+@Entity("{{sqlEntityName}}"{{#if Schema}},{{#if isMySQL}}{database{{else}}{schema{{/if}}:"{{Schema}}"}{{/if}})
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
 {{#Columns}}

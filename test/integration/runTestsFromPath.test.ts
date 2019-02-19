@@ -9,6 +9,7 @@ import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
 import chaiSubset = require('chai-subset');
 import chai = require('chai');
+import { MysqlDriver } from "../../src/drivers/MysqlDriver";
 
 chai.use(chaiSubset);
 
@@ -65,7 +66,7 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
             const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, testName, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
             dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
-            modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            modelGenerationPhase(connectionOptions, generationOptions, dbModel, driver instanceof MysqlDriver);
             const filesGenPath = path.resolve(resultsPath, 'entities');
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);
             return { dbModel, generationOptions, connectionOptions, resultsPath, filesOrgPathTS, dbDriver };
@@ -91,7 +92,7 @@ async function runTest(dbDrivers: string[], testPartialPath: string, files: stri
             const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
             dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
-            modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            modelGenerationPhase(connectionOptions, generationOptions, dbModel, driver instanceof MysqlDriver);
             const filesGenPath = path.resolve(resultsPath, 'entities');
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);
             return { dbModel, generationOptions, connectionOptions, resultsPath, filesOrgPathTS, dbDriver };

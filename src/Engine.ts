@@ -54,7 +54,12 @@ export async function createModelFromDatabase(
         generationOptions,
         driver.defaultValues
     );
-    modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+    modelGenerationPhase(
+        connectionOptions,
+        generationOptions,
+        dbModel,
+        driver instanceof MysqlDriver
+    );
 }
 export async function dataCollectionPhase(
     driver: AbstractDriver,
@@ -173,7 +178,8 @@ function setRelationId(
 export function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
-    databaseModel: EntityInfo[]
+    databaseModel: EntityInfo[],
+    isMySQL: boolean
 ) {
     createHandlebarsHelpers(generationOptions);
     const templatePath = path.resolve(__dirname, "../../src/entity.mst");
@@ -211,7 +217,7 @@ export function modelGenerationPhase(
                 break;
         }
         const resultFilePath = path.resolve(entitesPath, casedFileName + ".ts");
-        const rendered = compliedTemplate(element);
+        const rendered = compliedTemplate(Object.assign(element, { isMySQL }));
         fs.writeFileSync(resultFilePath, rendered, {
             encoding: "UTF-8",
             flag: "w"
