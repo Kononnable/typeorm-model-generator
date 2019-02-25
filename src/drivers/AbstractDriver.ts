@@ -113,6 +113,7 @@ export abstract class AbstractDriver {
 
                 const column1 = new ColumnInfo();
                 column1.tsName = namesOfRelatedTables[1];
+                column1.options.name = entity.sqlEntityName;
 
                 const col1Rel = new RelationInfo();
                 col1Rel.relatedTable = namesOfRelatedTables[1];

@@ -1,5 +1,7 @@
 # Changelog
 
+* fixed generation of ManyToMany relations on junction tables with custom names(#151)
+
 ## 0.3.1
 * Fixed npx ussage(#146)
 
