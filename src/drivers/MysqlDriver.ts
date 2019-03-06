@@ -44,11 +44,11 @@ export class MysqlDriver extends AbstractDriver {
             NUMERIC_PRECISION: number;
             NUMERIC_SCALE: number;
             IsIdentity: number;
-            column_type: string;
-            column_key: string;
+            COLUMN_TYPE: string;
+            COLUMN_KEY: string;
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, column_type, column_key
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
         entities.forEach(ent => {
             response
@@ -59,7 +59,7 @@ export class MysqlDriver extends AbstractDriver {
                     colInfo.options.name = resp.COLUMN_NAME;
                     colInfo.options.nullable = resp.IS_NULLABLE === "YES";
                     colInfo.options.generated = resp.IsIdentity === 1;
-                    colInfo.options.unique = resp.column_key === "UNI";
+                    colInfo.options.unique = resp.COLUMN_KEY === "UNI";
                     colInfo.options.default = this.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
@@ -69,7 +69,7 @@ export class MysqlDriver extends AbstractDriver {
                             colInfo.tsType = "number";
                             break;
                         case "tinyint":
-                            if (resp.column_type === "tinyint(1)") {
+                            if (resp.COLUMN_TYPE === "tinyint(1)") {
                                 colInfo.options.width = 1;
                                 colInfo.tsType = "boolean";
                             } else {
@@ -141,9 +141,10 @@ export class MysqlDriver extends AbstractDriver {
                             break;
                         case "enum":
                             colInfo.tsType = "string";
-                            colInfo.options.enum = resp.column_type
-                                .substring(5, resp.column_type.length - 1)
-                                .replace(/\'/gi, '"');
+                            colInfo.options.enum = resp.COLUMN_TYPE.substring(
+                                5,
+                                resp.COLUMN_TYPE.length - 1
+                            ).replace(/\'/gi, '"');
                             break;
                         case "json":
                             colInfo.tsType = "Object";
