@@ -23,7 +23,10 @@ async function CliLogic() {
     } else {
         if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
             console.log(
-                `[${new Date().toLocaleTimeString()}] Using configuration file.`
+                `[${new Date().toLocaleTimeString()}] Using configuration file. [${path.resolve(
+                    process.cwd(),
+                    ".tomg-config"
+                )}]`
             );
             const retVal = await fs.readJson(
                 path.resolve(process.cwd(), ".tomg-config")
@@ -62,7 +65,8 @@ function GetUtilParametersByArgs() {
         .option("d", {
             alias: "database",
             demand: true,
-            describe: "Database name(or path for sqlite)"
+            describe:
+                "Database name(or path for sqlite). You can pass multiple values separted by comma."
         })
         .option("u", {
             alias: "user",
@@ -98,7 +102,7 @@ function GetUtilParametersByArgs() {
         .option("s", {
             alias: "schema",
             describe:
-                "Schema name to create model from. Only for mssql and postgres"
+                "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separted by comma."
         })
         .option("ssl", {
             boolean: true,
@@ -258,7 +262,8 @@ async function GetUtilParametersByInquirer() {
             },
             {
                 default: "",
-                message: "Database name:",
+                message:
+                    "Database name: (You can pass multiple values separted by comma)",
                 name: "dbName",
                 type: "input"
             }
@@ -270,7 +275,8 @@ async function GetUtilParametersByInquirer() {
             connectionOptions.schemaName = ((await inquirer.prompt([
                 {
                     default: driver.standardSchema,
-                    message: "Database schema:",
+                    message:
+                        "Database schema: (You can pass multiple values separted by comma)",
                     name: "schema",
                     type: "input"
                 }

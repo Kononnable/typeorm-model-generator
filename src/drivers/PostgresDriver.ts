@@ -22,8 +22,9 @@ export class PostgresDriver extends AbstractDriver {
         const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            DB_NAME: string;
         }> = (await this.Connection.query(
-            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
+            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
         )).rows;
         return response;
     };

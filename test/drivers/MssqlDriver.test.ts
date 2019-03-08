@@ -45,7 +45,7 @@ describe('MssqlDriver', function () {
                     return response;
                 }
             })
-        const result = await driver.GetAllTables('schema')
+        const result = await driver.GetAllTables('schema', 'db')
         const expectedResult = [] as EntityInfo[];
         const y = new EntityInfo();
         y.tsEntityName = 'name'
@@ -53,6 +53,7 @@ describe('MssqlDriver', function () {
         y.Schema='schema'
         y.Columns = [] as ColumnInfo[];
         y.Indexes = [] as IndexInfo[];
+        y.Database = "";
         expectedResult.push(y)
         expect(result).to.be.deep.equal(expectedResult)
     })
@@ -78,6 +79,7 @@ describe('MssqlDriver', function () {
         y.tsEntityName = 'name'
         y.Columns = [] as ColumnInfo[];
         y.Indexes = [] as IndexInfo[];
+        y.Database = "";
         entities.push(y)
         const expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
         expected[0].Columns.push({
@@ -93,7 +95,7 @@ describe('MssqlDriver', function () {
             tsType: 'number',
             relations: [] as RelationInfo[],
         })
-        const result = await driver.GetCoulmnsFromEntity(entities, 'schema');
+        const result = await driver.GetCoulmnsFromEntity(entities, 'schema','db');
         expect(result).to.be.deep.equal(expected)
     })
     it('should find primary indexes')

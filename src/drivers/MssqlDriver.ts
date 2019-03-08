@@ -17,20 +17,25 @@ export class MssqlDriver extends AbstractDriver {
     public readonly standardUser = "sa";
 
     private Connection: MSSQL.ConnectionPool;
-    public GetAllTablesQuery = async (schema: string) => {
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const request = new MSSQL.Request(this.Connection);
         const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            DB_NAME: string;
         }> = (await request.query(
-            `SELECT TABLE_SCHEMA,TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema})`
+            `SELECT TABLE_SCHEMA,TABLE_NAME, table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
+                dbNames
+            )})`
         )).recordset;
         return response;
     };
 
     public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
         const response: Array<{
@@ -56,8 +61,9 @@ export class MssqlDriver extends AbstractDriver {
         and tc.TABLE_NAME = c.TABLE_NAME
         and cu.COLUMN_NAME = c.COLUMN_NAME
         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-   FROM INFORMATION_SCHEMA.COLUMNS c where TABLE_SCHEMA in (${schema})`))
-            .recordset;
+   FROM INFORMATION_SCHEMA.COLUMNS c where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
+            dbNames
+        )})`)).recordset;
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
@@ -213,7 +219,8 @@ export class MssqlDriver extends AbstractDriver {
     }
     public async GetIndexesFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
         const response: Array<{
@@ -222,26 +229,37 @@ export class MssqlDriver extends AbstractDriver {
             ColumnName: string;
             is_unique: boolean;
             is_primary_key: boolean;
-        }> = (await request.query(`SELECT
-     TableName = t.name,
-     IndexName = ind.name,
-     ColumnName = col.name,
-     ind.is_unique,
-     ind.is_primary_key
-FROM
-     sys.indexes ind
-INNER JOIN
-     sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
-INNER JOIN
-     sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
-INNER JOIN
-     sys.tables t ON ind.object_id = t.object_id
-INNER JOIN
-     sys.schemas s on s.schema_id=t.schema_id
-WHERE
-     t.is_ms_shipped = 0 and s.name in (${schema})
-ORDER BY
-     t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
+        }> = [];
+        for (const dbName of dbNames.split(",")) {
+            await this.UseDB(dbName);
+            const resp: Array<{
+                TableName: string;
+                IndexName: string;
+                ColumnName: string;
+                is_unique: boolean;
+                is_primary_key: boolean;
+            }> = (await request.query(`SELECT
+         TableName = t.name,
+         IndexName = ind.name,
+         ColumnName = col.name,
+         ind.is_unique,
+         ind.is_primary_key
+    FROM
+         sys.indexes ind
+    INNER JOIN
+         sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
+    INNER JOIN
+         sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
+    INNER JOIN
+         sys.tables t ON ind.object_id = t.object_id
+    INNER JOIN
+         sys.schemas s on s.schema_id=t.schema_id
+    WHERE
+         t.is_ms_shipped = 0 and s.name in (${schema})
+    ORDER BY
+         t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
+            response.push(...resp);
+        }
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -272,7 +290,8 @@ ORDER BY
     }
     public async GetRelations(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
         const response: Array<{
@@ -284,7 +303,19 @@ ORDER BY
             onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             object_id: number;
-        }> = (await request.query(`select
+        }> = [];
+        for (const dbName of dbNames.split(",")) {
+            await this.UseDB(dbName);
+            const resp: Array<{
+                TableWithForeignKey: string;
+                FK_PartNo: number;
+                ForeignKeyColumn: string;
+                TableReferenced: string;
+                ForeignKeyColumnReferenced: string;
+                onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                object_id: number;
+            }> = (await request.query(`select
     parentTable.name as TableWithForeignKey,
     fkc.constraint_column_id as FK_PartNo,
      parentColumn.name as ForeignKeyColumn,
@@ -311,6 +342,8 @@ where
     fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
 order by
     TableWithForeignKey, FK_PartNo`)).recordset;
+            response.push(...resp);
+        }
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
@@ -362,8 +395,9 @@ order by
         }
     }
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
+        const databaseName = connectionOptons.databaseName.split(",")[0];
         const config: MSSQL.config = {
-            database: connectionOptons.databaseName,
+            database: databaseName,
             options: {
                 appName: "typeorm-model-generator",
                 encrypt: connectionOptons.ssl

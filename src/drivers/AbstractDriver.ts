@@ -60,11 +60,13 @@ export abstract class AbstractDriver {
     ];
 
     public abstract GetAllTablesQuery: (
-        schema: string
+        schema: string,
+        dbNames: string
     ) => Promise<
         Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            DB_NAME: string;
         }>
     >;
 
@@ -146,12 +148,28 @@ export abstract class AbstractDriver {
     ): Promise<EntityInfo[]> {
         let dbModel = [] as EntityInfo[];
         await this.ConnectToServer(connectionOptons);
-        const sqlEscapedSchema =
-            "'" + connectionOptons.schemaName.split(",").join("','") + "'";
-        dbModel = await this.GetAllTables(sqlEscapedSchema);
-        await this.GetCoulmnsFromEntity(dbModel, sqlEscapedSchema);
-        await this.GetIndexesFromEntity(dbModel, sqlEscapedSchema);
-        dbModel = await this.GetRelations(dbModel, sqlEscapedSchema);
+        const sqlEscapedSchema = this.escapeCommaSeparatedList(
+            connectionOptons.schemaName
+        );
+        dbModel = await this.GetAllTables(
+            sqlEscapedSchema,
+            connectionOptons.databaseName
+        );
+        await this.GetCoulmnsFromEntity(
+            dbModel,
+            sqlEscapedSchema,
+            connectionOptons.databaseName
+        );
+        await this.GetIndexesFromEntity(
+            dbModel,
+            sqlEscapedSchema,
+            connectionOptons.databaseName
+        );
+        dbModel = await this.GetRelations(
+            dbModel,
+            sqlEscapedSchema,
+            connectionOptons.databaseName
+        );
         await this.DisconnectFromServer();
         dbModel = this.FindManyToManyRelations(dbModel);
         this.FindPrimaryColumnsFromIndexes(dbModel);
@@ -160,8 +178,11 @@ export abstract class AbstractDriver {
 
     public abstract async ConnectToServer(connectionOptons: IConnectionOptions);
 
-    public async GetAllTables(schema: string): Promise<EntityInfo[]> {
-        const response = await this.GetAllTablesQuery(schema);
+    public async GetAllTables(
+        schema: string,
+        dbNames: string
+    ): Promise<EntityInfo[]> {
+        const response = await this.GetAllTablesQuery(schema, dbNames);
         const ret: EntityInfo[] = [] as EntityInfo[];
         response.forEach(val => {
             const ent: EntityInfo = new EntityInfo();
@@ -170,6 +191,7 @@ export abstract class AbstractDriver {
             ent.Schema = val.TABLE_SCHEMA;
             ent.Columns = [] as ColumnInfo[];
             ent.Indexes = [] as IndexInfo[];
+            ent.Database = dbNames.includes(",") ? val.DB_NAME : "";
             ret.push(ent);
         });
         return ret;
@@ -325,15 +347,18 @@ export abstract class AbstractDriver {
     }
     public abstract async GetCoulmnsFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]>;
     public abstract async GetIndexesFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]>;
     public abstract async GetRelations(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]>;
 
     public FindPrimaryColumnsFromIndexes(dbModel: EntityInfo[]) {
@@ -364,4 +389,9 @@ export abstract class AbstractDriver {
     public abstract async DropDB(dbName: string);
     public abstract async UseDB(dbName: string);
     public abstract async CheckIfDBExists(dbName: string): Promise<boolean>;
+
+    // TODO: change name
+    protected escapeCommaSeparatedList(commaSeparatedList: string) {
+        return "'" + commaSeparatedList.split(",").join("','") + "'";
+    }
 }
