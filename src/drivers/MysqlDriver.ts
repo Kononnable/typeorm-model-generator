@@ -181,6 +181,8 @@ export class MysqlDriver extends AbstractDriver {
                             colInfo.tsType = "string";
                             break;
                         case "geometrycollection":
+                        case "geomcollection":
+                            colInfo.options.type = "geometrycollection";
                             colInfo.tsType = "string";
                             break;
                         default:

@@ -2,6 +2,7 @@
 
 * added option to generate models based on multiple databases(#144)
 * fixed generation of ManyToMany relations on junction tables with custom names(#151)
+* fixed problems with mysql 8
 
 ## 0.3.1
 * Fixed npx ussage(#146)
