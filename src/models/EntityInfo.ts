@@ -10,6 +10,7 @@ export class EntityInfo {
     public Schema: string;
     public GenerateConstructor: boolean;
     public IsActiveRecord: boolean;
+    public Database: string;
 
     public relationImports() {
         const imports: string[] = [];

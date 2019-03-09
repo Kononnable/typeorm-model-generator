@@ -9,6 +9,9 @@ import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils"
 import chaiSubset = require('chai-subset');
 import chai = require('chai');
+import { IConnectionOptions } from "../../src/IConnectionOptions";
+import yn = require("yn");
+import { EntityInfo } from "../../src/models/EntityInfo";
 
 chai.use(chaiSubset);
 
@@ -63,7 +66,17 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
         const driversToRun = selectDriversForSpecyficTest();
         const modelGenerationPromises = driversToRun.map(async (dbDriver) => {
             const { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS } = await prepareTestRuns(testPartialPath, testName, dbDriver);
-            let dbModel = await dataCollectionPhase(driver, connectionOptions);
+            let dbModel: EntityInfo[] = [];
+            switch (testName) {
+                case '144':
+                    dbModel = await dataCollectionPhase(driver, Object.assign(connectionOptions, { databaseName: 'db1,db2' }));
+                    break;
+
+                default:
+                    dbModel = await dataCollectionPhase(driver, connectionOptions);
+                    break;
+            }
+
             dbModel = modelCustomizationPhase(dbModel, generationOptions, driver.defaultValues);
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
             const filesGenPath = path.resolve(resultsPath, 'entities');
@@ -78,6 +91,8 @@ function runTestForMultipleDrivers(testName: string, dbDrivers: string[], testPa
         switch (testName) {
             case '39':
                 return dbDrivers.filter(dbDriver => !['mysql', 'mariadb', 'oracle', 'sqlite'].includes(dbDriver))
+            case '144':
+                return dbDrivers.filter(dbDriver => ['mysql', 'mariadb'].includes(dbDriver))
             default:
                 return dbDrivers;
         }
@@ -115,8 +130,11 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
 function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
     let currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
-        currentDirectoryFiles.push(...fs.readdirSync(path.resolve(filesGenPath, driver, "entities")).
+        const entitiesPath = path.resolve(filesGenPath, driver, "entities");
+        if (fs.existsSync(entitiesPath)){
+        currentDirectoryFiles.push(...fs.readdirSync(entitiesPath).
             filter(fileName => fileName.length >= 3 && fileName.substr(fileName.length - 3, 3) === ".ts").map(v => path.resolve(filesGenPath, driver, "entities", v)));
+        }
     });
     const compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
         experimentalDecorators: true,
@@ -135,7 +153,6 @@ async function prepareTestRuns(testPartialPath: string, testName: string, dbDriv
     const resultsPath = path.resolve(process.cwd(), `output`, dbDriver);
     fs.removeSync(resultsPath);
     const driver = createDriver(dbDriver);
-    const connectionOptions = await GTU.createModelsInDb(dbDriver, filesOrgPathJS);
     const generationOptions = GTU.getGenerationOptions(resultsPath);
     switch (testName) {
         case '65':
@@ -144,9 +161,52 @@ async function prepareTestRuns(testPartialPath: string, testName: string, dbDriv
         case 'sample18-lazy-relations':
             generationOptions.lazy = true;
             break;
+        case '144':
+
+            let connectionOptions: IConnectionOptions;
+            switch (dbDriver) {
+                case 'mysql':
+                    connectionOptions = {
+                        host: String(process.env.MYSQL_Host),
+                        port: Number(process.env.MYSQL_Port),
+                        databaseName: String(process.env.MYSQL_Database),
+                        user: String(process.env.MYSQL_Username),
+                        password: String(process.env.MYSQL_Password),
+                        databaseType: 'mysql',
+                        schemaName: 'ignored',
+                        ssl: yn(process.env.MYSQL_SSL),
+                    }
+                    break;
+                case 'mariadb':
+                    connectionOptions = {
+                        host: String(process.env.MARIADB_Host),
+                        port: Number(process.env.MARIADB_Port),
+                        databaseName: String(process.env.MARIADB_Database),
+                        user: String(process.env.MARIADB_Username),
+                        password: String(process.env.MARIADB_Password),
+                        databaseType: 'mariadb',
+                        schemaName: 'ignored',
+                        ssl: yn(process.env.MARIADB_SSL),
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+
+            await driver.ConnectToServer(connectionOptions!);
+            if (! await driver.CheckIfDBExists('db1')) {
+                var x = await driver.CreateDB('db1')
+            }
+            if (! await driver.CheckIfDBExists('db2')) {
+                var t = await driver.CreateDB('db2')
+            }
+            await driver.DisconnectFromServer();
+            break;
         default:
             break;
     }
+    const connectionOptions = await GTU.createModelsInDb(dbDriver, filesOrgPathJS);
     return { generationOptions, driver, connectionOptions, resultsPath, filesOrgPathTS };
 }
 

@@ -19,20 +19,22 @@ export class MysqlDriver extends AbstractDriver {
 
     private Connection: MYSQL.Connection;
 
-    public GetAllTablesQuery = async (schema: string) => {
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const response = this.ExecQuery<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
-        }>(`SELECT TABLE_SCHEMA, TABLE_NAME
+            DB_NAME: string;
+        }>(`SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
             FROM information_schema.tables
             WHERE table_type='BASE TABLE'
-            AND table_schema like DATABASE()`);
+            AND table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
         return response;
     };
 
     public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const response = await this.ExecQuery<{
             TABLE_NAME: string;
@@ -49,7 +51,9 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
-            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
+            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(
+                dbNames
+            )})`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
@@ -229,7 +233,8 @@ export class MysqlDriver extends AbstractDriver {
     }
     public async GetIndexesFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const response = await this.ExecQuery<{
             TableName: string;
@@ -240,8 +245,7 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
-            WHERE table_schema like DATABASE();
-            `);
+            WHERE table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -272,7 +276,8 @@ export class MysqlDriver extends AbstractDriver {
     }
     public async GetRelations(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
         const response = await this.ExecQuery<{
             TableWithForeignKey: string;
@@ -298,7 +303,7 @@ export class MysqlDriver extends AbstractDriver {
             INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
                 ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
-            TABLE_SCHEMA = SCHEMA()
+            TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(dbNames)})
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
@@ -348,10 +353,11 @@ export class MysqlDriver extends AbstractDriver {
         }
     }
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
+        const databaseName = connectionOptons.databaseName.split(",")[0];
         let config: MYSQL.ConnectionConfig;
         if (connectionOptons.ssl) {
             config = {
-                database: connectionOptons.databaseName,
+                database: databaseName,
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
@@ -362,7 +368,7 @@ export class MysqlDriver extends AbstractDriver {
             };
         } else {
             config = {
-                database: connectionOptons.databaseName,
+                database: databaseName,
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,

@@ -32,8 +32,9 @@ export class OracleDriver extends AbstractDriver {
         const response: Array<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            DB_NAME: string;
         }> = (await this.Connection.execute(
-            ` SELECT NULL AS TABLE_SCHEMA, TABLE_NAME FROM all_tables WHERE  owner = (select user from dual)`
+            ` SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE  owner = (select user from dual)`
         )).rows!;
         return response;
     };
