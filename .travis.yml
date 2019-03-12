@@ -43,7 +43,7 @@ before_script:
 - npm link typescript
 - tsc
 - sleep 60
-test:
+script:
 - travis_retry npm t
 after_success:
 - codecov --file=./coverage/coverage.json
