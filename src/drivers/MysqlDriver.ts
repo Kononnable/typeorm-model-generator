@@ -428,8 +428,11 @@ export class MysqlDriver extends AbstractDriver {
         return ret;
     }
     private ReturnDefaultValueFunction(defVal: string | null): string | null {
-        if (!defVal) {
+        if (!defVal || defVal === "NULL") {
             return null;
+        }
+        if (defVal.toLowerCase() === "current_timestamp()") {
+            defVal = "CURRENT_TIMESTAMP";
         }
         if (defVal === "CURRENT_TIMESTAMP" || defVal.startsWith(`'`)) {
             return `() => "${defVal}"`;

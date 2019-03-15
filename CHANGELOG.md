@@ -3,8 +3,9 @@
 * added option to generate models based on multiple databases(#144)
 * fixed generation of ManyToMany relations on junction tables with custom names(#151)
 * fixed problems with mysql 8
-* fixed shadowed variables tslint errors( #141)
-* fixed generated columns order
+* fixed shadowed variables tslint errors(#141)
+* fixed order of generated columns
+* mariadb default value comatibility changes(#153)
 
 ## 0.3.1
 * Fixed npx ussage(#146)
