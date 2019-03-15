@@ -53,7 +53,8 @@ export class MysqlDriver extends AbstractDriver {
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(
                 dbNames
-            )})`);
+            )})
+			order by ordinal_position`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)

@@ -102,7 +102,6 @@ function removeColumnDefaultProperties(
                     column.options.length === defVal.length
                 ) {
                     column.options.length = undefined;
-                    //     console.log(`Default length for ${column.options.type}`)
                 }
                 if (
                     column.options.precision &&
@@ -110,7 +109,6 @@ function removeColumnDefaultProperties(
                     column.options.precision === defVal.precision
                 ) {
                     column.options.precision = undefined;
-                    //   console.log(`Default precision for ${column.options.type}`)
                 }
                 if (
                     column.options.scale &&
@@ -118,7 +116,6 @@ function removeColumnDefaultProperties(
                     column.options.scale === defVal.scale
                 ) {
                     column.options.scale = undefined;
-                    //     console.log(`Default scale for ${column.options.type}`)
                 }
                 if (
                     column.options.width &&
@@ -126,7 +123,6 @@ function removeColumnDefaultProperties(
                     column.options.width === defVal.width
                 ) {
                     column.options.width = undefined;
-                    //     console.log(`Default width for ${column.options.type}`)
                 }
             }
         });

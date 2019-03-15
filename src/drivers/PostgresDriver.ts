@@ -58,8 +58,9 @@ export class PostgresDriver extends AbstractDriver {
         and tc.TABLE_NAME = c.TABLE_NAME
         and cu.COLUMN_NAME = c.COLUMN_NAME
         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-            FROM INFORMATION_SCHEMA.COLUMNS c where table_schema in (${schema})`))
-            .rows;
+            FROM INFORMATION_SCHEMA.COLUMNS c
+            where table_schema in (${schema})
+			order by ordinal_position`)).rows;
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.table_name === ent.tsEntityName)

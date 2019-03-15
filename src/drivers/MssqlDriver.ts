@@ -61,9 +61,11 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         and tc.TABLE_NAME = c.TABLE_NAME
         and cu.COLUMN_NAME = c.COLUMN_NAME
         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-   FROM INFORMATION_SCHEMA.COLUMNS c where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
+   FROM INFORMATION_SCHEMA.COLUMNS c
+   where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
             dbNames
-        )})`)).recordset;
+        )})
+        order by ordinal_position`)).recordset;
         entities.forEach(ent => {
             response
                 .filter(filterVal => {

@@ -4,6 +4,7 @@
 * fixed generation of ManyToMany relations on junction tables with custom names(#151)
 * fixed problems with mysql 8
 * fixed shadowed variables tslint errors( #141)
+* fixed generated columns order
 
 ## 0.3.1
 * Fixed npx ussage(#146)
