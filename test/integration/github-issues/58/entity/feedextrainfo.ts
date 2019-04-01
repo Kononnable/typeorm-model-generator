@@ -4,33 +4,33 @@ import {quests} from "./quests";
 
 
 @Entity("feedextrainfo")
-@Index("feedExtraInfo_FeedOwnerId_idx",["FeedOwnerId",])
-@Index("feedExtraInfo_ReaderId_idx",["ReaderId",])
-@Index("feedExtraInfo_QuestId_idx",["QuestId",])
+@Index("feedExtraInfo_FeedOwnerId_idx",["feedOwnerId",],{unique:true})
+@Index("feedExtraInfo_ReaderId_idx",["readerId",],{unique:true})
+@Index("feedExtraInfo_QuestId_idx",["questId",],{unique:true})
 export class feedextrainfo {
 
-   
+
     @OneToOne(type=>users, FeedOwnerId=>FeedOwnerId.feedextrainfo,{primary:true, nullable:false, })
     @JoinColumn({ name:'FeedOwnerId'})
-    FeedOwnerId:users;
-    
+    feedOwnerId:users;
 
-   
+
+
     @OneToOne(type=>quests, QuestId=>QuestId.feedextrainfo,{primary:true, nullable:false, })
     @JoinColumn({ name:'QuestId'})
-    QuestId:quests;
-    
+    questId:quests;
 
-   
+
+
     @OneToOne(type=>users, ReaderId=>ReaderId.feedextrainfo2,{primary:true, nullable:false, })
     @JoinColumn({ name:'ReaderId'})
-    ReaderId:users;
-    
+    readerId:users;
 
-    @Column("int",{ 
+
+    @Column("int",{
         nullable:false,
         name:"MostUpdatedFeedEntryIdUserRead"
         })
     MostUpdatedFeedEntryIdUserRead:number;
-        
+
 }

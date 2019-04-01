@@ -1,24 +1,28 @@
 import { ColumnInfo } from "./ColumnInfo";
 
 export class EntityInfo {
-    EntityName: string;
-    Columns: ColumnInfo[];
-    Imports: string[];
-    UniqueImports: string[];
-    Indexes: IndexInfo[];
-    Schema: string;
-    GenerateConstructor: boolean;
+    public tsEntityName: string;
+    public sqlEntityName: string;
+    public Columns: ColumnInfo[];
+    public Imports: string[];
+    public UniqueImports: string[];
+    public Indexes: IndexInfo[];
+    public Schema: string;
+    public GenerateConstructor: boolean;
+    public IsActiveRecord: boolean;
+    public Database: string;
 
-    relationImports(): any {
-        var imports: string[] = [];
+    public relationImports() {
+        const imports: string[] = [];
         this.Columns.forEach(column => {
             column.relations.forEach(relation => {
-                if (this.EntityName != relation.relatedTable)
+                if (this.tsEntityName !== relation.relatedTable) {
                     imports.push(relation.relatedTable);
+                }
             });
         });
-        this.UniqueImports = imports.filter(function(elem, index, self) {
-            return index == self.indexOf(elem);
-        });
+        this.UniqueImports = imports.filter(
+            (elem, index, self) => index === self.indexOf(elem)
+        );
     }
 }

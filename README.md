@@ -21,6 +21,9 @@ To install module globally simply type `npm i -g typeorm-model-generator` in you
 ### Npx way
 Thanks to npx you can use npm modules without polluting global installs. So nothing to do here :)
 >To use `npx` you need to use npm at version at least 5.2.0. Try updating your npm by `npm i -g npm`
+### Database drivers
+All database drivers except oracle are installed by default. To use typeorm-model-generator with oracle databese you need to install driver with `npm i oracledb` and configure [oracle install client](http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html) on your machine.
+
 ## Usage
 
 ```shell
@@ -53,6 +56,10 @@ Options:
   --cp, --case-property  Convert property names to specified case
                           [choices: "pascal", "camel", "none"] [default: "none"]
   --lazy                 Generate lazy relations      [boolean] [default: false]
+  -a, --active-record    Generate models that use the ActiveRecord syntax
+                                                      [boolean] [default: false]
+  --namingStrategy       Use custom naming strategy
+  --relationIds          Generate RelationId fields   [boolean] [default: false]
   --generateConstructor  Generate constructor allowing partial initialization
                                                       [boolean] [default: false]
 ```
@@ -85,3 +92,7 @@ Options:
       ```
       npx typeorm-model-generator -d "Z:\sqlite.db" -e sqlite -o .
       ````
+## Naming strategy
+If you want to generate custom names for properties in generated entities you need to use custom naming strategy. You need to create your own version of [NamingStrategy](https://github.com/Kononnable/typeorm-model-generator/blob/master/src/NamingStrategy.ts) and pass it as command parameter.
+
+```typeorm-model-generator -d typeorm_mg --namingStrategy=./NamingStrategy -e sqlite -db /tmp/sqliteto.db```

@@ -1,28 +1,42 @@
-import { AbstractDriver } from "./AbstractDriver";
 import * as MYSQL from "mysql";
-import { ColumnInfo } from "./../models/ColumnInfo";
-import { EntityInfo } from "./../models/EntityInfo";
-import * as TomgUtils from "./../Utils";
+import { ConnectionOptions } from "typeorm";
+import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+import { IConnectionOptions } from "../IConnectionOptions";
+import { ColumnInfo } from "../models/ColumnInfo";
+import { EntityInfo } from "../models/EntityInfo";
+import * as TomgUtils from "../Utils";
+import { AbstractDriver } from "./AbstractDriver";
 
 export class MysqlDriver extends AbstractDriver {
-    readonly EngineName: string = "MySQL";
+    public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
+        options: { replication: undefined } as ConnectionOptions
+    } as any).dataTypeDefaults;
+    public readonly EngineName: string = "MySQL";
+    public readonly standardPort = 3306;
+    public readonly standardUser = "root";
+    public readonly standardSchema = "";
 
-    GetAllTablesQuery = async (schema: string) => {
-        let response = this.ExecQuery<{
+    private Connection: MYSQL.Connection;
+
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
+        const response = this.ExecQuery<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
-        }>(`SELECT TABLE_SCHEMA, TABLE_NAME
+            DB_NAME: string;
+        }>(`SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
             FROM information_schema.tables
             WHERE table_type='BASE TABLE'
-            AND table_schema like DATABASE()`);
+            AND table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
         return response;
     };
 
-    async GetCoulmnsFromEntity(
+    public async GetCoulmnsFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TABLE_NAME: string;
             COLUMN_NAME: string;
             COLUMN_DEFAULT: string;
@@ -32,28 +46,32 @@ export class MysqlDriver extends AbstractDriver {
             NUMERIC_PRECISION: number;
             NUMERIC_SCALE: number;
             IsIdentity: number;
-            column_type: string;
-            column_key: string;
+            COLUMN_TYPE: string;
+            COLUMN_KEY: string;
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, column_type, column_key
-            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA like DATABASE()`);
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
+            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(
+                dbNames
+            )})
+			order by ordinal_position`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TABLE_NAME == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
                 .forEach(resp => {
-                    let colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.name = resp.COLUMN_NAME;
-                    colInfo.is_nullable = resp.IS_NULLABLE == "YES";
-                    colInfo.is_generated = resp.IsIdentity == 1;
-                    colInfo.is_unique = resp.column_key == "UNI";
-                    colInfo.default = resp.COLUMN_DEFAULT;
-                    colInfo.sql_type = resp.DATA_TYPE;
+                    const colInfo: ColumnInfo = new ColumnInfo();
+                    colInfo.tsName = resp.COLUMN_NAME;
+                    colInfo.options.name = resp.COLUMN_NAME;
+                    colInfo.options.nullable = resp.IS_NULLABLE === "YES";
+                    colInfo.options.generated = resp.IsIdentity === 1;
+                    colInfo.options.unique = resp.COLUMN_KEY === "UNI";
+                    colInfo.options.default = this.ReturnDefaultValueFunction(
+                        resp.COLUMN_DEFAULT
+                    );
+                    colInfo.options.type = resp.DATA_TYPE as any;
                     switch (resp.DATA_TYPE) {
                         case "int":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "bit":
                             if (resp.column_type == "bit(1)") {
@@ -64,111 +82,117 @@ export class MysqlDriver extends AbstractDriver {
                             }
                             break;
                         case "tinyint":
-                            if (resp.column_type == "tinyint(1)") {
-                                colInfo.width = 1;
-                                colInfo.ts_type = "boolean";
+                            if (resp.COLUMN_TYPE === "tinyint(1)") {
+                                colInfo.options.width = 1;
+                                colInfo.tsType = "boolean";
                             } else {
-                                colInfo.ts_type = "number";
+                                colInfo.tsType = "number";
                             }
                             break;
                         case "smallint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "mediumint":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "bigint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "float":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "double":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "decimal":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "date":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "datetime":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "timestamp":
-                            colInfo.ts_type = "Date";
+                            colInfo.tsType = "Date";
                             break;
                         case "time":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "year":
-                            colInfo.ts_type = "number";
+                            colInfo.tsType = "number";
                             break;
                         case "char":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "varchar":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "blob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "text":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "tinyblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "tinytext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "mediumblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "mediumtext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "longblob":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
                             break;
                         case "longtext":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "enum":
-                            colInfo.ts_type = "string";
-                            colInfo.enumOptions = resp.column_type
-                                .substring(5, resp.column_type.length - 1)
-                                .replace(/\'/gi, '"');
+                            colInfo.tsType = "string";
+                            colInfo.options.enum = resp.COLUMN_TYPE.substring(
+                                5,
+                                resp.COLUMN_TYPE.length - 1
+                            ).replace(/\'/gi, '"');
                             break;
                         case "json":
-                            colInfo.ts_type = "Object";
+                            colInfo.tsType = "Object";
                             break;
                         case "binary":
-                            colInfo.ts_type = "Buffer";
+                            colInfo.tsType = "Buffer";
+                            break;
+                        case "varbinary":
+                            colInfo.tsType = "Buffer";
                             break;
                         case "geometry":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "point":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "linestring":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "polygon":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multipoint":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multilinestring":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "multipolygon":
-                            colInfo.ts_type = "string";
+                            colInfo.tsType = "string";
                             break;
                         case "geometrycollection":
-                            colInfo.ts_type = "string";
+                        case "geomcollection":
+                            colInfo.options.type = "geometrycollection";
+                            colInfo.tsType = "string";
                             break;
                         default:
                             TomgUtils.LogError(
@@ -182,45 +206,48 @@ export class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.numericPrecision = resp.NUMERIC_PRECISION;
-                        colInfo.numericScale = resp.NUMERIC_SCALE;
+                        colInfo.options.precision = resp.NUMERIC_PRECISION;
+                        colInfo.options.scale = resp.NUMERIC_SCALE;
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v == colInfo.sql_type
+                            v => v === colInfo.options.type
                         )
                     ) {
-                        colInfo.lenght =
+                        colInfo.options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : null;
+                                : undefined;
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
                             v =>
-                                v == colInfo.sql_type &&
-                                colInfo.ts_type != "boolean"
+                                v === colInfo.options.type &&
+                                colInfo.tsType !== "boolean"
                         )
                     ) {
-                        colInfo.width =
+                        colInfo.options.width =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : null;
+                                : undefined;
                     }
 
-                    if (colInfo.sql_type) ent.Columns.push(colInfo);
+                    if (colInfo.options.type) {
+                        ent.Columns.push(colInfo);
+                    }
                 });
         });
         return entities;
     }
-    async GetIndexesFromEntity(
+    public async GetIndexesFromEntity(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TableName: string;
             IndexName: string;
             ColumnName: string;
@@ -229,29 +256,26 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
-            WHERE table_schema like DATABASE();
-            `);
+            WHERE table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => {
-                    return filterVal.TableName == ent.EntityName;
-                })
+                .filter(filterVal => filterVal.TableName === ent.tsEntityName)
                 .forEach(resp => {
-                    let indexInfo: IndexInfo = <IndexInfo>{};
-                    let indexColumnInfo: IndexColumnInfo = <IndexColumnInfo>{};
+                    let indexInfo: IndexInfo = {} as IndexInfo;
+                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
                     if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
-                        }).length > 0
+                        ent.Indexes.filter(
+                            filterVal => filterVal.name === resp.IndexName
+                        ).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
-                            return filterVal.name == resp.IndexName;
-                        })[0];
+                        indexInfo = ent.Indexes.find(
+                            filterVal => filterVal.name === resp.IndexName
+                        )!;
                     } else {
-                        indexInfo.columns = <IndexColumnInfo[]>[];
+                        indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.IndexName;
-                        indexInfo.isUnique = resp.is_unique == 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key == 1;
+                        indexInfo.isUnique = resp.is_unique === 1;
+                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
                         ent.Indexes.push(indexInfo);
                     }
                     indexColumnInfo.name = resp.ColumnName;
@@ -261,11 +285,12 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
-    async GetRelations(
+    public async GetRelations(
         entities: EntityInfo[],
-        schema: string
+        schema: string,
+        dbNames: string
     ): Promise<EntityInfo[]> {
-        let response = await this.ExecQuery<{
+        const response = await this.ExecQuery<{
             TableWithForeignKey: string;
             FK_PartNo: number;
             ForeignKeyColumn: string;
@@ -286,24 +311,25 @@ export class MysqlDriver extends AbstractDriver {
            FROM
             INFORMATION_SCHEMA.KEY_COLUMN_USAGE CU
            JOIN
-            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME
+            INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
+                ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
-            TABLE_SCHEMA = SCHEMA()
+            TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(dbNames)})
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
-        let relationsTemp: RelationTempInfo[] = <RelationTempInfo[]>[];
+        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
-            let rels = relationsTemp.find(val => {
-                return val.object_id == resp.object_id;
-            });
-            if (rels == undefined) {
-                rels = <RelationTempInfo>{};
+            let rels = relationsTemp.find(
+                val => val.object_id === resp.object_id
+            );
+            if (rels === undefined) {
+                rels = {} as IRelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
-                    resp.onDelete == "NO_ACTION" ? null : resp.onDelete;
+                    resp.onDelete === "NO_ACTION" ? null : resp.onDelete;
                 rels.actionOnUpdate =
-                    resp.onUpdate == "NO_ACTION" ? null : resp.onUpdate;
+                    resp.onUpdate === "NO_ACTION" ? null : resp.onUpdate;
                 rels.object_id = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;
@@ -318,8 +344,8 @@ export class MysqlDriver extends AbstractDriver {
         );
         return entities;
     }
-    async DisconnectFromServer() {
-        let promise = new Promise<boolean>((resolve, reject) => {
+    public async DisconnectFromServer() {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.end(err => {
                 if (!err) {
                     resolve(true);
@@ -333,41 +359,35 @@ export class MysqlDriver extends AbstractDriver {
                 }
             });
         });
-        if (this.Connection) await promise;
+        if (this.Connection) {
+            await promise;
+        }
     }
-
-    private Connection: MYSQL.Connection;
-    async ConnectToServer(
-        database: string,
-        server: string,
-        port: number,
-        user: string,
-        password: string,
-        ssl: boolean
-    ) {
+    public async ConnectToServer(connectionOptons: IConnectionOptions) {
+        const databaseName = connectionOptons.databaseName.split(",")[0];
         let config: MYSQL.ConnectionConfig;
-        if (ssl) {
+        if (connectionOptons.ssl) {
             config = {
-                database: database,
-                host: server,
-                port: port,
-                user: user,
-                password: password,
+                database: databaseName,
+                host: connectionOptons.host,
+                password: connectionOptons.password,
+                port: connectionOptons.port,
                 ssl: {
                     rejectUnauthorized: false
-                }
+                },
+                user: connectionOptons.user
             };
         } else {
             config = {
-                database: database,
-                host: server,
-                port: port,
-                user: user,
-                password: password
+                database: databaseName,
+                host: connectionOptons.host,
+                password: connectionOptons.password,
+                port: connectionOptons.port,
+                user: connectionOptons.user
             };
         }
 
-        let promise = new Promise<boolean>((resolve, reject) => {
+        const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = MYSQL.createConnection(config);
 
             this.Connection.connect(err => {
@@ -386,33 +406,45 @@ export class MysqlDriver extends AbstractDriver {
 
         await promise;
     }
-    async CreateDB(dbName: string) {
+    public async CreateDB(dbName: string) {
         await this.ExecQuery<any>(`CREATE DATABASE ${dbName}; `);
     }
-    async UseDB(dbName: string) {
+    public async UseDB(dbName: string) {
         await this.ExecQuery<any>(`USE ${dbName}; `);
     }
-    async DropDB(dbName: string) {
+    public async DropDB(dbName: string) {
         await this.ExecQuery<any>(`DROP DATABASE ${dbName}; `);
     }
-    async CheckIfDBExists(dbName: string): Promise<boolean> {
-        let resp = await this.ExecQuery<any>(
+    public async CheckIfDBExists(dbName: string): Promise<boolean> {
+        const resp = await this.ExecQuery<any>(
             `SHOW DATABASES LIKE '${dbName}' `
         );
         return resp.length > 0;
     }
-    async ExecQuery<T>(sql: string): Promise<Array<T>> {
-        let ret: Array<T> = [];
-        let query = this.Connection.query(sql);
-        let stream = query.stream({});
-        let promise = new Promise<boolean>((resolve, reject) => {
+    public async ExecQuery<T>(sql: string): Promise<T[]> {
+        const ret: T[] = [];
+        const query = this.Connection.query(sql);
+        const stream = query.stream({});
+        const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", chunk => {
-                ret.push(<T>(<any>chunk));
+                ret.push((chunk as any) as T);
             });
             stream.on("error", err => reject(err));
             stream.on("end", () => resolve(true));
         });
         await promise;
         return ret;
+    }
+    private ReturnDefaultValueFunction(defVal: string | null): string | null {
+        if (!defVal || defVal === "NULL") {
+            return null;
+        }
+        if (defVal.toLowerCase() === "current_timestamp()") {
+            defVal = "CURRENT_TIMESTAMP";
+        }
+        if (defVal === "CURRENT_TIMESTAMP" || defVal.startsWith(`'`)) {
+            return `() => "${defVal}"`;
+        }
+        return `() => "'${defVal}'"`;
     }
 }

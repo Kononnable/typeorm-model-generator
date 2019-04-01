@@ -1,6 +1,9 @@
 parsers:
     javascript:
         enable_partials: yes
-comment:
-    layout: header
-    behavior: default
+comment: off
+coverage:
+  status:
+    project:
+      default:
+        threshold: 50

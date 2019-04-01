@@ -13,3 +13,4 @@ coverage/
 dist
 *.tgz
 !gulpfile.js
+.tomg-config

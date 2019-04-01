@@ -1,37 +1,42 @@
-import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable} from "typeorm";
+import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
 {{relationImports}}{{#each UniqueImports}}import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName this}}";
 {{/each}}
 
 
-@Entity("{{EntityName}}"{{#Schema}},{schema:"{{.}}"}{{/Schema}})
-{{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
-{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName EntityName}} {
+@Entity("{{sqlEntityName}}"{{#Schema}},{schema:"{{.}}"{{#if ../Database}}, database:"{{../Database}}"{{/if}} } {{/Schema}})
+{{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
+{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
 {{#Columns}}
 
-   {{^relations}} @Column("{{sql_type}}",{ {{#is_generated}}
-        generated:true,{{/is_generated}}{{#is_nullable}}
-        nullable:true,{{/is_nullable}}{{^is_nullable}}
-        nullable:false,{{/is_nullable}}{{#is_unique}}
-        unique: true,{{/is_unique}}{{#lenght}}
-        length:{{.}},{{/lenght}}{{#width}}
+   {{^relations}}{{#options}}{{#generated}} @PrimaryGeneratedColumn({
+        type:"{{type}}", {{/generated}}{{^generated}} @Column("{{type}}",{ {{#nullable}}
+        nullable:true,{{/nullable}}{{^nullable}}
+        nullable:false,{{/nullable}}{{#primary}}
+        primary:{{primary}},{{/primary}}{{/generated}}{{#unique}}
+        unique: true,{{/unique}}{{#length}}
+        length:{{.}},{{/length}}{{#width}}
         width:{{.}},{{/width}}{{#default}}
-        default:"{{.}}",{{/default}}{{#numericPrecision}}
-        precision:{{.}},{{/numericPrecision}}{{#numericScale}}
-        scale:{{.}},{{/numericScale}}{{#isPrimary}}
-        primary:{{isPrimary}},{{/isPrimary}}{{#enumOptions}}
-        enum:[{{.}}],{{/enumOptions}}
+        default: {{.}},{{/default}}{{#precision}}
+        precision:{{.}},{{/precision}}{{#scale}}
+        scale:{{.}},{{/scale}}{{#enum}}
+        enum:[{{.}}],{{/enum}}{{#array}}
+        array:{{array}},{{/array}}
         name:"{{name}}"
-        })
-    {{toPropertyName name}}:{{ts_type}};
+        }){{/options}}
+    {{printPropertyVisibility}}{{toPropertyName tsName}}:{{tsType}}{{#options/nullable}} | null{{/options/nullable}};
         {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{toPropertyName ../name}}=>{{toPropertyName ../name}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../isPrimary}}primary:true,{{/../isPrimary}}{{^../is_nullable}} nullable:false,{{/../is_nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#actionOnDelete}},{ onDelete: '{{.}}' }{{/actionOnDelete}}{{/if}}){{#isOwner}}
-    {{#if isManyToMany}}@JoinTable(){{else}}@JoinColumn({ name:'{{ ../name}}'}){{/if}}{{/isOwner}}
-    {{#if (or isOneToMany isManyToMany)}}{{toPropertyName ../name}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
-    {{else}}{{toPropertyName ../name}}:{{toLazy (toEntityName relatedTable)}};
-    {{/if}}{{/relations}}
+    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{tolowerCaseFirst relatedTable}}=>{{tolowerCaseFirst relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../options/primary}}primary:true,{{/../options/primary}}{{^../options/nullable}} nullable:false,{{/../options/nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#if (or actionOnDelete actionOnUpdate ) }}{{#actionOnDelete}},{ onDelete: '{{.}}' ,{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{/if}}{{/if}}){{#isOwner}}
+    {{#if isManyToMany}}@JoinTable({ name:'{{ ../options/name}}'}){{else}}@JoinColumn({ name:'{{ ../options/name}}'}){{/if}}{{/isOwner}}
+    {{#if (or isOneToMany isManyToMany)}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
+    {{else}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat (toEntityName relatedTable) ' | null')}};
+    {{/if}}
+    {{#if relationIdField }}
+
+    @RelationId(({{../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{../../tsEntityName}}.{{toPropertyName ../tsName}})
+    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
-    constructor(init?: Partial<{{toEntityName EntityName}}>) {
+    constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
 		Object.assign(this, init);
 	}
     {{/if}}
