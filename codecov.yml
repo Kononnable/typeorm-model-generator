@@ -7,3 +7,4 @@ coverage:
     project:
       default:
         threshold: 50
+        target: 50
