@@ -9,6 +9,9 @@ export class Post {
     @Column()
     name: string;
 
+    @Column("bit")
+    bit: boolean;
+
     @Column("int")
     int: number;
 
