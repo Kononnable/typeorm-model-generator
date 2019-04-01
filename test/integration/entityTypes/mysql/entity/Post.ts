@@ -9,6 +9,9 @@ export class Post {
     @Column()
     name: string;
 
+    @Column("bit")
+    bit: boolean;
+
     @Column("int")
     int: number;
 
@@ -113,5 +116,4 @@ export class Post {
 
     @Column("geometrycollection")
     geometrycollection: string;
-
 }
