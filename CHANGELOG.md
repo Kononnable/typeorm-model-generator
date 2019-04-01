@@ -1,6 +1,9 @@
 # Changelog
 
+## 0.3.3
+
 * added bit type support for mysql/mariadb
+* fixed generation of relations with only onUpdate defined(#139)
 
 ## 0.3.2
 * added option to generate models based on multiple databases(#144)
