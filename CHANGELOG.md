@@ -1,5 +1,7 @@
 # Changelog
 
+* added bit type support for mysql/mariadb
+
 ## 0.3.2
 * added option to generate models based on multiple databases(#144)
 * fixed generation of ManyToMany relations on junction tables with custom names(#151)
