@@ -1,3 +1,4 @@
+import changeCase = require("change-case");
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { EntityInfo } from "./models/EntityInfo";
 import { RelationInfo } from "./models/RelationInfo";
@@ -12,10 +13,8 @@ export class NamingStrategy extends AbstractNamingStrategy {
         const ownerEntity = dbModel.find(
             v => v.tsEntityName === relation.ownerTable
         )!;
+        let columnName = changeCase.camelCase(columnOldName);
 
-        let columnName =
-            columnOldName[0].toLowerCase() +
-            columnOldName.substring(1, columnOldName.length);
         if (
             columnName.toLowerCase().endsWith("id") &&
             !columnName.toLowerCase().endsWith("guid")
