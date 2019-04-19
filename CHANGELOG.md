@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4
+
+* fixed using property case on uppercased columns(#157)
+
 ## 0.3.3
 
 * added bit type support for mysql/mariadb
