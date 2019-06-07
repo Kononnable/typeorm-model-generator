@@ -3,6 +3,9 @@ import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../IConnectionOptions";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
+import { IndexColumnInfo } from "../models/IndexColumnInfo";
+import { IndexInfo } from "../models/IndexInfo";
+import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
 import { AbstractDriver } from "./AbstractDriver";
 

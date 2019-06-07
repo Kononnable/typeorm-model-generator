@@ -60,7 +60,7 @@ export async function createMSSQLModels(filesOrgPath: string): Promise<IConnecti
         port: Number(process.env.MSSQL_Port),
         dropSchema: true,
         synchronize: false,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'mssql'
     }
 
@@ -110,7 +110,7 @@ export async function createPostgresModels(filesOrgPath: string): Promise<IConne
         port: Number(process.env.POSTGRES_Port),
         dropSchema: true,
         synchronize: false,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'postgres'
     }
 
@@ -155,7 +155,7 @@ export async function createSQLiteModels(filesOrgPath: string): Promise<IConnect
         type: 'sqlite',
         dropSchema: true,
         synchronize: false,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'sqlite'
     }
 
@@ -199,7 +199,7 @@ export async function createMysqlModels(filesOrgPath: string): Promise<IConnecti
         port: Number(process.env.MYSQL_Port),
         dropSchema: true,
         synchronize: true,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'mysql'
     }
     const conn = await createConnection(connOpt)
@@ -240,7 +240,7 @@ export async function createMariaDBModels(filesOrgPath: string): Promise<IConnec
         port: Number(process.env.MARIADB_Port),
         dropSchema: true,
         synchronize: true,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'mariadb'
     }
     const conn = await createConnection(connOpt)
@@ -285,7 +285,7 @@ export async function createOracleDBModels(filesOrgPath: string): Promise<IConne
         username: String(process.env.ORACLE_Username),
         port: Number(process.env.ORACLE_Port),
         synchronize: true,
-        entities: [path.resolve(filesOrgPath, '*.js')],
+        entities: [path.resolve(filesOrgPath, '*.ts')],
         name: 'oracle',
     }
     const conn = await createConnection(connOpt)

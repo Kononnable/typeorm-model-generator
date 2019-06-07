@@ -172,7 +172,7 @@ export function modelGenerationPhase(
     databaseModel: EntityInfo[]
 ) {
     createHandlebarsHelpers(generationOptions);
-    const templatePath = path.resolve(__dirname, "../../src/entity.mst");
+    const templatePath = path.resolve(__dirname, "entity.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const resultPath = generationOptions.resultsPath;
     if (!fs.existsSync(resultPath)) {

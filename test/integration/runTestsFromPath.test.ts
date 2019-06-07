@@ -148,7 +148,7 @@ function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
 }
 
 async function prepareTestRuns(testPartialPath: string, testName: string, dbDriver: string) {
-    const filesOrgPathJS = path.resolve(process.cwd(), 'dist', testPartialPath, testName, 'entity');
+    const filesOrgPathJS = path.resolve(process.cwd(), testPartialPath, testName, 'entity');
     const filesOrgPathTS = path.resolve(process.cwd(), testPartialPath, testName, 'entity');
     const resultsPath = path.resolve(process.cwd(), `output`, dbDriver);
     fs.removeSync(resultsPath);

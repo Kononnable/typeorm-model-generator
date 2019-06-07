@@ -7,7 +7,9 @@ import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { IConnectionOptions } from "../IConnectionOptions";
 import { ColumnInfo } from "../models/ColumnInfo";
 import { EntityInfo } from "../models/EntityInfo";
+import { IndexInfo } from "../models/IndexInfo";
 import { RelationInfo } from "../models/RelationInfo";
+import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
 
 export abstract class AbstractDriver {

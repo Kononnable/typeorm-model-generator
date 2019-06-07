@@ -1,4 +1,4 @@
-interface IRelationTempInfo {
+export interface IRelationTempInfo {
     ownerTable: string;
     ownerColumnsNames: string[];
     referencedTable: string;

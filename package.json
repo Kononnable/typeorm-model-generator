@@ -5,13 +5,10 @@
   "bin": "bin/typeorm-model-generator",
   "scripts": {
     "setup": "npm install",
-    "start": " node ./dist/src/index.js",
-    "compile": "npm run clean && tsc",
-    "test": "istanbul cover ./node_modules/mocha/bin/_mocha dist/test/**/*.test.js  -- -R spec --bail",
-    "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/lcov.info -t lcovonly && remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage.json",
-    "clean": "rimraf dist coverage output",
-    "prettier": "prettier --write ./src/*.ts ./src/**/*.ts",
-    "prepack": "npm run compile"
+    "start": "ts-node ./src/index.ts",
+    "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
+    "clean": "rimraf coverage output",
+    "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -33,6 +30,7 @@
     "pg": "^7.11.0",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^4.0.8",
+    "ts-node": "^8.2.0",
     "typeorm": "^0.2.18",
     "typescript": "^3.5.1",
     "yargs": "^13.2.4",
@@ -59,11 +57,10 @@
     "codecov": "^3.5.0",
     "dotenv": "^8.0.0",
     "husky": "^2.3.0",
-    "istanbul": "^0.4.5",
     "lint-staged": "^8.1.7",
     "mocha": "^6.1.4",
+    "nyc": "^14.1.1",
     "prettier": "^1.17.1",
-    "remap-istanbul": "^0.13.0",
     "rimraf": "^2.6.3",
     "sinon": "^7.3.2",
     "sinon-chai": "^3.3.0",
@@ -74,5 +71,17 @@
     "hooks": {
       "pre-commit": "npm run prettier && git update-index --again"
     }
+  },
+  "nyc": {
+    "check-coverage": true,
+    "all": true,
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "lines": "50",
+    "include": [
+      "src/**/!(*.test.*).[tj]s?(x)"
+    ]
   }
 }

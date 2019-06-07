@@ -1,4 +1,4 @@
-import * as packagejson from "./../../package.json";
+import * as packagejson from "../package.json";
 export function LogError(
     errText: string,
     isABug: boolean = true,

@@ -1,4 +1,5 @@
 import { ColumnInfo } from "./ColumnInfo";
+import { IndexInfo } from "./IndexInfo";
 
 export class EntityInfo {
     public tsEntityName: string;

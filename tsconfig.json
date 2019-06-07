@@ -12,11 +12,11 @@
         "stripInternal": true,
         "strictNullChecks": true,
         "moduleResolution": "node",
-        "outDir": "dist",
         "newLine": "LF",
         "lib": [
             "es2017"
-        ]
+        ],
+        "resolveJsonModule": true,
     },
     "include": [
         "src",
