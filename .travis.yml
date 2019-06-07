@@ -30,10 +30,10 @@ env:
 before_install:
 - sudo service mysql stop
 - sudo service postgresql stop
+- images=(mysql mariadb postgres mssql)
 - if [ -z "$DOCKER_USERNAME" ]; then echo "DOCKER_USERNAME is unset"; else echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin; fi
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; else images=(${images[@]} oracle oracle_client); fi
 - if [ -n "$DOCKER_USERNAME" ]; then docker-compose up -d ${images[@]}; fi
-- images=(mysql mariadb postgres mssql)
 - echo ${images[@]}
 - docker-compose pull --parallel --ignore-pull-failures ${images[@]}
 - docker-compose up -d ${images[@]}
