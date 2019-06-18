@@ -33,7 +33,7 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
     {{#if relationIdField }}
 
     @RelationId(({{../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{../../tsEntityName}}.{{toPropertyName ../tsName}})
-    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
+    {{printPropertyVisibility}}{{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
     constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
