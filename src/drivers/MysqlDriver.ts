@@ -163,7 +163,7 @@ export class MysqlDriver extends AbstractDriver {
                             ).replace(/\'/gi, '"');
                             break;
                         case "json":
-                            colInfo.tsType = "Object";
+                            colInfo.tsType = "object";
                             break;
                         case "binary":
                             colInfo.tsType = "Buffer";
