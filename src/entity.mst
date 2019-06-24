@@ -3,7 +3,7 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 {{/each}}
 
 
-@Entity("{{sqlEntityName}}"{{#Schema}},{schema:"{{.}}"{{#if ../Database}}, database:"{{../Database}}"{{/if}} } {{/Schema}})
+@Entity("{{sqlEntityName}}"{{#unless detached}}{{#Schema}} ,{schema:"{{.}}"{{#if ../Database}}, database:"{{../Database}}"{{/if}} } {{/Schema}}{{/unless}})
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
 {{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
 {{#Columns}}

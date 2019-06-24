@@ -10,6 +10,7 @@ export class EntityInfo {
     public Indexes: IndexInfo[];
     public Schema: string;
     public GenerateConstructor: boolean;
+    public detached: boolean;
     public IsActiveRecord: boolean;
     public Database: string;
 

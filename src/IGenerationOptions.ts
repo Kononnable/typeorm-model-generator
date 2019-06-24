@@ -11,4 +11,5 @@ export class IGenerationOptions {
     public generateConstructor: boolean = false;
     public customNamingStrategyPath: string = "";
     public relationIds: boolean = false;
+    public detached: boolean = false;
 }
