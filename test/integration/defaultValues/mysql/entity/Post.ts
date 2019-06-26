@@ -7,14 +7,14 @@ export class Post {
     id: number;
 
     @Column("timestamp",{
-        default: () => "CURRENT_TIMESTAMP",
+        default: (): string => "CURRENT_TIMESTAMP",
         })
     createdAt:Date;
 
 
     @Column("varchar",{
         length: 30,
-        default: () => "'defVal'",
+        default: (): string => "'defVal'",
         })
     text:string;
 

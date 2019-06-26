@@ -360,8 +360,8 @@ export class SqliteDriver extends AbstractDriver {
             return null;
         }
         if (defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+            return `(): string => "${defVal}"`;
         }
-        return `() => "${defVal}"`;
+        return `(): string => "${defVal}"`;
     }
 }

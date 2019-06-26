@@ -446,8 +446,8 @@ export class MysqlDriver extends AbstractDriver {
             defVal = "CURRENT_TIMESTAMP";
         }
         if (defVal === "CURRENT_TIMESTAMP" || defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+            return `(): string => "${defVal}"`;
         }
-        return `() => "'${defVal}'"`;
+        return `(): string => "'${defVal}'"`;
     }
 }

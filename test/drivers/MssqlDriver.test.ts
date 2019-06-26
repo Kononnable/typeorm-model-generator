@@ -85,7 +85,7 @@ describe('MssqlDriver', function () {
         const expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
         expected[0].Columns.push({
             options: {
-                default: `() => "'a'"`,
+                default: `(): string => "'a'"`,
                 nullable: true,
                 generated: true,
                 name: 'name',

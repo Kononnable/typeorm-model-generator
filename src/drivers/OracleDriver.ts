@@ -371,8 +371,8 @@ export class OracleDriver extends AbstractDriver {
             defVal = defVal.slice(0, -1);
         }
         if (defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+            return `(): string => "${defVal}"`;
         }
-        return `() => "${defVal}"`;
+        return `(): string => "${defVal}"`;
     }
 }

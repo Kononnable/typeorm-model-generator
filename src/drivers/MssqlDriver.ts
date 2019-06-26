@@ -457,8 +457,8 @@ order by
             defVal = defVal.slice(1, -1);
         }
         if (defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+            return `(): string => "${defVal}"`;
         }
-        return `() => "${defVal}"`;
+        return `(): string => "${defVal}"`;
     }
 }

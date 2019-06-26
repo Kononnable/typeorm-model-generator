@@ -21,7 +21,7 @@ export class EntityFileToJson {
                 if (badJSON.lastIndexOf(',') == badJSON.length - 3) {
                     badJSON = badJSON.slice(0, badJSON.length - 3) + badJSON[badJSON.length - 2] + badJSON[badJSON.length - 1]
                 }
-                badJSON = badJSON.replace(/default: \(\) => (.*)/, `default: $1`)
+                badJSON = badJSON.replace(/default: \(\): string => (.*)/, `default: $1`)
                 col.columnOptions = JSON.parse(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
             } else {
                 if (decoratorParameters[0] == '"' && decoratorParameters.endsWith('"')) {
