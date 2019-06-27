@@ -1,6 +1,7 @@
 import changeCase = require("change-case");
 import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
 import { EntityInfo } from "./models/EntityInfo";
+import { ColumnInfo } from "./models/ColumnInfo";
 import { RelationInfo } from "./models/RelationInfo";
 
 export class NamingStrategy extends AbstractNamingStrategy {
@@ -60,11 +61,11 @@ export class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 
-    public entityName(entityName: string): string {
+    public entityName(entityName: string, entity?: EntityInfo): string {
         return entityName;
     }
 
-    public columnName(columnName: string): string {
+    public columnName(columnName: string, column?: ColumnInfo): string {
         return columnName;
     }
 }

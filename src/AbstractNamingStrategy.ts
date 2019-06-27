@@ -1,4 +1,5 @@
 import { EntityInfo } from "./models/EntityInfo";
+import { ColumnInfo } from "./models/ColumnInfo";
 import { RelationInfo } from "./models/RelationInfo";
 
 export abstract class AbstractNamingStrategy {
@@ -8,7 +9,7 @@ export abstract class AbstractNamingStrategy {
         dbModel: EntityInfo[]
     ): string;
 
-    public abstract entityName(entityName: string): string;
+    public abstract entityName(entityName: string, entity?: EntityInfo): string;
 
-    public abstract columnName(columnName: string): string;
+    public abstract columnName(columnName: string, column?: ColumnInfo): string;
 }
