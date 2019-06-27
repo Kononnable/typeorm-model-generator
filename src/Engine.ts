@@ -419,7 +419,10 @@ function applyNamingStrategy(
     function changeColumnNames(model: EntityInfo[]) {
         model.forEach(entity => {
             entity.Columns.forEach(column => {
-                const newName = namingStrategy.columnName(column.tsName, column);
+                const newName = namingStrategy.columnName(
+                    column.tsName,
+                    column
+                );
                 entity.Indexes.forEach(index => {
                     index.columns
                         .filter(column2 => column2.name === column.tsName)
@@ -453,7 +456,10 @@ function applyNamingStrategy(
     }
     function changeEntityNames(entities: EntityInfo[]) {
         entities.forEach(entity => {
-            const newName = namingStrategy.entityName(entity.tsEntityName, entity);
+            const newName = namingStrategy.entityName(
+                entity.tsEntityName,
+                entity
+            );
             entities.forEach(entity2 => {
                 entity2.Columns.forEach(column => {
                     column.relations.forEach(relation => {
