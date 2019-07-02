@@ -15,7 +15,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         primary:{{primary}},{{/primary}}{{/generated}}{{#unique}}
         unique: true,{{/unique}}{{#length}}
         length:{{.}},{{/length}}{{#width}}
-        width:{{.}},{{/width}}{{#default}}
+        width:{{.}},{{/width}}{{#unsigned}}
+        unsigned: true,{{/unsigned}}{{#default}}
         default: {{.}},{{/default}}{{#precision}}
         precision:{{.}},{{/precision}}{{#scale}}
         scale:{{.}},{{/scale}}{{#enum}}
