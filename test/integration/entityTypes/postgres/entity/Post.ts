@@ -165,10 +165,10 @@ export class Post {
     xml: string;
 
     @Column("json")
-    json: Object;
+    json: object;
 
     @Column("jsonb")
-    jsonb: Object;
+    jsonb: object;
 
     @Column("int4range")
     int4range: string;
