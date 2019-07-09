@@ -88,7 +88,7 @@ export class Post {
     enum: string;
 
     @Column("json")
-    json: Object;
+    json: object;
 
     @Column("binary")
     binary: Buffer;

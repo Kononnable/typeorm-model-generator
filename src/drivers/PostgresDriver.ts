@@ -159,8 +159,8 @@ export class PostgresDriver extends AbstractDriver {
                 | "boolean"
                 | "Date"
                 | "Buffer"
-                | "Object"
-                | "string | Object"
+                | "object"
+                | "string | object"
                 | "string | string[]"
                 | "any"
                 | null;
@@ -288,7 +288,7 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "point":
-                ret.ts_type = "string | Object";
+                ret.ts_type = "string | object";
                 break;
             case "line":
                 ret.ts_type = "string";
@@ -297,7 +297,7 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string | string[]";
                 break;
             case "box":
-                ret.ts_type = "string | Object";
+                ret.ts_type = "string | object";
                 break;
             case "path":
                 ret.ts_type = "string";
@@ -306,7 +306,7 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "circle":
-                ret.ts_type = "string | Object";
+                ret.ts_type = "string | object";
                 break;
             case "cidr":
                 ret.ts_type = "string";
@@ -330,10 +330,10 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "json":
-                ret.ts_type = "Object";
+                ret.ts_type = "object";
                 break;
             case "jsonb":
-                ret.ts_type = "Object";
+                ret.ts_type = "object";
                 break;
             case "int4range":
                 ret.ts_type = "string";

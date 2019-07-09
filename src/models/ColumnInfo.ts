@@ -10,8 +10,8 @@ export class ColumnInfo {
         | "boolean"
         | "Date"
         | "Buffer"
-        | "Object"
-        | "string | Object"
+        | "object"
+        | "string | object"
         | "string | string[]"
         | "any";
     public relations: RelationInfo[] = [];
