@@ -15,10 +15,13 @@ export class Post {
     @Column("int")
     int: number;
 
+    @Column("int", { unsigned: true })
+    uint: number;
+
     @Column("tinyint")
     tinyint: number;
 
-    @Column("tinyint",{width:1})
+    @Column("tinyint", { width: 1 })
     boolean: boolean;
 
     @Column("smallint")
