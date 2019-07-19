@@ -72,6 +72,9 @@ export class MysqlDriver extends AbstractDriver {
                         resp.COLUMN_DEFAULT
                     );
                     colInfo.options.type = resp.DATA_TYPE as any;
+                    colInfo.options.unsigned = resp.COLUMN_TYPE.endsWith(
+                        " unsigned"
+                    );
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.tsType = "number";
@@ -163,7 +166,7 @@ export class MysqlDriver extends AbstractDriver {
                             ).replace(/\'/gi, '"');
                             break;
                         case "json":
-                            colInfo.tsType = "Object";
+                            colInfo.tsType = "object";
                             break;
                         case "binary":
                             colInfo.tsType = "Buffer";

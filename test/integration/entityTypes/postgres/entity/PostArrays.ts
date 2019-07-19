@@ -123,7 +123,7 @@ export class PostArrays {
     // enum: string[];
 
     @Column("point", { array: true })
-    point: string[] | Object[];
+    point: string[] | object[];
 
     @Column("line", { array: true })
     line: string[];
@@ -132,7 +132,7 @@ export class PostArrays {
     lseg: string[] | string[][];
 
     @Column("box", { array: true })
-    box: string[] | Object[];
+    box: string[] | object[];
 
     @Column("path", { array: true })
     path: string[];
@@ -141,7 +141,7 @@ export class PostArrays {
     polygon: string[];
 
     @Column("circle", { array: true })
-    circle: string[] | Object[];
+    circle: string[] | object[];
 
     @Column("cidr", { array: true })
     cidr: string[];
@@ -165,10 +165,10 @@ export class PostArrays {
     xml: string[];
 
     @Column("json", { array: true })
-    json: Object[];
+    json: object[];
 
     @Column("jsonb", { array: true })
-    jsonb: Object[];
+    jsonb: object[];
 
     @Column("int4range", { array: true })
     int4range: string[];

@@ -123,7 +123,7 @@ export class Post {
     // enum: string;
 
     @Column("point")
-    point: string | Object;
+    point: string | object;
 
     @Column("line")
     line: string;
@@ -132,7 +132,7 @@ export class Post {
     lseg: string | string[];
 
     @Column("box")
-    box: string | Object;
+    box: string | object;
 
     @Column("path")
     path: string;
@@ -141,7 +141,7 @@ export class Post {
     polygon: string;
 
     @Column("circle")
-    circle: string | Object;
+    circle: string | object;
 
     @Column("cidr")
     cidr: string;
@@ -165,10 +165,10 @@ export class Post {
     xml: string;
 
     @Column("json")
-    json: Object;
+    json: object;
 
     @Column("jsonb")
-    jsonb: Object;
+    jsonb: object;
 
     @Column("int4range")
     int4range: string;

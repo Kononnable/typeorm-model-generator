@@ -15,7 +15,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         primary:{{primary}},{{/primary}}{{/generated}}{{#unique}}
         unique: true,{{/unique}}{{#length}}
         length:{{.}},{{/length}}{{#width}}
-        width:{{.}},{{/width}}{{#default}}
+        width:{{.}},{{/width}}{{#unsigned}}
+        unsigned: true,{{/unsigned}}{{#default}}
         default: {{.}},{{/default}}{{#precision}}
         precision:{{.}},{{/precision}}{{#scale}}
         scale:{{.}},{{/scale}}{{#enum}}
@@ -32,8 +33,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
     {{/if}}
     {{#if relationIdField }}
 
-    @RelationId(({{toPropertyName ../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{toPropertyName ../../tsEntityName}}.{{toPropertyName ../tsName}})
-    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
+    @RelationId(({{toPropertyName ../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{toEntityName ../../tsEntityName}}.{{toPropertyName ../tsName}})
+    {{printPropertyVisibility}}{{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
     constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
