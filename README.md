@@ -44,7 +44,9 @@ Options:
   -o, --output           Where to place generated models
                             [default: "Z:\Repos\typeorm-model-generator\output"]
   -s, --schema           Schema name to create model from. Only for mssql and
-                         postgres
+                         postgres. Specify multiple schemas at once by providing
+                         a comma separated list. 
+                         eg: -s scheme1, scheme2, scheme3
   --ssl                                               [boolean] [default: false]
   --noConfig             Doesn't create tsconfig.json and ormconfig.json
                                                       [boolean] [default: false]
