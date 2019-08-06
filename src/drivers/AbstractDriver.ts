@@ -204,6 +204,17 @@ export abstract class AbstractDriver {
         entities: EntityInfo[]
     ) {
         relationsTemp.forEach(relationTmp => {
+            if (relationTmp.referencedColumnsNames.length > 1) {
+                TomgUtils.LogError(
+                    `Relation between tables ${relationTmp.ownerTable} and ${
+                        relationTmp.referencedTable
+                    } references ${
+                        relationTmp.referencedColumnsNames.length
+                    } columns, which is not properly supported yet. Skipping.`,
+                    false
+                );
+                return;
+            }
             const ownerEntity = entities.find(
                 entitity => entitity.tsEntityName === relationTmp.ownerTable
             );

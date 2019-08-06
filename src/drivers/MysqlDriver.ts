@@ -262,7 +262,9 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
-            WHERE table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
+            WHERE table_schema IN (${this.escapeCommaSeparatedList(dbNames)})
+            ORDER BY TableName, IndexName, SEQ_IN_INDEX
+            `);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -321,7 +323,8 @@ export class MysqlDriver extends AbstractDriver {
                 ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
             TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(dbNames)})
-            AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
+            AND CU.REFERENCED_TABLE_NAME IS NOT NULL
+          ORDER BY object_id, FK_PartNo;
             `);
         const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
         response.forEach(resp => {
