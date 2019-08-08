@@ -102,7 +102,7 @@ function GetUtilParametersByArgs() {
         .option("s", {
             alias: "schema",
             describe:
-                "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separted by comma."
+                "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separted by comma eg. -s scheme1,scheme2,scheme3"
         })
         .option("ssl", {
             boolean: true,
