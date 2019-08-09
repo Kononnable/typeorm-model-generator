@@ -48,6 +48,7 @@ export class PostgresDriver extends AbstractDriver {
             numeric_scale: number;
             isidentity: string;
             isunique: string;
+            enumvalues: string | null;
         }> = (await this.Connection
             .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
@@ -60,7 +61,14 @@ export class PostgresDriver extends AbstractDriver {
         tc.CONSTRAINT_TYPE = 'UNIQUE'
         and tc.TABLE_NAME = c.TABLE_NAME
         and cu.COLUMN_NAME = c.COLUMN_NAME
-        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+        (SELECT
+string_agg(enumlabel, ',')
+FROM "pg_enum" "e"
+INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        ) enumValues
             FROM INFORMATION_SCHEMA.COLUMNS c
             where table_schema in (${schema})
 			order by ordinal_position`)).rows;
@@ -80,7 +88,8 @@ export class PostgresDriver extends AbstractDriver {
 
                     const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
-                        resp.udt_name
+                        resp.udt_name,
+                        resp.enumvalues
                     );
                     if (!columnTypes.sql_type || !columnTypes.ts_type) {
                         if (
@@ -100,6 +109,7 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.options.type = columnTypes.sql_type as any;
                     colInfo.tsType = columnTypes.ts_type;
                     colInfo.options.array = columnTypes.is_array;
+                    colInfo.options.enum = columnTypes.enumValues;
                     if (colInfo.options.array) {
                         colInfo.tsType = colInfo.tsType
                             .split("|")
@@ -143,7 +153,11 @@ export class PostgresDriver extends AbstractDriver {
         return entities;
     }
 
-    public MatchColumnTypes(dataType: string, udtName: string) {
+    public MatchColumnTypes(
+        dataType: string,
+        udtName: string,
+        enumValues: string | null
+    ) {
         const ret: {
             ts_type:
                 | "number"
@@ -158,7 +172,8 @@ export class PostgresDriver extends AbstractDriver {
                 | null;
             sql_type: string | null;
             is_array: boolean;
-        } = { ts_type: null, sql_type: null, is_array: false };
+            enumValues: string[];
+        } = { ts_type: null, sql_type: null, is_array: false, enumValues: [] };
         ret.sql_type = dataType;
         switch (dataType) {
             case "int2":
@@ -276,9 +291,6 @@ export class PostgresDriver extends AbstractDriver {
             case "boolean":
                 ret.ts_type = "boolean";
                 break;
-            case "enum":
-                ret.ts_type = "string";
-                break;
             case "point":
                 ret.ts_type = "string | object";
                 break;
@@ -346,22 +358,34 @@ export class PostgresDriver extends AbstractDriver {
                 ret.ts_type = "string";
                 break;
             case "ARRAY":
-                const z = this.MatchColumnTypes(udtName.substring(1), udtName);
+                const z = this.MatchColumnTypes(
+                    udtName.substring(1),
+                    udtName,
+                    enumValues
+                );
                 ret.ts_type = z.ts_type;
                 ret.sql_type = z.sql_type;
                 ret.is_array = true;
+                ret.enumValues = z.enumValues;
                 break;
             case "USER-DEFINED":
-                ret.sql_type = udtName;
                 ret.ts_type = "string";
                 switch (udtName) {
                     case "citext":
                     case "hstore":
                     case "geometry":
+                        ret.sql_type = udtName;
                         break;
                     default:
-                        ret.ts_type = null;
-                        ret.sql_type = null;
+                        if (enumValues) {
+                            ret.sql_type = "enum";
+                            ret.enumValues = (('"' +
+                                enumValues.split(",").join('","') +
+                                '"') as never) as string[];
+                        } else {
+                            ret.ts_type = null;
+                            ret.sql_type = null;
+                        }
                         break;
                 }
                 break;
