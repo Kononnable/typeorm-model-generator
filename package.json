@@ -4,8 +4,8 @@
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
   "scripts": {
-    "setup": "npm install",
     "start": "ts-node ./src/index.ts",
+    "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
     "clean": "rimraf coverage output",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
