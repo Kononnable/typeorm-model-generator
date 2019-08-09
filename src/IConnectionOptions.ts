@@ -7,4 +7,5 @@ export class IConnectionOptions {
     public databaseType: string = "";
     public schemaName: string = "";
     public ssl: boolean = false;
+    public timeout?: number;
 }

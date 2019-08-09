@@ -405,6 +405,7 @@ order by
             },
             password: connectionOptons.password,
             port: connectionOptons.port,
+            requestTimeout: connectionOptons.timeout,
             server: connectionOptons.host,
             user: connectionOptons.user
         };

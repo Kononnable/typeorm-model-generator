@@ -377,6 +377,7 @@ export class MysqlDriver extends AbstractDriver {
                 ssl: {
                     rejectUnauthorized: false
                 },
+                timeout: connectionOptons.timeout,
                 user: connectionOptons.user
             };
         } else {
@@ -385,6 +386,7 @@ export class MysqlDriver extends AbstractDriver {
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
+                timeout: connectionOptons.timeout,
                 user: connectionOptons.user
             };
         }

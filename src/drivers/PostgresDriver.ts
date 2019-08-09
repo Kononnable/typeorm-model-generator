@@ -569,6 +569,7 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
             password: connectionOptons.password,
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
+            statement_timeout: connectionOptons.timeout,
             user: connectionOptons.user
         });
 

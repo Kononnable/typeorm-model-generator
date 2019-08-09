@@ -161,6 +161,10 @@ function GetUtilParametersByArgs() {
             boolean: true,
             default: false,
             describe: "Generate constructor allowing partial initialization"
+        })
+        .option("timeout", {
+            describe: "SQL Query timeout(ms)",
+            number: true
         }).argv;
 
     const driver = createDriver(argv.e);
@@ -184,6 +188,7 @@ function GetUtilParametersByArgs() {
             ? argv.s.toString()
             : standardSchema),
         (connectionOptions.ssl = argv.ssl),
+        (connectionOptions.timeout = argv.timeout),
         (connectionOptions.user = argv.u ? argv.u.toString() : standardUser);
     const generationOptions: IGenerationOptions = new IGenerationOptions();
     (generationOptions.activeRecord = argv.a),
@@ -306,15 +311,41 @@ async function GetUtilParametersByInquirer() {
             type: "input"
         }
     ])) as any).output;
-    const customize = ((await inquirer.prompt([
+
+    if (
+        connectionOptions.databaseType === "mssql" ||
+        connectionOptions.databaseType === "postgres"
+    ) {
+        const changeRequestTimeout = ((await inquirer.prompt([
+            {
+                default: false,
+                message: "Do you want to change default sql query timeout?",
+                name: "changeRequestTimeout",
+                type: "confirm"
+            }
+        ])) as any).changeRequestTimeout;
+        if (changeRequestTimeout) {
+            const timeout: any = ((await inquirer.prompt({
+                message: "Query timeout(ms):",
+                name: "timeout",
+                type: "input",
+                validate(value) {
+                    const valid = !isNaN(parseInt(value, 10));
+                    return valid || "Please enter a valid number";
+                }
+            })) as any).timeout;
+            connectionOptions.timeout = timeout;
+        }
+    }
+    const customizeGeneration = ((await inquirer.prompt([
         {
             default: false,
             message: "Do you want to customize generated model?",
-            name: "customize",
+            name: "customizeGeneration",
             type: "confirm"
         }
-    ])) as any).customize;
-    if (customize) {
+    ])) as any).customizeGeneration;
+    if (customizeGeneration) {
         const customizations: string[] = ((await inquirer.prompt([
             {
                 choices: [
