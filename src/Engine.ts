@@ -106,15 +106,12 @@ function removeColumnDefaultProperties(
                 if (
                     column.options.precision &&
                     defVal.precision &&
-                    column.options.precision === defVal.precision
-                ) {
-                    column.options.precision = undefined;
-                }
-                if (
+                    column.options.precision === defVal.precision &&
                     column.options.scale &&
                     defVal.scale &&
                     column.options.scale === defVal.scale
                 ) {
+                    column.options.precision = undefined;
                     column.options.scale = undefined;
                 }
                 if (
