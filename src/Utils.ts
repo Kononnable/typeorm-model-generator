@@ -1,9 +1,11 @@
 import * as packagejson from "../package.json";
+
 export function LogError(
     errText: string,
     isABug: boolean = true,
-    errObject?: any
+    passedError?: any
 ) {
+    let errObject = passedError;
     console.error(errText);
     console.error(`Error occured in typeorm-model-generator.`);
     console.error(`${packageVersion()}  node@${process.version}`);
@@ -12,10 +14,10 @@ export function LogError(
             (packagejson as any).bugs.url
         }`
     );
-    if (isABug && !errObject) {
+    if (isABug && !passedError) {
         errObject = new Error().stack;
     }
-    if (!!errObject) {
+    if (errObject) {
         console.error(errObject);
     }
 }

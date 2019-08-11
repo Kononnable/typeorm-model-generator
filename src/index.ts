@@ -1,13 +1,15 @@
+import * as Yargs from "yargs";
+import { createDriver, createModelFromDatabase } from "./Engine";
+import * as TomgUtils from "./Utils";
+import AbstractDriver from "./drivers/AbstractDriver";
+import IConnectionOptions from "./IConnectionOptions";
+import IGenerationOptions from "./IGenerationOptions";
+
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
-import * as Yargs from "yargs";
-import { AbstractDriver } from "./drivers/AbstractDriver";
-import { createDriver, createModelFromDatabase } from "./Engine";
-import { IConnectionOptions } from "./IConnectionOptions";
-import { IGenerationOptions } from "./IGenerationOptions";
-import * as TomgUtils from "./Utils";
 
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 
 async function CliLogic() {
@@ -20,41 +22,35 @@ async function CliLogic() {
         connectionOptions = retVal.connectionOptions;
         generationOptions = retVal.generationOptions;
         driver = retVal.driver;
+    } else if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
+        console.log(
+            `[${new Date().toLocaleTimeString()}] Using configuration file. [${path.resolve(
+                process.cwd(),
+                ".tomg-config"
+            )}]`
+        );
+        const retVal = await fs.readJson(
+            path.resolve(process.cwd(), ".tomg-config")
+        );
+        [connectionOptions, generationOptions] = retVal;
+        driver = createDriver(connectionOptions.databaseType);
     } else {
-        if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
-            console.log(
-                `[${new Date().toLocaleTimeString()}] Using configuration file. [${path.resolve(
-                    process.cwd(),
-                    ".tomg-config"
-                )}]`
-            );
-            const retVal = await fs.readJson(
-                path.resolve(process.cwd(), ".tomg-config")
-            );
-            connectionOptions = retVal[0];
-            generationOptions = retVal[1];
-            driver = createDriver(connectionOptions.databaseType);
-        } else {
-            const retVal = await GetUtilParametersByInquirer();
-            driver = retVal.driver;
-            connectionOptions = retVal.connectionOptions;
-            generationOptions = retVal.generationOptions;
-        }
+        const retVal = await GetUtilParametersByInquirer();
+        driver = retVal.driver;
+        connectionOptions = retVal.connectionOptions;
+        generationOptions = retVal.generationOptions;
     }
     console.log(
         `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
     );
-    createModelFromDatabase(driver, connectionOptions, generationOptions).then(
-        () => {
-            console.info(
-                `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
-            );
-        }
+    await createModelFromDatabase(driver, connectionOptions, generationOptions);
+    console.info(
+        `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
     );
 }
 
 function GetUtilParametersByArgs() {
-    const argv = Yargs.usage(
+    const { argv } = Yargs.usage(
         "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specyfiying any parameters."
     )
         .option("h", {
@@ -165,43 +161,40 @@ function GetUtilParametersByArgs() {
         .option("timeout", {
             describe: "SQL Query timeout(ms)",
             number: true
-        }).argv;
+        });
 
     const driver = createDriver(argv.e);
-    const standardPort = driver.standardPort;
-    const standardSchema = driver.standardSchema;
+    const { standardPort } = driver;
+    const { standardSchema } = driver;
     const standardUser = driver.standardPort;
     let namingStrategyPath: string;
     if (argv.namingStrategy && argv.namingStrategy !== "") {
-        // tslint:disable-next-line:no-var-requires
         namingStrategyPath = argv.namingStrategy;
     } else {
         namingStrategyPath = "";
     }
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
-    (connectionOptions.databaseName = argv.d ? argv.d.toString() : null),
-        (connectionOptions.databaseType = argv.e),
-        (connectionOptions.host = argv.h),
-        (connectionOptions.password = argv.x ? argv.x.toString() : null),
-        (connectionOptions.port = parseInt(argv.p, 10) || standardPort),
-        (connectionOptions.schemaName = argv.s
-            ? argv.s.toString()
-            : standardSchema),
-        (connectionOptions.ssl = argv.ssl),
-        (connectionOptions.timeout = argv.timeout),
-        (connectionOptions.user = argv.u ? argv.u.toString() : standardUser);
+    connectionOptions.databaseName = argv.d ? argv.d.toString() : null;
+    connectionOptions.databaseType = argv.e;
+    connectionOptions.host = argv.h;
+    connectionOptions.password = argv.x ? argv.x.toString() : null;
+    connectionOptions.port = parseInt(argv.p, 10) || standardPort;
+    connectionOptions.schemaName = argv.s ? argv.s.toString() : standardSchema;
+    connectionOptions.ssl = argv.ssl;
+    connectionOptions.timeout = argv.timeout;
+    connectionOptions.user = argv.u ? argv.u.toString() : standardUser;
     const generationOptions: IGenerationOptions = new IGenerationOptions();
-    (generationOptions.activeRecord = argv.a),
-        (generationOptions.generateConstructor = argv.generateConstructor),
-        (generationOptions.convertCaseEntity = argv.ce),
-        (generationOptions.convertCaseFile = argv.cf),
-        (generationOptions.convertCaseProperty = argv.cp),
-        (generationOptions.lazy = argv.lazy),
-        (generationOptions.customNamingStrategyPath = namingStrategyPath),
-        (generationOptions.noConfigs = argv.noConfig),
-        (generationOptions.propertyVisibility = argv.pv),
-        (generationOptions.relationIds = argv.relationIds),
-        (generationOptions.resultsPath = argv.o ? argv.o.toString() : null);
+    generationOptions.activeRecord = argv.a;
+    generationOptions.generateConstructor = argv.generateConstructor;
+    generationOptions.convertCaseEntity = argv.ce;
+    generationOptions.convertCaseFile = argv.cf;
+    generationOptions.convertCaseProperty = argv.cp;
+    generationOptions.lazy = argv.lazy;
+    generationOptions.customNamingStrategyPath = namingStrategyPath;
+    generationOptions.noConfigs = argv.noConfig;
+    generationOptions.propertyVisibility = argv.pv;
+    generationOptions.relationIds = argv.relationIds;
+    generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
 
     return { driver, connectionOptions, generationOptions };
 }
@@ -238,11 +231,11 @@ async function GetUtilParametersByInquirer() {
                 message: "Database port:",
                 name: "port",
                 type: "input",
-                default(answers: any) {
+                default() {
                     return driver.standardPort;
                 },
                 validate(value) {
-                    const valid = !isNaN(parseInt(value, 10));
+                    const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid port number";
                 }
             },
@@ -256,7 +249,7 @@ async function GetUtilParametersByInquirer() {
                 message: "Database user name:",
                 name: "login",
                 type: "input",
-                default(answers: any) {
+                default() {
                     return driver.standardUser;
                 }
             },
@@ -316,35 +309,35 @@ async function GetUtilParametersByInquirer() {
         connectionOptions.databaseType === "mssql" ||
         connectionOptions.databaseType === "postgres"
     ) {
-        const changeRequestTimeout = ((await inquirer.prompt([
+        const { changeRequestTimeout } = (await inquirer.prompt([
             {
                 default: false,
                 message: "Do you want to change default sql query timeout?",
                 name: "changeRequestTimeout",
                 type: "confirm"
             }
-        ])) as any).changeRequestTimeout;
+        ])) as any;
         if (changeRequestTimeout) {
-            const timeout: any = ((await inquirer.prompt({
+            const { timeout } = (await inquirer.prompt({
                 message: "Query timeout(ms):",
                 name: "timeout",
                 type: "input",
                 validate(value) {
-                    const valid = !isNaN(parseInt(value, 10));
+                    const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid number";
                 }
-            })) as any).timeout;
+            })) as any;
             connectionOptions.timeout = timeout;
         }
     }
-    const customizeGeneration = ((await inquirer.prompt([
+    const { customizeGeneration } = (await inquirer.prompt([
         {
             default: false,
             message: "Do you want to customize generated model?",
             name: "customizeGeneration",
             type: "confirm"
         }
-    ])) as any).customizeGeneration;
+    ])) as any;
     if (customizeGeneration) {
         const customizations: string[] = ((await inquirer.prompt([
             {
@@ -413,7 +406,6 @@ async function GetUtilParametersByInquirer() {
             ])) as any).namingStrategy;
 
             if (namingStrategyPath && namingStrategyPath !== "") {
-                // tslint:disable-next-line:no-var-requires
                 generationOptions.customNamingStrategyPath = namingStrategyPath;
             } else {
                 generationOptions.customNamingStrategyPath = "";
@@ -449,14 +441,14 @@ async function GetUtilParametersByInquirer() {
             generationOptions.convertCaseEntity = namingConventions.entityCase;
         }
     }
-    const saveConfig = ((await inquirer.prompt([
+    const { saveConfig } = (await inquirer.prompt([
         {
             default: false,
             message: "Save configuration to config file?",
             name: "saveConfig",
             type: "confirm"
         }
-    ])) as any).saveConfig;
+    ])) as any;
     if (saveConfig) {
         await fs.writeJson(
             path.resolve(process.cwd(), ".tomg-config"),

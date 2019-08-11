@@ -7,6 +7,7 @@
     "start": "ts-node ./src/index.ts",
     "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
+    "posttest": "eslint ./src/*.ts ./src/**/*.ts",
     "clean": "rimraf coverage output",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
   },
@@ -50,12 +51,20 @@
     "@types/oracledb": "^3.1.3",
     "@types/pg": "^7.4.14",
     "@types/sinon": "^7.0.13",
+    "@types/sqlite3": "^3.1.5",
     "@types/yargs": "^12.0.1",
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "@typescript-eslint/typescript-estree": "^1.13.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "codecov": "^3.5.0",
     "dotenv": "^8.0.0",
+    "eslint": "^6.1.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-import": "^2.18.2",
     "husky": "^3.0.2",
     "lint-staged": "^9.2.1",
     "mocha": "^6.2.0",
@@ -63,9 +72,7 @@
     "prettier": "^1.18.2",
     "rimraf": "^2.6.3",
     "sinon": "^7.3.2",
-    "sinon-chai": "^3.3.0",
-    "tslint": "^5.18.0",
-    "tslint-config-prettier": "^1.18.0"
+    "sinon-chai": "^3.3.0"
   },
   "husky": {
     "hooks": {

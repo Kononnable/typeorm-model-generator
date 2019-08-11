@@ -1,3 +1,3 @@
-export interface IndexColumnInfo {
+export default interface IndexColumnInfo {
     name: string;
 }
