@@ -378,6 +378,18 @@ async function GetUtilParametersByInquirer() {
                 type: "checkbox"
             }
         ])) as any).selected;
+
+        generationOptions.propertyVisibility = ((await inquirer.prompt([
+            {
+                choices: ["public", "protected", "private", "none"],
+                message:
+                    "Defines which visibility should have the generated property",
+                name: "propertyVisibility",
+                default: "none",
+                type: "list"
+            }
+        ])) as any).propertyVisibility;
+
         generationOptions.noConfigs = !customizations.includes("config");
         generationOptions.lazy = customizations.includes("lazy");
         generationOptions.activeRecord = customizations.includes(
@@ -450,11 +462,10 @@ async function GetUtilParametersByInquirer() {
         }
     ])) as any;
     if (saveConfig) {
-        await fs.writeJson(
-            path.resolve(process.cwd(), ".tomg-config"),
-            [connectionOptions, generationOptions],
-            { spaces: "\t" }
-        );
+        await fs.writeJson(path.resolve(process.cwd(), ".tomg-config"), [
+            connectionOptions,
+            generationOptions
+        ]);
         console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Password was saved as plain text.\x1b[0m`
