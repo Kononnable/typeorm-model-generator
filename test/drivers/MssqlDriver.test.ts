@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import * as MSSQL from "mssql";
-import { IColumnMetadata, Table } from "mssql";
 import * as Sinon from "sinon";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
 import EntityInfo from "../../src/models/EntityInfo";
@@ -8,17 +7,22 @@ import ColumnInfo from "../../src/models/ColumnInfo";
 import IndexInfo from "../../src/models/IndexInfo";
 import RelationInfo from "../../src/models/RelationInfo";
 
-class fakeResponse implements MSSQL.IResult<any> {
-    public recordsets: Array<MSSQL.IRecordSet<any>>;
-    public recordset: MSSQL.IRecordSet<any>;
-    public rowsAffected: number[];
-    public output: { [key: string]: any };
+interface FakeResponse extends MSSQL.IResult<any> {
+    recordsets: MSSQL.IRecordSet<any>[];
+
+    recordset: MSSQL.IRecordSet<any>;
+
+    rowsAffected: number[];
+
+    output: { [key: string]: any };
 }
 
-class fakeRecordset extends Array<any> implements MSSQL.IRecordSet<any> {
-    public columns: IColumnMetadata;
-    public toTable(): Table {
-        return new Table();
+class FakeRecordset extends Array<any> implements MSSQL.IRecordSet<any> {
+    public columns: MSSQL.IColumnMetadata;
+
+    // eslint-disable-next-line class-methods-use-this
+    public toTable(): MSSQL.Table {
+        return new MSSQL.Table();
     }
 }
 
@@ -36,9 +40,9 @@ describe("MssqlDriver", function() {
 
     it("should get tables info", async () => {
         sandbox.stub(MSSQL, "Request").returns({
-            query: q => {
-                const response = new fakeResponse();
-                response.recordset = new fakeRecordset();
+            query: () => {
+                const response = {} as FakeResponse;
+                response.recordset = new FakeRecordset();
                 response.recordset.push({
                     TABLE_SCHEMA: "schema",
                     TABLE_NAME: "name"
@@ -60,9 +64,9 @@ describe("MssqlDriver", function() {
     });
     it("should get columns info", async () => {
         sandbox.stub(MSSQL, "Request").returns({
-            query: q => {
-                const response = new fakeResponse();
-                response.recordset = new fakeRecordset();
+            query: () => {
+                const response = {} as FakeResponse;
+                response.recordset = new FakeRecordset();
                 response.recordset.push({
                     TABLE_NAME: "name",
                     CHARACTER_MAXIMUM_LENGTH: 0,

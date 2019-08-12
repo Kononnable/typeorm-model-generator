@@ -1,20 +1,19 @@
-import path = require("path");
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn";
 import IGenerationOptions from "../../src/IGenerationOptions";
 import IConnectionOptions from "../../src/IConnectionOptions";
-import AbstractDriver from "../../src/drivers/AbstractDriver";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
 import MariaDbDriver from "../../src/drivers/MariaDbDriver";
 import PostgresDriver from "../../src/drivers/PostgresDriver";
-import SqliteDriver from "../../src/drivers/SqliteDriver";
 import OracleDriver from "../../src/drivers/OracleDriver";
 import MysqlDriver from "../../src/drivers/MysqlDriver";
 
+import path = require("path");
+
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     return {
-        resultsPath: resultsPath,
+        resultsPath,
         noConfigs: false,
         convertCaseEntity: "none",
         convertCaseFile: "none",
@@ -31,8 +30,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
 export async function createMSSQLModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new MssqlDriver();
+    const driver = new MssqlDriver();
     const connectionOptions: IConnectionOptions = {
         host: String(process.env.MSSQL_Host),
         port: Number(process.env.MSSQL_Port),
@@ -66,11 +64,11 @@ export async function createMSSQLModels(
     };
 
     const schemas = "dbo,sch1,sch2";
-    let conn = await createConnection(connOpt);
-    let queryRunner = conn.createQueryRunner();
-    for (const sch of schemas.split(",")) {
-        await queryRunner.createSchema(sch, true);
-    }
+    const conn = await createConnection(connOpt);
+    const queryRunner = conn.createQueryRunner();
+    await Promise.all(
+        schemas.split(",").map(sch => queryRunner.createSchema(sch, true))
+    );
     await conn.synchronize();
 
     if (conn.isConnected) {
@@ -83,8 +81,7 @@ export async function createMSSQLModels(
 export async function createPostgresModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new PostgresDriver();
+    const driver = new PostgresDriver();
     const connectionOptions: IConnectionOptions = {
         host: String(process.env.POSTGRES_Host),
         port: Number(process.env.POSTGRES_Port),
@@ -118,11 +115,11 @@ export async function createPostgresModels(
     };
 
     const schemas = "public,sch1,sch2";
-    let conn = await createConnection(connOpt);
-    let queryRunner = conn.createQueryRunner();
-    for (const sch of schemas.split(",")) {
-        await queryRunner.createSchema(sch, true);
-    }
+    const conn = await createConnection(connOpt);
+    const queryRunner = conn.createQueryRunner();
+    await Promise.all(
+        schemas.split(",").map(sch => queryRunner.createSchema(sch, true))
+    );
     await conn.synchronize();
 
     if (conn.isConnected) {
@@ -135,8 +132,6 @@ export async function createPostgresModels(
 export async function createSQLiteModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new SqliteDriver();
     const connectionOptions: IConnectionOptions = {
         host: "",
         port: 0,
@@ -147,13 +142,6 @@ export async function createSQLiteModels(
         schemaName: "",
         ssl: false
     };
-    await driver.ConnectToServer(connectionOptions);
-
-    if (await driver.CheckIfDBExists(String(process.env.SQLITE_Database))) {
-        await driver.DropDB(String(process.env.SQLITE_Database));
-    }
-    await driver.CreateDB(String(process.env.SQLITE_Database));
-    await driver.DisconnectFromServer();
 
     const connOpt: ConnectionOptions = {
         database: String(process.env.SQLITE_Database),
@@ -164,7 +152,7 @@ export async function createSQLiteModels(
         name: "sqlite"
     };
 
-    let conn = await createConnection(connOpt);
+    const conn = await createConnection(connOpt);
     await conn.synchronize();
 
     if (conn.isConnected) {
@@ -177,8 +165,7 @@ export async function createSQLiteModels(
 export async function createMysqlModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new MysqlDriver();
+    const driver = new MysqlDriver();
     const connectionOptions: IConnectionOptions = {
         host: String(process.env.MYSQL_Host),
         port: Number(process.env.MYSQL_Port),
@@ -220,8 +207,7 @@ export async function createMysqlModels(
 export async function createMariaDBModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new MariaDbDriver();
+    const driver = new MariaDbDriver();
     const connectionOptions: IConnectionOptions = {
         host: String(process.env.MARIADB_Host),
         port: Number(process.env.MARIADB_Port),
@@ -264,8 +250,7 @@ export async function createMariaDBModels(
 export async function createOracleDBModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    let driver: AbstractDriver;
-    driver = new OracleDriver();
+    const driver = new OracleDriver();
 
     const connectionOptions: IConnectionOptions = {
         host: String(process.env.ORACLE_Host),
@@ -339,22 +324,22 @@ export function compileTsFiles(
 
 export function getEnabledDbDrivers() {
     const dbDrivers: string[] = [];
-    if (process.env.SQLITE_Skip == "0") {
+    if (process.env.SQLITE_Skip === "0") {
         dbDrivers.push("sqlite");
     }
-    if (process.env.POSTGRES_Skip == "0") {
+    if (process.env.POSTGRES_Skip === "0") {
         dbDrivers.push("postgres");
     }
-    if (process.env.MYSQL_Skip == "0") {
+    if (process.env.MYSQL_Skip === "0") {
         dbDrivers.push("mysql");
     }
-    if (process.env.MARIADB_Skip == "0") {
+    if (process.env.MARIADB_Skip === "0") {
         dbDrivers.push("mariadb");
     }
-    if (process.env.MSSQL_Skip == "0") {
+    if (process.env.MSSQL_Skip === "0") {
         dbDrivers.push("mssql");
     }
-    if (process.env.ORACLE_Skip == "0") {
+    if (process.env.ORACLE_Skip === "0") {
         dbDrivers.push("oracle");
     }
     return dbDrivers;

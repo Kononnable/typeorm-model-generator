@@ -1,23 +1,24 @@
-require("dotenv").config();
 import "reflect-metadata";
 import { expect } from "chai";
-import fs = require("fs-extra");
-import path = require("path");
-import { EntityFileToJson } from "../utils/EntityFileToJson";
+import * as ts from "typescript";
+import EntityFileToJson from "../utils/EntityFileToJson";
 import {
     createDriver,
-    createModelFromDatabase,
     dataCollectionPhase,
     modelCustomizationPhase,
     modelGenerationPhase
 } from "../../src/Engine";
-import * as ts from "typescript";
 import * as GTU from "../utils/GeneralTestUtils";
+import EntityInfo from "../../src/models/EntityInfo";
+import IConnectionOptions from "../../src/IConnectionOptions";
+
+import fs = require("fs-extra");
+import path = require("path");
 import chaiSubset = require("chai-subset");
 import chai = require("chai");
 import yn = require("yn");
-import EntityInfo from "../../src/models/EntityInfo";
-import IConnectionOptions from "../../src/IConnectionOptions";
+
+require("dotenv").config();
 
 chai.use(chaiSubset);
 
@@ -37,16 +38,16 @@ describe("GitHub issues", async function() {
     this.timeout(60000);
     this.slow(10000); // compiling created models takes time
     const testPartialPath = "test/integration/github-issues";
-    runTestsFromPath(testPartialPath, false);
+    await runTestsFromPath(testPartialPath, false);
 });
 describe("TypeOrm examples", async function() {
     this.timeout(60000);
     this.slow(10000); // compiling created models takes time
     const testPartialPath = "test/integration/examples";
-    runTestsFromPath(testPartialPath, false);
+    await runTestsFromPath(testPartialPath, false);
 });
 
-export async function runTestsFromPath(
+async function runTestsFromPath(
     testPartialPath: string,
     isDbSpecific: boolean
 ) {
@@ -55,21 +56,22 @@ export async function runTestsFromPath(
         fs.mkdirSync(resultsPath);
     }
     const dbDrivers: string[] = GTU.getEnabledDbDrivers();
-    for (const dbDriver of dbDrivers) {
+    dbDrivers.forEach(dbDriver => {
         const newDirPath = path.resolve(resultsPath, dbDriver);
         if (!fs.existsSync(newDirPath)) {
             fs.mkdirSync(newDirPath);
         }
-    }
+    });
     const files = fs.readdirSync(path.resolve(process.cwd(), testPartialPath));
     if (isDbSpecific) {
         await runTest(dbDrivers, testPartialPath, files);
     } else {
-        for (const folder of files) {
+        files.forEach(folder => {
             runTestForMultipleDrivers(folder, dbDrivers, testPartialPath);
-        }
+        });
     }
 }
+
 function runTestForMultipleDrivers(
     testName: string,
     dbDrivers: string[],
@@ -191,22 +193,21 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     expect(filesOrg, "Errors detected in model comparision").to.be.deep.equal(
         filesGen
     );
-    for (const file of filesOrg) {
-        const entftj = new EntityFileToJson();
-        const jsonEntityOrg = entftj.convert(
+    filesOrg.forEach(file => {
+        const jsonEntityOrg = EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesOrgPathTS, file))
         );
-        const jsonEntityGen = entftj.convert(
+        const jsonEntityGen = EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesGenPath, file))
         );
         expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(
             jsonEntityOrg
         );
-    }
+    });
 }
 
 function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
-    let currentDirectoryFiles: string[] = [];
+    const currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
         const entitiesPath = path.resolve(filesGenPath, driver, "entities");
         if (fs.existsSync(entitiesPath)) {
@@ -263,6 +264,7 @@ async function prepareTestRuns(
             generationOptions.lazy = true;
             break;
         case "144":
+            // eslint-disable-next-line no-case-declarations
             let connectionOptions: IConnectionOptions;
             switch (dbDriver) {
                 case "mysql":
@@ -296,10 +298,10 @@ async function prepareTestRuns(
 
             await driver.ConnectToServer(connectionOptions!);
             if (!(await driver.CheckIfDBExists("db1"))) {
-                var x = await driver.CreateDB("db1");
+                await driver.CreateDB("db1");
             }
             if (!(await driver.CheckIfDBExists("db2"))) {
-                var t = await driver.CreateDB("db2");
+                await driver.CreateDB("db2");
             }
             await driver.DisconnectFromServer();
             break;

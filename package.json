@@ -7,7 +7,7 @@
     "start": "ts-node ./src/index.ts",
     "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
-    "posttest": "eslint ./src/*.ts ./src/**/*.ts",
+    "posttest": "eslint ./**/*.ts ./src/**/*.ts  ./test/**/*.ts",
     "clean": "rimraf coverage output",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
   },
@@ -53,6 +53,7 @@
     "@types/sinon": "^7.0.13",
     "@types/sqlite3": "^3.1.5",
     "@types/yargs": "^12.0.1",
+    "@types/yn": "^3.1.0",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
     "@typescript-eslint/typescript-estree": "^1.13.0",
