@@ -27,7 +27,7 @@ export default class OracleDriver extends AbstractDriver {
     public constructor() {
         super();
         try {
-            // eslint-disable-next-line import/no-extraneous-dependencies, global-require
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
             this.Oracle = require("oracledb");
             this.Oracle.outFormat = this.Oracle.OBJECT;
         } catch (error) {

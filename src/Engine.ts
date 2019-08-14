@@ -12,6 +12,7 @@ import MysqlDriver from "./drivers/MysqlDriver";
 import OracleDriver from "./drivers/OracleDriver";
 import SqliteDriver from "./drivers/SqliteDriver";
 import NamingStrategy from "./NamingStrategy";
+import AbstractNamingStrategy from "./AbstractNamingStrategy";
 
 import changeCase = require("change-case");
 import fs = require("fs");
@@ -69,7 +70,7 @@ export function modelCustomizationPhase(
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ) {
-    let namingStrategy: NamingStrategy;
+    let namingStrategy: AbstractNamingStrategy;
     if (
         generationOptions.customNamingStrategyPath &&
         generationOptions.customNamingStrategyPath !== ""
@@ -365,7 +366,7 @@ function createTypeOrmConfig(
     }
 }
 function applyNamingStrategy(
-    namingStrategy: NamingStrategy,
+    namingStrategy: AbstractNamingStrategy,
     dbModel: EntityInfo[]
 ) {
     let retval = changeRelationNames(dbModel);
@@ -424,7 +425,10 @@ function applyNamingStrategy(
     function changeColumnNames(model: EntityInfo[]) {
         model.forEach(entity => {
             entity.Columns.forEach(column => {
-                const newName = namingStrategy.columnName(column.tsName);
+                const newName = namingStrategy.columnName(
+                    column.tsName,
+                    column
+                );
                 entity.Indexes.forEach(index => {
                     index.columns
                         .filter(column2 => column2.name === column.tsName)
@@ -464,7 +468,10 @@ function applyNamingStrategy(
     }
     function changeEntityNames(entities: EntityInfo[]) {
         entities.forEach(entity => {
-            const newName = namingStrategy.entityName(entity.tsEntityName);
+            const newName = namingStrategy.entityName(
+                entity.tsEntityName,
+                entity
+            );
             entities.forEach(entity2 => {
                 entity2.Columns.forEach(column => {
                     column.relations.forEach(relation => {
