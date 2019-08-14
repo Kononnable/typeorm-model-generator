@@ -1,4 +1,4 @@
-export interface IRelationTempInfo {
+export default interface RelationTempInfo {
     ownerTable: string;
     ownerColumnsNames: string[];
     referencedTable: string;
@@ -11,5 +11,5 @@ export interface IRelationTempInfo {
         | "NO ACTION"
         | null;
     actionOnUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "DEFAULT" | null;
-    object_id: number | string;
+    objectId: number | string;
 }

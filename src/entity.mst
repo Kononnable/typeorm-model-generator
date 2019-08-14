@@ -15,7 +15,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         primary:{{primary}},{{/primary}}{{/generated}}{{#unique}}
         unique: true,{{/unique}}{{#length}}
         length:{{.}},{{/length}}{{#width}}
-        width:{{.}},{{/width}}{{#default}}
+        width:{{.}},{{/width}}{{#unsigned}}
+        unsigned: true,{{/unsigned}}{{#default}}
         default: {{.}},{{/default}}{{#precision}}
         precision:{{.}},{{/precision}}{{#scale}}
         scale:{{.}},{{/scale}}{{#enum}}
@@ -25,18 +26,18 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         }){{/options}}
     {{printPropertyVisibility}}{{toPropertyName tsName}}:{{tsType}}{{#options/nullable}} | null{{/options/nullable}};
         {{/relations}}{{#relations}}
-    @{{relationType}}(type=>{{toEntityName relatedTable}}, {{tolowerCaseFirst relatedTable}}=>{{tolowerCaseFirst relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../options/primary}}primary:true,{{/../options/primary}}{{^../options/nullable}} nullable:false,{{/../options/nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#if (or actionOnDelete actionOnUpdate ) }},{ {{#actionOnDelete}}onDelete: '{{.}}' ,{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{/if}}{{/if}}){{#isOwner}}
+    @{{relationType}}(()=>{{toEntityName relatedTable}}, {{tolowerCaseFirst relatedTable}}=>{{tolowerCaseFirst relatedTable}}.{{#if isOwner}}{{toPropertyName ownerColumn}},{ {{#../options/primary}}primary:true,{{/../options/primary}}{{^../options/nullable}} nullable:false,{{/../options/nullable}}{{#actionOnDelete}}onDelete: '{{.}}',{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{else}}{{toPropertyName relatedColumn}}{{#if (or actionOnDelete actionOnUpdate ) }},{ {{#actionOnDelete}}onDelete: '{{.}}' ,{{/actionOnDelete}}{{#actionOnUpdate}}onUpdate: '{{.}}'{{/actionOnUpdate}} }{{/if}}{{/if}}){{#isOwner}}
     {{#if isManyToMany}}@JoinTable({ name:'{{ ../options/name}}'}){{else}}@JoinColumn({ name:'{{ ../options/name}}'}){{/if}}{{/isOwner}}
     {{#if (or isOneToMany isManyToMany)}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat  (toEntityName relatedTable) "[]")}};
     {{else}}{{printPropertyVisibility}}{{toPropertyName ../tsName}}:{{toLazy (concat (toEntityName relatedTable) ' | null')}};
     {{/if}}
     {{#if relationIdField }}
 
-    @RelationId(({{../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{../../tsEntityName}}.{{toPropertyName ../tsName}})
-    {{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
+    @RelationId(({{toPropertyName ../../tsEntityName}}: {{toEntityName ../../tsEntityName}}) => {{toEntityName ../../tsEntityName}}.{{toPropertyName ../tsName}})
+    {{printPropertyVisibility}}{{toPropertyName ../tsName}}Id: {{#if isOneToOne}}{{toLazy ../tsType}}{{else}}{{toLazy (concat  ../tsType "[]")}}{{/if}};{{/if}}{{/relations}}
     {{/Columns}}
     {{#if GenerateConstructor}}
-    constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
+    {{printPropertyVisibility}}constructor(init?: Partial<{{toEntityName tsEntityName}}>) {
 		Object.assign(this, init);
 	}
     {{/if}}
