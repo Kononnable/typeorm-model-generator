@@ -1,5 +1,5 @@
-import { MysqlDriver } from "./MysqlDriver";
+import MysqlDriver from "./MysqlDriver";
 
-export class MariaDbDriver extends MysqlDriver {
+export default class MariaDbDriver extends MysqlDriver {
     public readonly EngineName: string = "MariaDb";
 }

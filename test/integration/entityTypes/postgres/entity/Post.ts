@@ -119,8 +119,8 @@ export class Post {
     @Column("boolean")
     boolean: boolean;
 
-    // @Column("enum")
-    // enum: string;
+    @Column("enum", { enum: ["A", "B", "C"] })
+    enum: string;
 
     @Column("point")
     point: string | object;
