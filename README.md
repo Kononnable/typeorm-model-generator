@@ -32,7 +32,7 @@ Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x
 Options:
   --help                 Show help                                     [boolean]
   --version              Show version number                           [boolean]
-  -h, --host             IP adress/Hostname for database server
+  -h, --host             IP address/Hostname for database server
                                                           [default: "127.0.0.1"]
   -d, --database         Database name(or path for sqlite)            [required]
   -u, --user             Username for database server
