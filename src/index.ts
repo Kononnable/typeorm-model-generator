@@ -56,7 +56,7 @@ function GetUtilParametersByArgs() {
         .option("h", {
             alias: "host",
             default: "127.0.0.1",
-            describe: "IP adress/Hostname for database server"
+            describe: "IP address/Hostname for database server"
         })
         .option("d", {
             alias: "database",
@@ -223,7 +223,7 @@ async function GetUtilParametersByInquirer() {
         const answ: any = await inquirer.prompt([
             {
                 default: "localhost",
-                message: "Database adress:",
+                message: "Database address:",
                 name: "host",
                 type: "input"
             },
