@@ -2,22 +2,26 @@ import * as MYSQL from "mysql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../IConnectionOptions";
-import { ColumnInfo } from "../models/ColumnInfo";
-import { EntityInfo } from "../models/EntityInfo";
-import { IndexColumnInfo } from "../models/IndexColumnInfo";
-import { IndexInfo } from "../models/IndexInfo";
-import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
-import { AbstractDriver } from "./AbstractDriver";
+import AbstractDriver from "./AbstractDriver";
+import EntityInfo from "../models/EntityInfo";
+import ColumnInfo from "../models/ColumnInfo";
+import IndexInfo from "../models/IndexInfo";
+import IndexColumnInfo from "../models/IndexColumnInfo";
+import RelationTempInfo from "../models/RelationTempInfo";
+import IConnectionOptions from "../IConnectionOptions";
 
-export class MysqlDriver extends AbstractDriver {
+export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
         options: { replication: undefined } as ConnectionOptions
     } as any).dataTypeDefaults;
+
     public readonly EngineName: string = "MySQL";
+
     public readonly standardPort = 3306;
+
     public readonly standardUser = "root";
+
     public readonly standardSchema = "";
 
     private Connection: MYSQL.Connection;
@@ -30,7 +34,9 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
             FROM information_schema.tables
             WHERE table_type='BASE TABLE'
-            AND table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
+            AND table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
+                dbNames
+            )})`);
         return response;
     };
 
@@ -54,7 +60,7 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
-            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(
+            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
             )})
 			order by ordinal_position`);
@@ -68,10 +74,13 @@ export class MysqlDriver extends AbstractDriver {
                     colInfo.options.nullable = resp.IS_NULLABLE === "YES";
                     colInfo.options.generated = resp.IsIdentity === 1;
                     colInfo.options.unique = resp.COLUMN_KEY === "UNI";
-                    colInfo.options.default = this.ReturnDefaultValueFunction(
+                    colInfo.options.default = MysqlDriver.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
                     colInfo.options.type = resp.DATA_TYPE as any;
+                    colInfo.options.unsigned = resp.COLUMN_TYPE.endsWith(
+                        " unsigned"
+                    );
                     switch (resp.DATA_TYPE) {
                         case "int":
                             colInfo.tsType = "number";
@@ -160,10 +169,10 @@ export class MysqlDriver extends AbstractDriver {
                             colInfo.options.enum = resp.COLUMN_TYPE.substring(
                                 5,
                                 resp.COLUMN_TYPE.length - 1
-                            ).replace(/\'/gi, '"');
+                            ).replace(/'/gi, '"');
                             break;
                         case "json":
-                            colInfo.tsType = "Object";
+                            colInfo.tsType = "object";
                             break;
                         case "binary":
                             colInfo.tsType = "Buffer";
@@ -245,6 +254,7 @@ export class MysqlDriver extends AbstractDriver {
         });
         return entities;
     }
+
     public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string,
@@ -259,7 +269,9 @@ export class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
-            WHERE table_schema IN (${this.escapeCommaSeparatedList(dbNames)})`);
+            WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
+                dbNames
+            )})`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -288,6 +300,7 @@ export class MysqlDriver extends AbstractDriver {
 
         return entities;
     }
+
     public async GetRelations(
         entities: EntityInfo[],
         schema: string,
@@ -317,23 +330,23 @@ export class MysqlDriver extends AbstractDriver {
             INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
                 ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
-            TABLE_SCHEMA IN (${this.escapeCommaSeparatedList(dbNames)})
+            TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(dbNames)})
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
-        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
+        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id === resp.object_id
+                val => val.objectId === resp.object_id
             );
             if (rels === undefined) {
-                rels = {} as IRelationTempInfo;
+                rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
                     resp.onDelete === "NO_ACTION" ? null : resp.onDelete;
                 rels.actionOnUpdate =
                     resp.onUpdate === "NO_ACTION" ? null : resp.onUpdate;
-                rels.object_id = resp.object_id;
+                rels.objectId = resp.object_id;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;
                 relationsTemp.push(rels);
@@ -341,12 +354,13 @@ export class MysqlDriver extends AbstractDriver {
             rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
             rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
         });
-        entities = this.GetRelationsFromRelationTempInfo(
+        const retVal = MysqlDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
             entities
         );
-        return entities;
+        return retVal;
     }
+
     public async DisconnectFromServer() {
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection.end(err => {
@@ -366,6 +380,7 @@ export class MysqlDriver extends AbstractDriver {
             await promise;
         }
     }
+
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
         const databaseName = connectionOptons.databaseName.split(",")[0];
         let config: MYSQL.ConnectionConfig;
@@ -378,6 +393,7 @@ export class MysqlDriver extends AbstractDriver {
                 ssl: {
                     rejectUnauthorized: false
                 },
+                timeout: connectionOptons.timeout,
                 user: connectionOptons.user
             };
         } else {
@@ -386,6 +402,7 @@ export class MysqlDriver extends AbstractDriver {
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
+                timeout: connectionOptons.timeout,
                 user: connectionOptons.user
             };
         }
@@ -409,21 +426,26 @@ export class MysqlDriver extends AbstractDriver {
 
         await promise;
     }
+
     public async CreateDB(dbName: string) {
         await this.ExecQuery<any>(`CREATE DATABASE ${dbName}; `);
     }
+
     public async UseDB(dbName: string) {
         await this.ExecQuery<any>(`USE ${dbName}; `);
     }
+
     public async DropDB(dbName: string) {
         await this.ExecQuery<any>(`DROP DATABASE ${dbName}; `);
     }
+
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
         const resp = await this.ExecQuery<any>(
             `SHOW DATABASES LIKE '${dbName}' `
         );
         return resp.length > 0;
     }
+
     public async ExecQuery<T>(sql: string): Promise<T[]> {
         const ret: T[] = [];
         const query = this.Connection.query(sql);
@@ -438,16 +460,23 @@ export class MysqlDriver extends AbstractDriver {
         await promise;
         return ret;
     }
-    private ReturnDefaultValueFunction(defVal: string | null): string | null {
-        if (!defVal || defVal === "NULL") {
+
+    private static ReturnDefaultValueFunction(
+        defVal: string | null
+    ): string | null {
+        let defaultValue = defVal;
+        if (!defaultValue || defaultValue === "NULL") {
             return null;
         }
-        if (defVal.toLowerCase() === "current_timestamp()") {
-            defVal = "CURRENT_TIMESTAMP";
+        if (defaultValue.toLowerCase() === "current_timestamp()") {
+            defaultValue = "CURRENT_TIMESTAMP";
         }
-        if (defVal === "CURRENT_TIMESTAMP" || defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+        if (
+            defaultValue === "CURRENT_TIMESTAMP" ||
+            defaultValue.startsWith(`'`)
+        ) {
+            return `() => "${defaultValue}"`;
         }
-        return `() => "'${defVal}'"`;
+        return `() => "'${defaultValue}'"`;
     }
 }

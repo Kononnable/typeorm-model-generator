@@ -1,6 +1,6 @@
-import { IndexColumnInfo } from "./IndexColumnInfo";
+import IndexColumnInfo from "./IndexColumnInfo";
 
-export interface IndexInfo {
+export default interface IndexInfo {
     name: string;
     columns: IndexColumnInfo[];
     isUnique: boolean;

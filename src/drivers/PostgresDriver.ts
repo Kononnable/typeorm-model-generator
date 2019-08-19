@@ -2,31 +2,34 @@ import * as PG from "pg";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../IConnectionOptions";
-import { ColumnInfo } from "../models/ColumnInfo";
-import { EntityInfo } from "../models/EntityInfo";
-import { IndexColumnInfo } from "../models/IndexColumnInfo";
-import { IndexInfo } from "../models/IndexInfo";
-import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
-import { AbstractDriver } from "./AbstractDriver";
+import AbstractDriver from "./AbstractDriver";
+import EntityInfo from "../models/EntityInfo";
+import ColumnInfo from "../models/ColumnInfo";
+import IndexInfo from "../models/IndexInfo";
+import IndexColumnInfo from "../models/IndexColumnInfo";
+import RelationTempInfo from "../models/RelationTempInfo";
+import IConnectionOptions from "../IConnectionOptions";
 
-export class PostgresDriver extends AbstractDriver {
+export default class PostgresDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
         options: { replication: undefined } as ConnectionOptions
     } as any).dataTypeDefaults;
+
     public readonly standardPort = 5432;
+
     public readonly standardUser = "postgres";
+
     public readonly standardSchema = "public";
 
     private Connection: PG.Client;
 
     public GetAllTablesQuery = async (schema: string) => {
-        const response: Array<{
+        const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }> = (await this.Connection.query(
+        }[] = (await this.Connection.query(
             `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
         )).rows;
         return response;
@@ -36,7 +39,7 @@ export class PostgresDriver extends AbstractDriver {
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        const response: Array<{
+        const response: {
             table_name: string;
             column_name: string;
             udt_name: string;
@@ -48,7 +51,8 @@ export class PostgresDriver extends AbstractDriver {
             numeric_scale: number;
             isidentity: string;
             isunique: string;
-        }> = (await this.Connection
+            enumvalues: string | null;
+        }[] = (await this.Connection
             .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
             case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
@@ -60,7 +64,14 @@ export class PostgresDriver extends AbstractDriver {
         tc.CONSTRAINT_TYPE = 'UNIQUE'
         and tc.TABLE_NAME = c.TABLE_NAME
         and cu.COLUMN_NAME = c.COLUMN_NAME
-        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+        (SELECT
+string_agg(enumlabel, ',')
+FROM "pg_enum" "e"
+INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        ) enumValues
             FROM INFORMATION_SCHEMA.COLUMNS c
             where table_schema in (${schema})
 			order by ordinal_position`)).rows;
@@ -76,13 +87,16 @@ export class PostgresDriver extends AbstractDriver {
                     colInfo.options.unique = resp.isunique === "1";
                     colInfo.options.default = colInfo.options.generated
                         ? null
-                        : this.ReturnDefaultValueFunction(resp.column_default);
+                        : PostgresDriver.ReturnDefaultValueFunction(
+                              resp.column_default
+                          );
 
                     const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
-                        resp.udt_name
+                        resp.udt_name,
+                        resp.enumvalues
                     );
-                    if (!columnTypes.sql_type || !columnTypes.ts_type) {
+                    if (!columnTypes.sqlType || !columnTypes.tsType) {
                         if (
                             resp.data_type === "USER-DEFINED" ||
                             resp.data_type === "ARRAY"
@@ -105,13 +119,14 @@ export class PostgresDriver extends AbstractDriver {
                         }
                         return;
                     }
-                    colInfo.options.type = columnTypes.sql_type as any;
-                    colInfo.tsType = columnTypes.ts_type;
-                    colInfo.options.array = columnTypes.is_array;
+                    colInfo.options.type = columnTypes.sqlType as any;
+                    colInfo.tsType = columnTypes.tsType;
+                    colInfo.options.array = columnTypes.isArray;
+                    colInfo.options.enum = columnTypes.enumValues;
                     if (colInfo.options.array) {
                         colInfo.tsType = colInfo.tsType
                             .split("|")
-                            .map(x => x.replace("|", "").trim() + "[]")
+                            .map(x => `${x.replace("|", "").trim()}[]`)
                             .join(" | ") as any;
                     }
 
@@ -151,246 +166,258 @@ export class PostgresDriver extends AbstractDriver {
         return entities;
     }
 
-    public MatchColumnTypes(dataType: string, udtName: string) {
-        const ret: {
-            ts_type:
+    public MatchColumnTypes(
+        dataType: string,
+        udtName: string,
+        enumValues: string | null
+    ) {
+        let ret: {
+            tsType:
                 | "number"
                 | "string"
                 | "boolean"
                 | "Date"
                 | "Buffer"
-                | "Object"
-                | "string | Object"
+                | "object"
+                | "string | object"
                 | "string | string[]"
                 | "any"
                 | null;
-            sql_type: string | null;
-            is_array: boolean;
-        } = { ts_type: null, sql_type: null, is_array: false };
-        ret.sql_type = dataType;
+            sqlType: string | null;
+            isArray: boolean;
+            enumValues: string[];
+        } = { tsType: null, sqlType: null, isArray: false, enumValues: [] };
+        ret.sqlType = dataType;
         switch (dataType) {
             case "int2":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "int4":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "int8":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "smallint":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "integer":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "bigint":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "decimal":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "numeric":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "real":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "float":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "float4":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "float8":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "double precision":
-                ret.ts_type = "number";
+                ret.tsType = "number";
                 break;
             case "money":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "character varying":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "varchar":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "character":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "char":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "bpchar":
-                ret.sql_type = "char";
-                ret.ts_type = "string";
+                ret.sqlType = "char";
+                ret.tsType = "string";
                 break;
             case "text":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "citext":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "hstore":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "bytea":
-                ret.ts_type = "Buffer";
+                ret.tsType = "Buffer";
                 break;
             case "bit":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "varbit":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "bit varying":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "timetz":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "timestamptz":
-                ret.ts_type = "Date";
+                ret.tsType = "Date";
                 break;
             case "timestamp":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "timestamp without time zone":
-                ret.ts_type = "Date";
+                ret.tsType = "Date";
                 break;
             case "timestamp with time zone":
-                ret.ts_type = "Date";
+                ret.tsType = "Date";
                 break;
             case "date":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "time":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "time without time zone":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "time with time zone":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "interval":
-                ret.ts_type = "any";
+                ret.tsType = "any";
                 break;
             case "bool":
-                ret.ts_type = "boolean";
+                ret.tsType = "boolean";
                 break;
             case "boolean":
-                ret.ts_type = "boolean";
-                break;
-            case "enum":
-                ret.ts_type = "string";
+                ret.tsType = "boolean";
                 break;
             case "point":
-                ret.ts_type = "string | Object";
+                ret.tsType = "string | object";
                 break;
             case "line":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "lseg":
-                ret.ts_type = "string | string[]";
+                ret.tsType = "string | string[]";
                 break;
             case "box":
-                ret.ts_type = "string | Object";
+                ret.tsType = "string | object";
                 break;
             case "path":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "polygon":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "circle":
-                ret.ts_type = "string | Object";
+                ret.tsType = "string | object";
                 break;
             case "cidr":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "inet":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "macaddr":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "tsvector":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "tsquery":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "uuid":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "xml":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "json":
-                ret.ts_type = "Object";
+                ret.tsType = "object";
                 break;
             case "jsonb":
-                ret.ts_type = "Object";
+                ret.tsType = "object";
                 break;
             case "int4range":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "int8range":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "numrange":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "tsrange":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "tstzrange":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "daterange":
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 break;
             case "ARRAY":
-                const z = this.MatchColumnTypes(udtName.substring(1), udtName);
-                ret.ts_type = z.ts_type;
-                ret.sql_type = z.sql_type;
-                ret.is_array = true;
+                ret = this.MatchColumnTypes(
+                    udtName.substring(1),
+                    udtName,
+                    enumValues
+                );
+                ret.isArray = true;
                 break;
             case "USER-DEFINED":
-                ret.sql_type = udtName;
-                ret.ts_type = "string";
+                ret.tsType = "string";
                 switch (udtName) {
                     case "citext":
                     case "hstore":
                     case "geometry":
+                        ret.sqlType = udtName;
                         break;
                     default:
-                        ret.ts_type = null;
-                        ret.sql_type = null;
+                        if (enumValues) {
+                            ret.sqlType = "enum";
+                            ret.enumValues = (`"${enumValues
+                                .split(",")
+                                .join('","')}"` as never) as string[];
+                        } else {
+                            ret.tsType = null;
+                            ret.sqlType = null;
+                        }
                         break;
                 }
                 break;
             default:
-                ret.ts_type = null;
-                ret.sql_type = null;
+                ret.tsType = null;
+                ret.sqlType = null;
                 break;
         }
         return ret;
     }
+
     public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        const response: Array<{
+        const response: {
             tablename: string;
             indexname: string;
             columnname: string;
             is_unique: number;
             is_primary_key: number;
-        }> = (await this.Connection.query(`SELECT
+        }[] = (await this.Connection.query(`SELECT
         c.relname AS tablename,
         i.relname as indexname,
         f.attname AS columnname,
@@ -445,11 +472,12 @@ export class PostgresDriver extends AbstractDriver {
 
         return entities;
     }
+
     public async GetRelations(
         entities: EntityInfo[],
         schema: string
     ): Promise<EntityInfo[]> {
-        const response: Array<{
+        const response: {
             tablewithforeignkey: string;
             fk_partno: number;
             foreignkeycolumn: string;
@@ -459,7 +487,7 @@ export class PostgresDriver extends AbstractDriver {
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             object_id: string;
             // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
-        }> = (await this.Connection.query(`SELECT DISTINCT
+        }[] = (await this.Connection.query(`SELECT DISTINCT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -499,20 +527,20 @@ export class PostgresDriver extends AbstractDriver {
                 AND att2.attnum = con.parent
                 AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
                 `)).rows;
-        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
+        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id === resp.object_id
+                val => val.objectId === resp.object_id
             );
             if (rels === undefined) {
-                rels = {} as IRelationTempInfo;
+                rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 rels.actionOnDelete =
                     resp.ondelete === "NO ACTION" ? null : resp.ondelete;
                 rels.actionOnUpdate =
                     resp.onupdate === "NO ACTION" ? null : resp.onupdate;
-                rels.object_id = resp.object_id;
+                rels.objectId = resp.object_id;
                 rels.ownerTable = resp.tablewithforeignkey;
                 rels.referencedTable = resp.tablereferenced;
                 relationsTemp.push(rels);
@@ -520,12 +548,13 @@ export class PostgresDriver extends AbstractDriver {
             rels.ownerColumnsNames.push(resp.foreignkeycolumn);
             rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
         });
-        entities = this.GetRelationsFromRelationTempInfo(
+        const retVal = PostgresDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
             entities
         );
-        return entities;
+        return retVal;
     }
+
     public async DisconnectFromServer() {
         if (this.Connection) {
             const promise = new Promise<boolean>((resolve, reject) => {
@@ -553,6 +582,8 @@ export class PostgresDriver extends AbstractDriver {
             password: connectionOptons.password,
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            statement_timeout: connectionOptons.timeout,
             user: connectionOptons.user
         });
 
@@ -577,26 +608,33 @@ export class PostgresDriver extends AbstractDriver {
     public async CreateDB(dbName: string) {
         await this.Connection.query(`CREATE DATABASE ${dbName}; `);
     }
+
     public async UseDB(dbName: string) {
         await this.Connection.query(`USE ${dbName}; `);
     }
+
     public async DropDB(dbName: string) {
         await this.Connection.query(`DROP DATABASE ${dbName}; `);
     }
+
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
         const resp = await this.Connection.query(
             `SELECT datname FROM pg_database  WHERE datname  ='${dbName}' `
         );
         return resp.rowCount > 0;
     }
-    private ReturnDefaultValueFunction(defVal: string | null): string | null {
-        if (!defVal) {
+
+    private static ReturnDefaultValueFunction(
+        defVal: string | null
+    ): string | null {
+        let defaultValue = defVal;
+        if (!defaultValue) {
             return null;
         }
-        defVal = defVal.replace(/'::[\w ]*/, "'");
-        if (defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+        defaultValue = defaultValue.replace(/'::[\w ]*/, "'");
+        if (defaultValue.startsWith(`'`)) {
+            return `() => "${defaultValue}"`;
         }
-        return `() => "${defVal}"`;
+        return `() => "${defaultValue}"`;
     }
 }

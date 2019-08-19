@@ -89,7 +89,7 @@ export class Post {
 
     // In mariaDb Json is recognized as longtext
     // @Column("json")
-    // json: Object;
+    // json: object;
 
     @Column("binary")
     binary: Buffer;

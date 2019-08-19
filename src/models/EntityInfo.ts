@@ -1,17 +1,27 @@
-import { ColumnInfo } from "./ColumnInfo";
-import { IndexInfo } from "./IndexInfo";
+import ColumnInfo from "./ColumnInfo";
+import IndexInfo from "./IndexInfo";
 
-export class EntityInfo {
+export default class EntityInfo {
     public tsEntityName: string;
+
     public sqlEntityName: string;
+
     public Columns: ColumnInfo[];
+
     public Imports: string[];
+
     public UniqueImports: string[];
+
     public Indexes: IndexInfo[];
+
     public Schema: string;
+
     public GenerateConstructor: boolean;
+
     public detached: boolean;
+
     public IsActiveRecord: boolean;
+
     public Database: string;
 
     public relationImports() {

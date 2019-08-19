@@ -23,4 +23,4 @@ codecov.yml
 tsconfig.json
 typings.json
 dist/test/
-src/tslint.json
+.eslintrc.js

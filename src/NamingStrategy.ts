@@ -1,9 +1,11 @@
-import changeCase = require("change-case");
-import { AbstractNamingStrategy } from "./AbstractNamingStrategy";
-import { EntityInfo } from "./models/EntityInfo";
-import { RelationInfo } from "./models/RelationInfo";
+import AbstractNamingStrategy from "./AbstractNamingStrategy";
+import RelationInfo from "./models/RelationInfo";
+import EntityInfo from "./models/EntityInfo";
 
-export class NamingStrategy extends AbstractNamingStrategy {
+import changeCase = require("change-case");
+
+/* eslint-disable class-methods-use-this */
+export default class NamingStrategy extends AbstractNamingStrategy {
     public relationName(
         columnOldName: string,
         relation: RelationInfo,
@@ -24,10 +26,10 @@ export class NamingStrategy extends AbstractNamingStrategy {
                 columnName.toLowerCase().lastIndexOf("id")
             );
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
+        if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
-        if (!isNaN(parseInt(columnName[columnName.length - 1], 10))) {
+        if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
         columnName += isRelationToMany ? "s" : "";
@@ -37,7 +39,7 @@ export class NamingStrategy extends AbstractNamingStrategy {
             columnOldName !== columnName
         ) {
             if (ownerEntity.Columns.some(v => v.tsName === columnName)) {
-                columnName = columnName + "_";
+                columnName += "_";
                 for (let i = 2; i <= ownerEntity.Columns.length; i++) {
                     columnName =
                         columnName.substring(
@@ -68,3 +70,5 @@ export class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 }
+
+/* eslint-enable class-methods-use-this */

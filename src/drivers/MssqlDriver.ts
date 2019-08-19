@@ -2,33 +2,37 @@ import * as MSSQL from "mssql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/sqlserver/SqlServerDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../IConnectionOptions";
-import { ColumnInfo } from "../models/ColumnInfo";
-import { EntityInfo } from "../models/EntityInfo";
-import { IndexColumnInfo } from "../models/IndexColumnInfo";
-import { IndexInfo } from "../models/IndexInfo";
-import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
-import { AbstractDriver } from "./AbstractDriver";
+import AbstractDriver from "./AbstractDriver";
+import EntityInfo from "../models/EntityInfo";
+import ColumnInfo from "../models/ColumnInfo";
+import IndexInfo from "../models/IndexInfo";
+import IndexColumnInfo from "../models/IndexColumnInfo";
+import RelationTempInfo from "../models/RelationTempInfo";
+import IConnectionOptions from "../IConnectionOptions";
 
-export class MssqlDriver extends AbstractDriver {
+export default class MssqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqlServerDriver({
         options: { replication: undefined } as ConnectionOptions
     } as any).dataTypeDefaults;
+
     public readonly standardPort = 1433;
+
     public readonly standardSchema = "dbo";
+
     public readonly standardUser = "sa";
 
     private Connection: MSSQL.ConnectionPool;
+
     public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const request = new MSSQL.Request(this.Connection);
-        const response: Array<{
+        const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }> = (await request.query(
+        }[] = (await request.query(
             `SELECT TABLE_SCHEMA,TABLE_NAME, table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
+WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
                 dbNames
             )})`
         )).recordset;
@@ -41,7 +45,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: Array<{
+        const response: {
             TABLE_NAME: string;
             COLUMN_NAME: string;
             COLUMN_DEFAULT: string;
@@ -52,7 +56,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             NUMERIC_SCALE: number;
             IsIdentity: number;
             IsUnique: number;
-        }> = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+        }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
    COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
    (SELECT count(*)
@@ -65,7 +69,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         and cu.COLUMN_NAME = c.COLUMN_NAME
         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
    FROM INFORMATION_SCHEMA.COLUMNS c
-   where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${this.escapeCommaSeparatedList(
+   where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
             dbNames
         )})
         order by ordinal_position`)).recordset;
@@ -81,7 +85,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                     colInfo.options.nullable = resp.IS_NULLABLE === "YES";
                     colInfo.options.generated = resp.IsIdentity === 1;
                     colInfo.options.unique = resp.IsUnique === 1;
-                    colInfo.options.default = this.ReturnDefaultValueFunction(
+                    colInfo.options.default = MssqlDriver.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
                     colInfo.options.type = resp.DATA_TYPE as any;
@@ -222,28 +226,30 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         });
         return entities;
     }
+
     public async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string,
         dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: Array<{
+        const response: {
             TableName: string;
             IndexName: string;
             ColumnName: string;
             is_unique: boolean;
             is_primary_key: boolean;
-        }> = [];
-        for (const dbName of dbNames.split(",")) {
-            await this.UseDB(dbName);
-            const resp: Array<{
-                TableName: string;
-                IndexName: string;
-                ColumnName: string;
-                is_unique: boolean;
-                is_primary_key: boolean;
-            }> = (await request.query(`SELECT
+        }[] = [];
+        await Promise.all(
+            dbNames.split(",").map(async dbName => {
+                await this.UseDB(dbName);
+                const resp: {
+                    TableName: string;
+                    IndexName: string;
+                    ColumnName: string;
+                    is_unique: boolean;
+                    is_primary_key: boolean;
+                }[] = (await request.query(`SELECT
          TableName = t.name,
          IndexName = ind.name,
          ColumnName = col.name,
@@ -263,8 +269,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
          t.is_ms_shipped = 0 and s.name in (${schema})
     ORDER BY
          t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
-            response.push(...resp);
-        }
+                response.push(...resp);
+            })
+        );
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -276,9 +283,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             return filterVal.name === resp.IndexName;
                         }).length > 0
                     ) {
-                        indexInfo = ent.Indexes.filter(filterVal => {
+                        [indexInfo] = ent.Indexes.filter(filterVal => {
                             return filterVal.name === resp.IndexName;
-                        })[0];
+                        });
                     } else {
                         indexInfo.columns = [] as IndexColumnInfo[];
                         indexInfo.name = resp.IndexName;
@@ -293,13 +300,14 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
         return entities;
     }
+
     public async GetRelations(
         entities: EntityInfo[],
         schema: string,
         dbNames: string
     ): Promise<EntityInfo[]> {
         const request = new MSSQL.Request(this.Connection);
-        const response: Array<{
+        const response: {
             TableWithForeignKey: string;
             FK_PartNo: number;
             ForeignKeyColumn: string;
@@ -307,20 +315,21 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             ForeignKeyColumnReferenced: string;
             onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-            object_id: number;
-        }> = [];
-        for (const dbName of dbNames.split(",")) {
-            await this.UseDB(dbName);
-            const resp: Array<{
-                TableWithForeignKey: string;
-                FK_PartNo: number;
-                ForeignKeyColumn: string;
-                TableReferenced: string;
-                ForeignKeyColumnReferenced: string;
-                onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                object_id: number;
-            }> = (await request.query(`select
+            objectId: number;
+        }[] = [];
+        await Promise.all(
+            dbNames.split(",").map(async dbName => {
+                await this.UseDB(dbName);
+                const resp: {
+                    TableWithForeignKey: string;
+                    FK_PartNo: number;
+                    ForeignKeyColumn: string;
+                    TableReferenced: string;
+                    ForeignKeyColumnReferenced: string;
+                    onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                    onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                    objectId: number;
+                }[] = (await request.query(`select
     parentTable.name as TableWithForeignKey,
     fkc.constraint_column_id as FK_PartNo,
      parentColumn.name as ForeignKeyColumn,
@@ -328,7 +337,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
      referencedColumn.name as ForeignKeyColumnReferenced,
      fk.delete_referential_action_desc as onDelete,
      fk.update_referential_action_desc as onUpdate,
-     fk.object_id
+     fk.object_id as objectId
 from
     sys.foreign_keys fk
 inner join
@@ -347,15 +356,16 @@ where
     fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
 order by
     TableWithForeignKey, FK_PartNo`)).recordset;
-            response.push(...resp);
-        }
-        const relationsTemp: IRelationTempInfo[] = [] as IRelationTempInfo[];
+                response.push(...resp);
+            })
+        );
+        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
-                val => val.object_id === resp.object_id
+                val => val.objectId === resp.objectId
             );
             if (rels === undefined) {
-                rels = {} as IRelationTempInfo;
+                rels = {} as RelationTempInfo;
                 rels.ownerColumnsNames = [];
                 rels.referencedColumnsNames = [];
                 switch (resp.onDelete) {
@@ -380,7 +390,7 @@ order by
                         rels.actionOnUpdate = resp.onUpdate;
                         break;
                 }
-                rels.object_id = resp.object_id;
+                rels.objectId = resp.objectId;
                 rels.ownerTable = resp.TableWithForeignKey;
                 rels.referencedTable = resp.TableReferenced;
                 relationsTemp.push(rels);
@@ -388,17 +398,19 @@ order by
             rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
             rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
         });
-        entities = this.GetRelationsFromRelationTempInfo(
+        const retVal = MssqlDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
             entities
         );
-        return entities;
+        return retVal;
     }
+
     public async DisconnectFromServer() {
         if (this.Connection) {
             await this.Connection.close();
         }
     }
+
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
         const databaseName = connectionOptons.databaseName.split(",")[0];
         const config: MSSQL.config = {
@@ -409,6 +421,7 @@ order by
             },
             password: connectionOptons.password,
             port: connectionOptons.port,
+            requestTimeout: connectionOptons.timeout,
             server: connectionOptons.host,
             user: connectionOptons.user
         };
@@ -430,18 +443,22 @@ order by
 
         await promise;
     }
+
     public async CreateDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`CREATE DATABASE ${dbName}; `);
     }
+
     public async UseDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`USE ${dbName}; `);
     }
+
     public async DropDB(dbName: string) {
         const request = new MSSQL.Request(this.Connection);
         await request.query(`DROP DATABASE ${dbName}; `);
     }
+
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
         const request = new MSSQL.Request(this.Connection);
         const resp = await request.query(
@@ -449,16 +466,20 @@ order by
         );
         return resp.recordset.length > 0;
     }
-    private ReturnDefaultValueFunction(defVal: string | null): string | null {
-        if (!defVal) {
+
+    private static ReturnDefaultValueFunction(
+        defVal: string | null
+    ): string | null {
+        let defaultValue = defVal;
+        if (!defaultValue) {
             return null;
         }
-        if (defVal.startsWith("(") && defVal.endsWith(")")) {
-            defVal = defVal.slice(1, -1);
+        if (defaultValue.startsWith("(") && defaultValue.endsWith(")")) {
+            defaultValue = defaultValue.slice(1, -1);
         }
-        if (defVal.startsWith(`'`)) {
-            return `() => "${defVal}"`;
+        if (defaultValue.startsWith(`'`)) {
+            return `() => "${defaultValue}"`;
         }
-        return `() => "${defVal}"`;
+        return `() => "${defaultValue}"`;
     }
 }

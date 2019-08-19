@@ -1,20 +1,22 @@
+import * as Handlebars from "handlebars";
+import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+import * as TomgUtils from "./Utils";
+import AbstractDriver from "./drivers/AbstractDriver";
+import MssqlDriver from "./drivers/MssqlDriver";
+import MariaDbDriver from "./drivers/MariaDbDriver";
+import IConnectionOptions from "./IConnectionOptions";
+import IGenerationOptions from "./IGenerationOptions";
+import EntityInfo from "./models/EntityInfo";
+import PostgresDriver from "./drivers/PostgresDriver";
+import MysqlDriver from "./drivers/MysqlDriver";
+import OracleDriver from "./drivers/OracleDriver";
+import SqliteDriver from "./drivers/SqliteDriver";
+import NamingStrategy from "./NamingStrategy";
+import AbstractNamingStrategy from "./AbstractNamingStrategy";
+
 import changeCase = require("change-case");
 import fs = require("fs");
-import * as Handlebars from "handlebars";
 import path = require("path");
-import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { AbstractDriver } from "./drivers/AbstractDriver";
-import { MariaDbDriver } from "./drivers/MariaDbDriver";
-import { MssqlDriver } from "./drivers/MssqlDriver";
-import { MysqlDriver } from "./drivers/MysqlDriver";
-import { OracleDriver } from "./drivers/OracleDriver";
-import { PostgresDriver } from "./drivers/PostgresDriver";
-import { SqliteDriver } from "./drivers/SqliteDriver";
-import { IConnectionOptions } from "./IConnectionOptions";
-import { IGenerationOptions } from "./IGenerationOptions";
-import { EntityInfo } from "./models/EntityInfo";
-import { NamingStrategy } from "./NamingStrategy";
-import * as TomgUtils from "./Utils";
 
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
@@ -60,7 +62,7 @@ export async function dataCollectionPhase(
     driver: AbstractDriver,
     connectionOptions: IConnectionOptions
 ) {
-    return await driver.GetDataFromServer(connectionOptions);
+    return driver.GetDataFromServer(connectionOptions);
 }
 
 export function modelCustomizationPhase(
@@ -68,22 +70,22 @@ export function modelCustomizationPhase(
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ) {
-    let namingStrategy: NamingStrategy;
+    let namingStrategy: AbstractNamingStrategy;
     if (
         generationOptions.customNamingStrategyPath &&
         generationOptions.customNamingStrategyPath !== ""
     ) {
-        // tslint:disable-next-line:no-var-requires
+        // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
         const req = require(generationOptions.customNamingStrategyPath);
         namingStrategy = new req.NamingStrategy();
     } else {
         namingStrategy = new NamingStrategy();
     }
-    dbModel = setRelationId(generationOptions, dbModel);
-    dbModel = applyNamingStrategy(namingStrategy, dbModel);
-    dbModel = addImportsAndGenerationOptions(dbModel, generationOptions);
-    dbModel = removeColumnDefaultProperties(dbModel, defaultValues);
-    return dbModel;
+    let retVal = setRelationId(generationOptions, dbModel);
+    retVal = applyNamingStrategy(namingStrategy, retVal);
+    retVal = addImportsAndGenerationOptions(retVal, generationOptions);
+    retVal = removeColumnDefaultProperties(retVal, defaultValues);
+    return retVal;
 }
 function removeColumnDefaultProperties(
     dbModel: EntityInfo[],
@@ -106,15 +108,12 @@ function removeColumnDefaultProperties(
                 if (
                     column.options.precision &&
                     defVal.precision &&
-                    column.options.precision === defVal.precision
-                ) {
-                    column.options.precision = undefined;
-                }
-                if (
+                    column.options.precision === defVal.precision &&
                     column.options.scale &&
                     defVal.scale &&
                     column.options.scale === defVal.scale
                 ) {
+                    column.options.precision = undefined;
                     column.options.scale = undefined;
                 }
                 if (
@@ -159,7 +158,7 @@ function setRelationId(
     if (generationOptions.relationIds) {
         model.forEach(ent => {
             ent.Columns.forEach(col => {
-                col.relations.map(rel => {
+                col.relations.forEach(rel => {
                     rel.relationIdField = rel.isOwner;
                 });
             });
@@ -206,8 +205,10 @@ export function modelGenerationPhase(
             case "none":
                 casedFileName = element.tsEntityName;
                 break;
+            default:
+                throw new Error("Unknown case style");
         }
-        const resultFilePath = path.resolve(entitesPath, casedFileName + ".ts");
+        const resultFilePath = path.resolve(entitesPath, `${casedFileName}.ts`);
         const rendered = compliedTemplate(element);
         fs.writeFileSync(resultFilePath, rendered, {
             encoding: "UTF-8",
@@ -230,6 +231,8 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             case "none":
                 retStr = str;
                 break;
+            default:
+                throw new Error("Unknown case style");
         }
         return retStr;
     });
@@ -251,12 +254,14 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             case "none":
                 retStr = str;
                 break;
+            default:
+                throw new Error("Unknown case style");
         }
         return retStr;
     });
     Handlebars.registerHelper("printPropertyVisibility", () =>
         generationOptions.propertyVisibility !== "none"
-            ? generationOptions.propertyVisibility + " "
+            ? `${generationOptions.propertyVisibility} `
             : ""
     );
     Handlebars.registerHelper("toPropertyName", str => {
@@ -271,6 +276,8 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             case "none":
                 retStr = str;
                 break;
+            default:
+                throw new Error("Unknown case style");
         }
         return retStr;
     });
@@ -281,9 +288,8 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     Handlebars.registerHelper("toLazy", str => {
         if (generationOptions.lazy) {
             return `Promise<${str}>`;
-        } else {
-            return str;
         }
+        return str;
     });
     Handlebars.registerHelper({
         and: (v1, v2) => v1 && v2,
@@ -361,13 +367,13 @@ function createTypeOrmConfig(
     }
 }
 function applyNamingStrategy(
-    namingStrategy: NamingStrategy,
+    namingStrategy: AbstractNamingStrategy,
     dbModel: EntityInfo[]
 ) {
-    dbModel = changeRelationNames(dbModel);
-    dbModel = changeEntityNames(dbModel);
-    dbModel = changeColumnNames(dbModel);
-    return dbModel;
+    let retval = changeRelationNames(dbModel);
+    retval = changeEntityNames(retval);
+    retval = changeColumnNames(retval);
+    return retval;
 
     function changeRelationNames(model: EntityInfo[]) {
         model.forEach(entity => {
@@ -402,9 +408,9 @@ function applyNamingStrategy(
                                                 col =>
                                                     col.name === column.tsName
                                             )
-                                            .forEach(
-                                                col => (col.name = newName)
-                                            );
+                                            .forEach(col => {
+                                                col.name = newName;
+                                            });
                                     });
                                 }
                             });
@@ -420,11 +426,16 @@ function applyNamingStrategy(
     function changeColumnNames(model: EntityInfo[]) {
         model.forEach(entity => {
             entity.Columns.forEach(column => {
-                const newName = namingStrategy.columnName(column.tsName);
+                const newName = namingStrategy.columnName(
+                    column.tsName,
+                    column
+                );
                 entity.Indexes.forEach(index => {
                     index.columns
                         .filter(column2 => column2.name === column.tsName)
-                        .forEach(column2 => (column2.name = newName));
+                        .forEach(column2 => {
+                            column2.name = newName;
+                        });
                 });
                 model.forEach(entity2 => {
                     entity2.Columns.forEach(column2 => {
@@ -435,7 +446,9 @@ function applyNamingStrategy(
                                         entity.tsEntityName &&
                                     relation.relatedColumn === column.tsName
                             )
-                            .map(v => (v.relatedColumn = newName));
+                            .forEach(v => {
+                                v.relatedColumn = newName;
+                            });
                         column2.relations
                             .filter(
                                 relation =>
@@ -443,7 +456,9 @@ function applyNamingStrategy(
                                         entity.tsEntityName &&
                                     relation.ownerColumn === column.tsName
                             )
-                            .map(v => (v.ownerColumn = newName));
+                            .forEach(v => {
+                                v.ownerColumn = newName;
+                            });
                     });
                 });
 
@@ -454,7 +469,10 @@ function applyNamingStrategy(
     }
     function changeEntityNames(entities: EntityInfo[]) {
         entities.forEach(entity => {
-            const newName = namingStrategy.entityName(entity.tsEntityName);
+            const newName = namingStrategy.entityName(
+                entity.tsEntityName,
+                entity
+            );
             entities.forEach(entity2 => {
                 entity2.Columns.forEach(column => {
                     column.relations.forEach(relation => {
