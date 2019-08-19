@@ -216,6 +216,33 @@ export default abstract class AbstractDriver {
         entities: EntityInfo[]
     ) {
         relationsTemp.forEach(relationTmp => {
+            if (relationTmp.ownerColumnsNames.length > 1) {
+                const relatedTable = entities.find(
+                    entity => entity.tsEntityName === relationTmp.ownerTable
+                )!;
+                if (
+                    relatedTable.Columns.length !==
+                    relationTmp.ownerColumnsNames.length * 2
+                ) {
+                    TomgUtils.LogError(
+                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                    );
+                    return;
+                }
+
+                const secondRelation = relationsTemp.find(
+                    relation =>
+                        relation.ownerTable === relatedTable.tsEntityName &&
+                        relation.referencedTable !== relationTmp.referencedTable
+                )!;
+                if (!secondRelation) {
+                    TomgUtils.LogError(
+                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                    );
+                    return;
+                }
+            }
+
             const ownerEntity = entities.find(
                 entitity => entitity.tsEntityName === relationTmp.ownerTable
             );
