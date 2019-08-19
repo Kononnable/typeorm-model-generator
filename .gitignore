@@ -4,13 +4,10 @@ ormconfig.json
 .vscode
 .idea
 typings/
-**/*.js
-**/*.js.map
 output/**/*.*
 .nyc_output/
 coverage/
 .env
 dist
 *.tgz
-!gulpfile.js
 .tomg-config

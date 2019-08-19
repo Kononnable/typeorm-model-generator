@@ -4,18 +4,21 @@ import {
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import { IConnectionOptions } from "../IConnectionOptions";
-import { ColumnInfo } from "../models/ColumnInfo";
-import { EntityInfo } from "../models/EntityInfo";
-import { IndexInfo } from "../models/IndexInfo";
-import { RelationInfo } from "../models/RelationInfo";
-import { IRelationTempInfo } from "../models/RelationTempInfo";
 import * as TomgUtils from "../Utils";
+import EntityInfo from "../models/EntityInfo";
+import RelationInfo from "../models/RelationInfo";
+import ColumnInfo from "../models/ColumnInfo";
+import IConnectionOptions from "../IConnectionOptions";
+import IndexInfo from "../models/IndexInfo";
+import RelationTempInfo from "../models/RelationTempInfo";
 
-export abstract class AbstractDriver {
+export default abstract class AbstractDriver {
     public abstract standardPort: number;
+
     public abstract standardSchema: string;
+
     public abstract standardUser: string;
+
     public abstract defaultValues: DataTypeDefaults;
 
     public ColumnTypesWithWidth: WithWidthColumnType[] = [
@@ -25,6 +28,7 @@ export abstract class AbstractDriver {
         "int",
         "bigint"
     ];
+
     public ColumnTypesWithPrecision: WithPrecisionColumnType[] = [
         "float",
         "double",
@@ -45,6 +49,7 @@ export abstract class AbstractDriver {
         "timestamp with time zone",
         "timestamp with local time zone"
     ];
+
     public ColumnTypesWithLength: WithLengthColumnType[] = [
         "character varying",
         "varying character",
@@ -65,15 +70,16 @@ export abstract class AbstractDriver {
         schema: string,
         dbNames: string
     ) => Promise<
-        Array<{
+        {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }>
+        }[]
     >;
 
-    public FindManyToManyRelations(dbModel: EntityInfo[]) {
-        const manyToManyEntities = dbModel.filter(
+    public static FindManyToManyRelations(dbModel: EntityInfo[]) {
+        let retval = dbModel;
+        const manyToManyEntities = retval.filter(
             entity =>
                 entity.Columns.filter(column => {
                     return (
@@ -83,7 +89,7 @@ export abstract class AbstractDriver {
                     );
                 }).length === entity.Columns.length
         );
-        manyToManyEntities.map(entity => {
+        manyToManyEntities.forEach(entity => {
             let relations: RelationInfo[] = [];
             relations = entity.Columns.reduce(
                 (prev: RelationInfo[], curr) => prev.concat(curr.relations),
@@ -92,9 +98,14 @@ export abstract class AbstractDriver {
             const namesOfRelatedTables = relations
                 .map(v => v.relatedTable)
                 .filter((v, i, s) => s.indexOf(v) === i);
+            const [
+                firstRelatedTable,
+                secondRelatedTable
+            ] = namesOfRelatedTables;
+
             if (namesOfRelatedTables.length === 2) {
-                const relatedTable1 = dbModel.find(
-                    v => v.tsEntityName === namesOfRelatedTables[0]
+                const relatedTable1 = retval.find(
+                    v => v.tsEntityName === firstRelatedTable
                 )!;
                 relatedTable1.Columns = relatedTable1.Columns.filter(
                     v =>
@@ -102,7 +113,7 @@ export abstract class AbstractDriver {
                             .toLowerCase()
                             .startsWith(entity.tsEntityName.toLowerCase())
                 );
-                const relatedTable2 = dbModel.find(
+                const relatedTable2 = retval.find(
                     v => v.tsEntityName === namesOfRelatedTables[1]
                 )!;
                 relatedTable2.Columns = relatedTable2.Columns.filter(
@@ -111,31 +122,31 @@ export abstract class AbstractDriver {
                             .toLowerCase()
                             .startsWith(entity.tsEntityName.toLowerCase())
                 );
-                dbModel = dbModel.filter(ent => {
+                retval = retval.filter(ent => {
                     return ent.tsEntityName !== entity.tsEntityName;
                 });
 
                 const column1 = new ColumnInfo();
-                column1.tsName = namesOfRelatedTables[1];
+                column1.tsName = secondRelatedTable;
                 column1.options.name = entity.sqlEntityName;
 
                 const col1Rel = new RelationInfo();
-                col1Rel.relatedTable = namesOfRelatedTables[1];
-                col1Rel.relatedColumn = namesOfRelatedTables[1];
+                col1Rel.relatedTable = secondRelatedTable;
+                col1Rel.relatedColumn = secondRelatedTable;
 
                 col1Rel.relationType = "ManyToMany";
                 col1Rel.isOwner = true;
-                col1Rel.ownerColumn = namesOfRelatedTables[0];
+                col1Rel.ownerColumn = firstRelatedTable;
 
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
                 const column2 = new ColumnInfo();
-                column2.tsName = namesOfRelatedTables[0];
+                column2.tsName = firstRelatedTable;
 
                 const col2Rel = new RelationInfo();
-                col2Rel.relatedTable = namesOfRelatedTables[0];
-                col2Rel.relatedColumn = namesOfRelatedTables[1];
+                col2Rel.relatedTable = firstRelatedTable;
+                col2Rel.relatedColumn = secondRelatedTable;
 
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
@@ -143,14 +154,15 @@ export abstract class AbstractDriver {
                 relatedTable2.Columns.push(column2);
             }
         });
-        return dbModel;
+        return retval;
     }
+
     public async GetDataFromServer(
         connectionOptons: IConnectionOptions
     ): Promise<EntityInfo[]> {
         let dbModel = [] as EntityInfo[];
         await this.ConnectToServer(connectionOptons);
-        const sqlEscapedSchema = this.escapeCommaSeparatedList(
+        const sqlEscapedSchema = AbstractDriver.escapeCommaSeparatedList(
             connectionOptons.schemaName
         );
         dbModel = await this.GetAllTables(
@@ -173,8 +185,8 @@ export abstract class AbstractDriver {
             connectionOptons.databaseName
         );
         await this.DisconnectFromServer();
-        dbModel = this.FindManyToManyRelations(dbModel);
-        this.FindPrimaryColumnsFromIndexes(dbModel);
+        dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
+        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
     }
 
@@ -199,8 +211,8 @@ export abstract class AbstractDriver {
         return ret;
     }
 
-    public GetRelationsFromRelationTempInfo(
-        relationsTemp: IRelationTempInfo[],
+    public static GetRelationsFromRelationTempInfo(
+        relationsTemp: RelationTempInfo[],
         entities: EntityInfo[]
     ) {
         relationsTemp.forEach(relationTmp => {
@@ -291,7 +303,7 @@ export abstract class AbstractDriver {
                 if (
                     referencedEntity.Columns.some(v => v.tsName === columnName)
                 ) {
-                    columnName = columnName + "_";
+                    columnName += "_";
                     for (let i = 2; i <= referencedEntity.Columns.length; i++) {
                         columnName =
                             columnName.substring(
@@ -347,23 +359,26 @@ export abstract class AbstractDriver {
         });
         return entities;
     }
+
     public abstract async GetCoulmnsFromEntity(
         entities: EntityInfo[],
         schema: string,
         dbNames: string
     ): Promise<EntityInfo[]>;
+
     public abstract async GetIndexesFromEntity(
         entities: EntityInfo[],
         schema: string,
         dbNames: string
     ): Promise<EntityInfo[]>;
+
     public abstract async GetRelations(
         entities: EntityInfo[],
         schema: string,
         dbNames: string
     ): Promise<EntityInfo[]>;
 
-    public FindPrimaryColumnsFromIndexes(dbModel: EntityInfo[]) {
+    public static FindPrimaryColumnsFromIndexes(dbModel: EntityInfo[]) {
         dbModel.forEach(entity => {
             const primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
             entity.Columns.filter(
@@ -372,7 +387,10 @@ export abstract class AbstractDriver {
                     primaryIndex.columns.some(
                         cIndex => cIndex.name === col.tsName
                     )
-            ).forEach(col => (col.options.primary = true));
+            ).forEach(col => {
+                // eslint-disable-next-line no-param-reassign
+                col.options.primary = true;
+            });
             if (
                 !entity.Columns.some(v => {
                     return !!v.options.primary;
@@ -382,18 +400,22 @@ export abstract class AbstractDriver {
                     `Table ${entity.tsEntityName} has no PK.`,
                     false
                 );
-                return;
             }
         });
     }
+
     public abstract async DisconnectFromServer();
+
     public abstract async CreateDB(dbName: string);
+
     public abstract async DropDB(dbName: string);
+
     public abstract async UseDB(dbName: string);
+
     public abstract async CheckIfDBExists(dbName: string): Promise<boolean>;
 
     // TODO: change name
-    protected escapeCommaSeparatedList(commaSeparatedList: string) {
-        return "'" + commaSeparatedList.split(",").join("','") + "'";
+    protected static escapeCommaSeparatedList(commaSeparatedList: string) {
+        return `'${commaSeparatedList.split(",").join("','")}'`;
     }
 }

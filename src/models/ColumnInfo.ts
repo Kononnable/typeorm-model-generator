@@ -1,9 +1,11 @@
 import { ColumnOptions } from "typeorm";
-import { RelationInfo } from "./RelationInfo";
+import RelationInfo from "./RelationInfo";
 
-export class ColumnInfo {
+export default class ColumnInfo {
     public options: ColumnOptions = {};
+
     public tsName: string = "";
+
     public tsType:
         | "number"
         | "string"
@@ -14,5 +16,6 @@ export class ColumnInfo {
         | "string | object"
         | "string | string[]"
         | "any";
+
     public relations: RelationInfo[] = [];
 }

@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- 11
+- 12
 - 10
 - 8
 cache: npm
@@ -41,7 +41,7 @@ before_script:
 - if [ -n "$DOCKER_USERNAME" ]; then mkdir /opt/oracle; npm i oracledb --no-save; docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 script:
-- travis_retry sh -c 'sleep 60 && npm t'
+- travis_retry sh -c 'sleep 60 && npm t -- --colors'
 after_success:
 - codecov
 dd:
