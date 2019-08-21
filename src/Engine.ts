@@ -146,6 +146,10 @@ function addImportsAndGenerationOptions(
         element.Imports.filter((elem, index, self) => {
             return index === self.indexOf(elem);
         });
+        if (generationOptions.skipSchema) {
+            element.Schema = undefined;
+            element.Database = undefined;
+        }
     });
     return dbModel;
 }

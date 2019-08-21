@@ -23,6 +23,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         generateConstructor: false,
         customNamingStrategyPath: "",
         relationIds: false,
+        skipSchema: false,
         activeRecord: false
     };
 }
