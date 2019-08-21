@@ -284,6 +284,9 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     Handlebars.registerHelper("tolowerCaseFirst", str =>
         changeCase.lowerCaseFirst(str)
     );
+    Handlebars.registerHelper("strictMode", () =>
+        generationOptions.strictMode ? generationOptions.strictMode : ""
+    );
     Handlebars.registerHelper("toLazy", str => {
         if (generationOptions.lazy) {
             return `Promise<${str}>`;

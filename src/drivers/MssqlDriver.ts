@@ -191,11 +191,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             break;
                         default:
                             TomgUtils.LogError(
-                                `Unknown column type: ${
-                                    resp.DATA_TYPE
-                                }  table name: ${
-                                    resp.TABLE_NAME
-                                } column name: ${resp.COLUMN_NAME}`
+                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }

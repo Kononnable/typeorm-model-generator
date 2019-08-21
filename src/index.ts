@@ -158,6 +158,11 @@ function GetUtilParametersByArgs() {
             default: false,
             describe: "Generate constructor allowing partial initialization"
         })
+        .option("strictMode", {
+            choices: ["none", "?", "!"],
+            default: "none",
+            describe: "Mark fields as optional(?) or non-null(!)"
+        })
         .option("timeout", {
             describe: "SQL Query timeout(ms)",
             number: true
@@ -195,6 +200,8 @@ function GetUtilParametersByArgs() {
     generationOptions.propertyVisibility = argv.pv;
     generationOptions.relationIds = argv.relationIds;
     generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
+    generationOptions.strictMode =
+        argv.strictMode === "none" ? false : argv.strictMode;
 
     return { driver, connectionOptions, generationOptions };
 }
@@ -390,6 +397,18 @@ async function GetUtilParametersByInquirer() {
             }
         ])) as any).propertyVisibility;
 
+        const { strictModeRaw } = (await inquirer.prompt([
+            {
+                choices: ["none", "?", "!"],
+                message: "Mark fields as optional(?) or non-null(!)",
+                name: "strictModeRaw",
+                default: "none",
+                type: "list"
+            }
+        ])) as any;
+
+        generationOptions.strictMode =
+            strictModeRaw === "none" ? false : strictModeRaw;
         generationOptions.noConfigs = !customizations.includes("config");
         generationOptions.lazy = customizations.includes("lazy");
         generationOptions.activeRecord = customizations.includes(
