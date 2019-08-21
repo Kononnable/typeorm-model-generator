@@ -14,15 +14,13 @@ export default class EntityInfo {
 
     public Indexes: IndexInfo[];
 
-    public Schema: string;
+    public Schema?: string;
 
     public GenerateConstructor: boolean;
 
-    public detached: boolean;
-
     public IsActiveRecord: boolean;
 
-    public Database: string;
+    public Database?: string;
 
     public relationImports() {
         const imports: string[] = [];

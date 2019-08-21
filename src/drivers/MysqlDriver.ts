@@ -208,11 +208,7 @@ export default class MysqlDriver extends AbstractDriver {
                             break;
                         default:
                             TomgUtils.LogError(
-                                `Unknown column type: ${
-                                    resp.DATA_TYPE
-                                }  table name: ${
-                                    resp.TABLE_NAME
-                                } column name: ${resp.COLUMN_NAME}`
+                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
                             break;
                     }

@@ -153,11 +153,10 @@ function GetUtilParametersByArgs() {
             default: false,
             describe: "Generate RelationId fields"
         })
-        .option("detached", {
+        .option("skipSchema", {
             boolean: true,
             default: false,
-            describe:
-                "If set, omits database and schema identifier in generated entities"
+            describe: "Omits schema identifier in generated entities"
         })
         .option("generateConstructor", {
             boolean: true,
@@ -200,7 +199,7 @@ function GetUtilParametersByArgs() {
     generationOptions.noConfigs = argv.noConfig;
     generationOptions.propertyVisibility = argv.pv;
     generationOptions.relationIds = argv.relationIds;
-    generationOptions.detached = argv.detached;
+    generationOptions.skipSchema = argv.skipSchema;
     generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
     return { driver, connectionOptions, generationOptions };
 }
@@ -370,9 +369,8 @@ async function GetUtilParametersByInquirer() {
                         value: "relationId"
                     },
                     {
-                        name:
-                            "Omit schema qualifier, allowing you to switch it at runtime",
-                        value: "detached"
+                        name: "Omits schema identifier in generated entities",
+                        value: "skipSchema"
                     },
                     {
                         name:
@@ -407,7 +405,7 @@ async function GetUtilParametersByInquirer() {
             "activeRecord"
         );
         generationOptions.relationIds = customizations.includes("relationId");
-        generationOptions.detached = customizations.includes("detached");
+        generationOptions.skipSchema = customizations.includes("skipSchema");
         generationOptions.generateConstructor = customizations.includes(
             "constructor"
         );

@@ -22,5 +22,5 @@ export default class IGenerationOptions {
 
     public relationIds: boolean = false;
 
-    public detached: boolean = false;
+    public skipSchema: boolean = false;
 }

@@ -102,19 +102,11 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                             resp.data_type === "ARRAY"
                         ) {
                             TomgUtils.LogError(
-                                `Unknown ${resp.data_type} column type: ${
-                                    resp.udt_name
-                                }  table name: ${
-                                    resp.table_name
-                                } column name: ${resp.column_name}`
+                                `Unknown ${resp.data_type} column type: ${resp.udt_name}  table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         } else {
                             TomgUtils.LogError(
-                                `Unknown column type: ${
-                                    resp.data_type
-                                }  table name: ${
-                                    resp.table_name
-                                } column name: ${resp.column_name}`
+                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         }
                         return;
