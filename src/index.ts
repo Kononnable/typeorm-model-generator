@@ -153,6 +153,11 @@ function GetUtilParametersByArgs() {
             default: false,
             describe: "Generate RelationId fields"
         })
+        .option("skipSchema", {
+            boolean: true,
+            default: false,
+            describe: "Omits schema identifier in generated entities"
+        })
         .option("generateConstructor", {
             boolean: true,
             default: false,
@@ -194,8 +199,8 @@ function GetUtilParametersByArgs() {
     generationOptions.noConfigs = argv.noConfig;
     generationOptions.propertyVisibility = argv.pv;
     generationOptions.relationIds = argv.relationIds;
+    generationOptions.skipSchema = argv.skipSchema;
     generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
-
     return { driver, connectionOptions, generationOptions };
 }
 
@@ -364,6 +369,10 @@ async function GetUtilParametersByInquirer() {
                         value: "relationId"
                     },
                     {
+                        name: "Omits schema identifier in generated entities",
+                        value: "skipSchema"
+                    },
+                    {
                         name:
                             "Generate constructor allowing partial initialization",
                         value: "constructor"
@@ -396,6 +405,7 @@ async function GetUtilParametersByInquirer() {
             "activeRecord"
         );
         generationOptions.relationIds = customizations.includes("relationId");
+        generationOptions.skipSchema = customizations.includes("skipSchema");
         generationOptions.generateConstructor = customizations.includes(
             "constructor"
         );
