@@ -24,7 +24,8 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         customNamingStrategyPath: "",
         relationIds: false,
         skipSchema: false,
-        activeRecord: false
+        activeRecord: false,
+        strictMode: false
     };
 }
 
