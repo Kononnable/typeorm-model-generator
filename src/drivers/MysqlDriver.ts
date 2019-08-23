@@ -267,7 +267,8 @@ export default class MysqlDriver extends AbstractDriver {
             FROM information_schema.statistics sta
             WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
-            )})`);
+            )})
+            ORDER BY TableName, IndexName, SEQ_IN_INDEX`);
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.TableName === ent.tsEntityName)
@@ -327,7 +328,8 @@ export default class MysqlDriver extends AbstractDriver {
                 ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
             TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(dbNames)})
-            AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
+            AND CU.REFERENCED_TABLE_NAME IS NOT NULL
+          ORDER BY object_id, FK_PartNo;
             `);
         const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
