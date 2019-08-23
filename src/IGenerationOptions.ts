@@ -22,5 +22,7 @@ export default class IGenerationOptions {
 
     public relationIds: boolean = false;
 
+    public strictMode: false | "?" | "!" = false;
+
     public skipSchema: boolean = false;
 }
