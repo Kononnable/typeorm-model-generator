@@ -225,7 +225,14 @@ export default abstract class AbstractDriver {
                     relationTmp.ownerColumnsNames.length * 2
                 ) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                        `Relation between tables ${
+                            relationTmp.ownerTable
+                        }.(${relationTmp.ownerColumnsNames.join(",")}) and ${
+                            relationTmp.referencedTable
+                        }.(${relationTmp.referencedColumnsNames.join(
+                            ","
+                        )}) wasn't generated correctly - complex relationships aren't supported yet.`,
+                        false
                     );
                     return;
                 }
@@ -237,7 +244,38 @@ export default abstract class AbstractDriver {
                 )!;
                 if (!secondRelation) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                        `Relation between tables ${
+                            relationTmp.ownerTable
+                        }.(${relationTmp.ownerColumnsNames.join(",")}) and ${
+                            relationTmp.referencedTable
+                        }.(${relationTmp.referencedColumnsNames.join(
+                            ","
+                        )}) wasn't generated correctly - complex relationships aren't supported yet.`,
+                        false
+                    );
+                    return;
+                }
+                const intersectingRelation = relationsTemp.find(
+                    (relation: RelationTempInfo) =>
+                        relation !== relationTmp &&
+                        relation.ownerTable === relationTmp.ownerTable &&
+                        relation.referencedTable !==
+                            relationTmp.referencedTable &&
+                        relation.ownerColumnsNames.filter(
+                            (c: string) =>
+                                relationTmp.ownerColumnsNames.indexOf(c) !== -1
+                        ).length > 0
+                );
+                if (intersectingRelation) {
+                    TomgUtils.LogError(
+                        `Relation between tables ${
+                            relationTmp.ownerTable
+                        }.(${relationTmp.ownerColumnsNames.join(",")}) and ${
+                            relationTmp.referencedTable
+                        }.(${relationTmp.referencedColumnsNames.join(
+                            ","
+                        )}) wasn't generated correctly - complex relationships aren't supported yet.`,
+                        false
                     );
                     return;
                 }
