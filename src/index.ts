@@ -492,10 +492,11 @@ async function GetUtilParametersByInquirer() {
         }
     ])) as any;
     if (saveConfig) {
-        await fs.writeJson(path.resolve(process.cwd(), ".tomg-config"), [
-            connectionOptions,
-            generationOptions
-        ]);
+        await fs.writeJson(
+            path.resolve(process.cwd(), ".tomg-config"),
+            [connectionOptions, generationOptions],
+            { spaces: 2 }
+        );
         console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Password was saved as plain text.\x1b[0m`
