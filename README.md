@@ -23,8 +23,13 @@ Thanks to npx you can use npm modules without polluting global installs. So noth
 ### Database drivers
 All database drivers except oracle are installed by default. To use typeorm-model-generator with oracle database you need to install driver with `npm i oracledb` and configure [oracle install client](http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html) on your machine.
 
-## Usage
+## Usage 
+There are two way to use this utility:
+- Use step by step wizard which will guide you though the process - just type `npx typeorm-model-generator` in your console.
+- Provide all parameters through command line(examples below)
 
+
+Use `npx typeorm-model-generator --help` to see all available parameters with their descriptions. Some basic parameters below:
 ```shell
 Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x
 [password] -e [engine]
@@ -42,26 +47,11 @@ Options:
           [choices: "mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"]
                                                               [default: "mssql"]
   -o, --output           Where to place generated models
-                            [default: "Z:\Repos\typeorm-model-generator\output"]
+                            [default: "./output"]
   -s, --schema           Schema name to create model from. Only for mssql
                          and postgres. You can pass multiple values
                          separted by comma eg. -s scheme1,scheme2,scheme3
   --ssl                                               [boolean] [default: false]
-  --noConfig             Doesn't create tsconfig.json and ormconfig.json
-                                                      [boolean] [default: false]
-  --cf, --case-file      Convert file names to specified case
-                 [choices: "pascal", "param", "camel", "none"] [default: "none"]
-  --ce, --case-entity    Convert class names to specified case
-                          [choices: "pascal", "camel", "none"] [default: "none"]
-  --cp, --case-property  Convert property names to specified case
-                          [choices: "pascal", "camel", "none"] [default: "none"]
-  --lazy                 Generate lazy relations      [boolean] [default: false]
-  -a, --active-record    Generate models that use the ActiveRecord syntax
-                                                      [boolean] [default: false]
-  --namingStrategy       Use custom naming strategy
-  --relationIds          Generate RelationId fields   [boolean] [default: false]
-  --generateConstructor  Generate constructor allowing partial initialization
-                                                      [boolean] [default: false]
 ```
 ### Examples
 

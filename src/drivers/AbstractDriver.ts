@@ -225,7 +225,8 @@ export default abstract class AbstractDriver {
                     relationTmp.ownerColumnsNames.length * 2
                 ) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`,
+                        false
                     );
                     return;
                 }
@@ -237,7 +238,8 @@ export default abstract class AbstractDriver {
                 )!;
                 if (!secondRelation) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`
+                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`,
+                        false
                     );
                     return;
                 }
