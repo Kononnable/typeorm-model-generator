@@ -1,6 +1,6 @@
 {
   "name": "typeorm-model-generator",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
   "scripts": {
