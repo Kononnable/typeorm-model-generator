@@ -62,12 +62,38 @@ export default class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 
+    private toCamel(s: string) {
+        return !s
+            ? s
+            : s.toLowerCase().replace(/([-_][a-z])/gi, $1 => {
+                  return $1
+                      .toUpperCase()
+                      .replace("-", "")
+                      .replace("_", "");
+              });
+    }
+
+    private toUpperCamel(s: string) {
+        return !s
+            ? s
+            : s[0] +
+                  s
+                      .slice(1)
+                      .toLowerCase()
+                      .replace(/([-_][a-z])/gi, $1 => {
+                          return $1
+                              .toUpperCase()
+                              .replace("-", "")
+                              .replace("_", "");
+                      });
+    }
+
     public entityName(entityName: string): string {
-        return entityName;
+        return this.toUpperCamel(entityName);
     }
 
     public columnName(columnName: string): string {
-        return columnName;
+        return this.toCamel(columnName);
     }
 }
 
