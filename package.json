@@ -5,7 +5,7 @@
   "bin": "bin/typeorm-model-generator",
   "scripts": {
     "start": "ts-node ./src/index.ts",
-    "build": "tsc && ncp src/entity.mst dist/src/entity.mst",
+    "build": "npm run clean && tsc && ncp src/entity.mst dist/src/entity.mst",
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
