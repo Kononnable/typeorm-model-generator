@@ -25,7 +25,8 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         relationIds: false,
         skipSchema: false,
         activeRecord: false,
-        strictMode: false
+        strictMode: false,
+        tableFilterPath: ""
     };
 }
 
