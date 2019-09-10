@@ -20,6 +20,8 @@ export default class IGenerationOptions {
 
     public customNamingStrategyPath: string = "";
 
+    public tableFilterPath: string = "";
+
     public relationIds: boolean = false;
 
     public strictMode: false | "?" | "!" = false;

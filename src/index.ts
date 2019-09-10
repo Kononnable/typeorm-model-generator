@@ -148,6 +148,9 @@ function GetUtilParametersByArgs() {
         .option("namingStrategy", {
             describe: "Use custom naming strategy"
         })
+        .option("tableFilter", {
+            describe: "Use filter table"
+        })
         .option("relationIds", {
             boolean: true,
             default: false,
@@ -183,6 +186,12 @@ function GetUtilParametersByArgs() {
     } else {
         namingStrategyPath = "";
     }
+    let tableFilterPath: string;
+    if (argv.tableFilter && argv.tableFilter !== "") {
+        tableFilterPath = argv.tableFilter;
+    } else {
+        tableFilterPath = "";
+    }
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
     connectionOptions.databaseName = argv.d ? argv.d.toString() : null;
     connectionOptions.databaseType = argv.e;
@@ -201,6 +210,7 @@ function GetUtilParametersByArgs() {
     generationOptions.convertCaseProperty = argv.cp;
     generationOptions.lazy = argv.lazy;
     generationOptions.customNamingStrategyPath = namingStrategyPath;
+    generationOptions.tableFilterPath = tableFilterPath;
     generationOptions.noConfigs = argv.noConfig;
     generationOptions.propertyVisibility = argv.pv;
     generationOptions.relationIds = argv.relationIds;

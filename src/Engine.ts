@@ -56,6 +56,19 @@ export async function createModelFromDatabase(
         generationOptions,
         driver.defaultValues
     );
+    let tableFilter = () => true;
+    if (
+        generationOptions.tableFilterPath &&
+        generationOptions.tableFilterPath !== ""
+    ) {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
+        const req = require(path.resolve(
+            process.cwd(),
+            generationOptions.tableFilterPath
+        ));
+        tableFilter = new req.tableFilter();
+    }
+    dbModel = dbModel.filter(tableFilter);
     modelGenerationPhase(connectionOptions, generationOptions, dbModel);
 }
 export async function dataCollectionPhase(
