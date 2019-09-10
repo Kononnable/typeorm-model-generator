@@ -267,7 +267,9 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         let retStr = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
-                retStr = changeCase.camelCase(str);
+                retStr = changeCase
+                    .camelCase(str)
+                    .replace(/( |^)[a-z]/g, L => L.toUpperCase());
                 break;
             case "param":
                 retStr = changeCase.paramCase(str);
