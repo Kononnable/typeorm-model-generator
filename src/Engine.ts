@@ -244,16 +244,16 @@ export function modelGenerationPhase(
 function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
     Handlebars.registerHelper("toEntityName", str => {
-        let retStr = "";
+        let retStr = generationOptions.entityPrefix || "";
         switch (generationOptions.convertCaseEntity) {
             case "camel":
-                retStr = changeCase.camelCase(str);
+                retStr += changeCase.camelCase(str);
                 break;
             case "pascal":
-                retStr = changeCase.pascalCase(str);
+                retStr += changeCase.pascalCase(str);
                 break;
             case "none":
-                retStr = str;
+                retStr += str;
                 break;
             default:
                 throw new Error("Unknown case style");
