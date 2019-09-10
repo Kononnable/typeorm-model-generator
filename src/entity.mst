@@ -5,7 +5,7 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 
 @Entity("{{sqlEntityName}}"{{#Schema}} ,{schema:"{{.}}"{{#if ../Database}}, database:"{{../Database}}"{{/if}} } {{/Schema}})
 {{#Indexes}}{{^isPrimaryKey}}@Index("{{name}}",[{{#columns}}"{{toPropertyName name}}",{{/columns}}]{{#isUnique}},{unique:true}{{/isUnique}})
-{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}Entity{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
+{{/isPrimaryKey}}{{/Indexes}}export class {{toEntityName tsEntityName}}{{#IsActiveRecord}} extends BaseEntity{{/IsActiveRecord}} {
 {{#Columns}}
 
    {{^relations}}{{#options}}{{#generated}} @PrimaryGeneratedColumn({

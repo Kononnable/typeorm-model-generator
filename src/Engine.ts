@@ -260,6 +260,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             default:
                 throw new Error("Unknown case style");
         }
+        retStr += "Entity";
         return retStr;
     });
     Handlebars.registerHelper("concat", (stra, strb) => {
