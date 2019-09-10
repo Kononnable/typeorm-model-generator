@@ -174,6 +174,9 @@ function GetUtilParametersByArgs() {
         .option("timeout", {
             describe: "SQL Query timeout(ms)",
             number: true
+        })
+        .option("ep", {
+            describe: "entity name prefix"
         });
 
     const driver = createDriver(argv.e);
@@ -218,6 +221,7 @@ function GetUtilParametersByArgs() {
     generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
     generationOptions.strictMode =
         argv.strictMode === "none" ? false : argv.strictMode;
+    generationOptions.entityPrefix = argv.ep;
 
     return { driver, connectionOptions, generationOptions };
 }

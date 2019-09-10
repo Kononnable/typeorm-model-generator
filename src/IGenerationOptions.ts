@@ -27,4 +27,6 @@ export default class IGenerationOptions {
     public strictMode: false | "?" | "!" = false;
 
     public skipSchema: boolean = false;
+
+    public entityPrefix: string = "";
 }
