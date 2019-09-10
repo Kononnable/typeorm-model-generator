@@ -66,7 +66,9 @@ export async function createModelFromDatabase(
             process.cwd(),
             generationOptions.tableFilterPath
         ));
-        tableFilter = new req.tableFilter();
+        if (typeof req.tableFilter === "function") {
+            tableFilter = req.tableFilter;
+        }
     }
     dbModel = dbModel.filter(tableFilter);
     modelGenerationPhase(connectionOptions, generationOptions, dbModel);
