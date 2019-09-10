@@ -15,6 +15,8 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   rules: {
+    "@typescript-eslint/no-inferrable-types": ["off"],
+    "@typescript-eslint/no-this-alias": ["off"],
     "@typescript-eslint/explicit-function-return-type": ["off"],
     "@typescript-eslint/no-use-before-define": ["error", "nofunc"],
     "@typescript-eslint/prefer-interface": ["off"],

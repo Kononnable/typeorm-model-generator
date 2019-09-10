@@ -198,7 +198,7 @@ function GetUtilParametersByArgs() {
     connectionOptions.password = argv.x ? argv.x.toString() : "";
     connectionOptions.port =
         typeof argv.p !== "undefined"
-            ? parseInt("" + argv.p, 10) || standardPort
+            ? parseInt(`${argv.p}`, 10) || standardPort
             : standardPort;
     connectionOptions.schemaName = argv.s ? argv.s.toString() : standardSchema;
     connectionOptions.ssl = argv.ssl;
@@ -208,32 +208,32 @@ function GetUtilParametersByArgs() {
     generationOptions.activeRecord = argv.a;
     generationOptions.generateConstructor = argv.generateConstructor;
     generationOptions.convertCaseEntity =
-        "pascal" === argv.ce || "camel" === argv.ce || "none" === argv.ce
+        argv.ce === "pascal" || argv.ce === "camel" || argv.ce === "none"
             ? argv.ce
             : "none";
     generationOptions.convertCaseFile =
-        "pascal" === argv.cf ||
-        "param" === argv.cf ||
-        "camel" === argv.cf ||
-        "none" === argv.cf
+        argv.cf === "pascal" ||
+        argv.cf === "param" ||
+        argv.cf === "camel" ||
+        argv.cf === "none"
             ? argv.cf
             : "none";
     generationOptions.convertCaseProperty =
-        "pascal" === argv.cp || "camel" === argv.cp || "none" === argv.cp
+        argv.cp === "pascal" || argv.cp === "camel" || argv.cp === "none"
             ? argv.cp
             : "none";
     generationOptions.lazy = argv.lazy;
     generationOptions.customNamingStrategyPath = namingStrategyPath;
     generationOptions.noConfigs = argv.noConfig;
     generationOptions.propertyVisibility =
-        "public" === argv.pv || "protected" === argv.pv || "private" === argv.pv
+        argv.pv === "public" || argv.pv === "protected" || argv.pv === "private"
             ? argv.pv
             : "none";
     generationOptions.relationIds = argv.relationIds;
     generationOptions.skipSchema = argv.skipSchema;
     generationOptions.resultsPath = argv.o ? argv.o.toString() : "";
     generationOptions.strictMode =
-        "?" === argv.strictMode || "!" === argv.strictMode
+        argv.strictMode === "?" || argv.strictMode === "!"
             ? argv.strictMode
             : false;
 
