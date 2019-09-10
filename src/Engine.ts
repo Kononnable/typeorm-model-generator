@@ -285,6 +285,9 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             default:
                 throw new Error("Unknown case style");
         }
+        if (generationOptions.fileSuffix) {
+            retStr += generationOptions.fileSuffix;
+        }
         return retStr;
     });
     Handlebars.registerHelper("printPropertyVisibility", () =>
