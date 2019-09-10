@@ -55,26 +55,31 @@ function GetUtilParametersByArgs() {
     )
         .option("h", {
             alias: "host",
+            type: "string",
             default: "127.0.0.1",
             describe: "IP address/Hostname for database server"
         })
         .option("d", {
             alias: "database",
+            type: "string",
             demand: true,
             describe:
                 "Database name(or path for sqlite). You can pass multiple values separated by comma."
         })
         .option("u", {
             alias: "user",
+            type: "string",
             describe: "Username for database server"
         })
         .option("x", {
             alias: "pass",
+            type: "string",
             default: "",
             describe: "Password for database server"
         })
         .option("p", {
             alias: "port",
+            type: "number",
             describe: "Port number for database server"
         })
         .option("e", {
@@ -92,11 +97,13 @@ function GetUtilParametersByArgs() {
         })
         .option("o", {
             alias: "output",
+            type: "string",
             default: path.resolve(process.cwd(), "output"),
             describe: "Where to place generated models"
         })
         .option("s", {
             alias: "schema",
+            type: "string",
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3"
         })
@@ -146,6 +153,7 @@ function GetUtilParametersByArgs() {
             describe: "Use ActiveRecord syntax for generated models"
         })
         .option("namingStrategy", {
+            type: "string",
             describe: "Use custom naming strategy"
         })
         .option("relationIds", {
@@ -170,13 +178,13 @@ function GetUtilParametersByArgs() {
         })
         .option("timeout", {
             describe: "SQL Query timeout(ms)",
+            type: "number",
             number: true
         });
 
     const driver = createDriver(argv.e);
-    const { standardPort } = driver;
+    const { standardPort, standardUser } = driver;
     const { standardSchema } = driver;
-    const standardUser = driver.standardPort;
     let namingStrategyPath: string;
     if (argv.namingStrategy && argv.namingStrategy !== "") {
         namingStrategyPath = argv.namingStrategy;
@@ -184,11 +192,14 @@ function GetUtilParametersByArgs() {
         namingStrategyPath = "";
     }
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
-    connectionOptions.databaseName = argv.d ? argv.d.toString() : null;
+    connectionOptions.databaseName = argv.d ? argv.d.toString() : "";
     connectionOptions.databaseType = argv.e;
     connectionOptions.host = argv.h;
-    connectionOptions.password = argv.x ? argv.x.toString() : null;
-    connectionOptions.port = parseInt(argv.p, 10) || standardPort;
+    connectionOptions.password = argv.x ? argv.x.toString() : "";
+    connectionOptions.port =
+        typeof argv.p !== "undefined"
+            ? parseInt("" + argv.p, 10) || standardPort
+            : standardPort;
     connectionOptions.schemaName = argv.s ? argv.s.toString() : standardSchema;
     connectionOptions.ssl = argv.ssl;
     connectionOptions.timeout = argv.timeout;
@@ -196,18 +207,35 @@ function GetUtilParametersByArgs() {
     const generationOptions: IGenerationOptions = new IGenerationOptions();
     generationOptions.activeRecord = argv.a;
     generationOptions.generateConstructor = argv.generateConstructor;
-    generationOptions.convertCaseEntity = argv.ce;
-    generationOptions.convertCaseFile = argv.cf;
-    generationOptions.convertCaseProperty = argv.cp;
+    generationOptions.convertCaseEntity =
+        "pascal" === argv.ce || "camel" === argv.ce || "none" === argv.ce
+            ? argv.ce
+            : "none";
+    generationOptions.convertCaseFile =
+        "pascal" === argv.cf ||
+        "param" === argv.cf ||
+        "camel" === argv.cf ||
+        "none" === argv.cf
+            ? argv.cf
+            : "none";
+    generationOptions.convertCaseProperty =
+        "pascal" === argv.cp || "camel" === argv.cp || "none" === argv.cp
+            ? argv.cp
+            : "none";
     generationOptions.lazy = argv.lazy;
     generationOptions.customNamingStrategyPath = namingStrategyPath;
     generationOptions.noConfigs = argv.noConfig;
-    generationOptions.propertyVisibility = argv.pv;
+    generationOptions.propertyVisibility =
+        "public" === argv.pv || "protected" === argv.pv || "private" === argv.pv
+            ? argv.pv
+            : "none";
     generationOptions.relationIds = argv.relationIds;
     generationOptions.skipSchema = argv.skipSchema;
-    generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
+    generationOptions.resultsPath = argv.o ? argv.o.toString() : "";
     generationOptions.strictMode =
-        argv.strictMode === "none" ? false : argv.strictMode;
+        "?" === argv.strictMode || "!" === argv.strictMode
+            ? argv.strictMode
+            : false;
 
     return { driver, connectionOptions, generationOptions };
 }

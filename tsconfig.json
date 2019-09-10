@@ -17,10 +17,11 @@
         "lib": [
             "es2017"
         ],
-        "resolveJsonModule": true,
+        "resolveJsonModule": true
     },
     "include": [
         "src",
         "test"
-    ]
+    ],
+    "exclude": ["**/node_modules", "node_modules"]
 }
