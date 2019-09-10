@@ -28,7 +28,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         strictMode: false,
         tableFilterPath: "",
         entityPrefix: "",
-        filePrefix: ""
+        fileSuffix: ""
     };
 }
 

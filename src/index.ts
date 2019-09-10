@@ -225,7 +225,7 @@ function GetUtilParametersByArgs() {
     generationOptions.strictMode =
         argv.strictMode === "none" ? false : argv.strictMode;
     generationOptions.entityPrefix = argv.ep;
-    generationOptions.filePrefix = argv.fp;
+    generationOptions.fileSuffix = argv.fp;
 
     return { driver, connectionOptions, generationOptions };
 }

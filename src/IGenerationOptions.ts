@@ -30,5 +30,5 @@ export default class IGenerationOptions {
 
     public entityPrefix: string = "";
 
-    public filePrefix: string = "";
+    public fileSuffix: string = "";
 }
