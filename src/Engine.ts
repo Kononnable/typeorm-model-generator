@@ -76,7 +76,10 @@ export function modelCustomizationPhase(
         generationOptions.customNamingStrategyPath !== ""
     ) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
-        const req = require(generationOptions.customNamingStrategyPath);
+        const req = require(path.resolve(
+            process.cwd(),
+            generationOptions.customNamingStrategyPath
+        ));
         namingStrategy = new req.NamingStrategy();
     } else {
         namingStrategy = new NamingStrategy();
