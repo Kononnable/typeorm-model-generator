@@ -27,7 +27,8 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         activeRecord: false,
         strictMode: false,
         tableFilterPath: "",
-        entityPrefix: ""
+        entityPrefix: "",
+        filePrefix: ""
     };
 }
 

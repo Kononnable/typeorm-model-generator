@@ -29,4 +29,6 @@ export default class IGenerationOptions {
     public skipSchema: boolean = false;
 
     public entityPrefix: string = "";
+
+    public filePrefix: string = "";
 }

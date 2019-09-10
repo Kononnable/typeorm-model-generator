@@ -212,19 +212,19 @@ export function modelGenerationPhase(
         noEscape: true
     });
     databaseModel.forEach(element => {
-        let casedFileName = "";
+        let casedFileName = generationOptions.filePrefix || "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
-                casedFileName = changeCase.camelCase(element.tsEntityName);
+                casedFileName += changeCase.camelCase(element.tsEntityName);
                 break;
             case "param":
-                casedFileName = changeCase.paramCase(element.tsEntityName);
+                casedFileName += changeCase.paramCase(element.tsEntityName);
                 break;
             case "pascal":
-                casedFileName = changeCase.pascalCase(element.tsEntityName);
+                casedFileName += changeCase.pascalCase(element.tsEntityName);
                 break;
             case "none":
-                casedFileName = element.tsEntityName;
+                casedFileName += element.tsEntityName;
                 break;
             default:
                 throw new Error("Unknown case style");
