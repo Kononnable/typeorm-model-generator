@@ -46,6 +46,6 @@ Before you submit your Pull Request (PR) consider the following guidelines:
   * Re-run test suites to ensure tests are still passing.
   * Push to your GitHub repository (this will update your Pull Request)
 
-Note: if you don't want to run tests on your machine you can rely on tests run on CI(unless you're changing something oracledb specific).
+Note: if you don't want to run tests on your machine you can rely on tests run on CI (unless you're changing something oracledb specific).
 
 That's it! Thank you for your contribution!

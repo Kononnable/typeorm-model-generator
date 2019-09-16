@@ -40,7 +40,7 @@ git merge master
 ```
 
 ## git repo with dependency and entire pipeline
-Similar to last workflow, but this time we don't have to worry about manually merging changes from main repository.
+Similar to previous workflow, but this time we don't have to worry about manually merging changes from main repository.
 - Init new package:
 ```
 npm init -y
