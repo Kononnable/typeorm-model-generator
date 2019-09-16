@@ -3,7 +3,6 @@
 
  - [Question or Problem?](#question)
  - [Submission Guidelines](#submit)
- - [Commit Message Format](#commit)
 
 
 
