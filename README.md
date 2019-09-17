@@ -82,6 +82,8 @@ Options:
       ```
       npx typeorm-model-generator -d "Z:\sqlite.db" -e sqlite -o .
       ````
+## Use Cases
+Please take a look at [few workflows](USECASES.md) which might help you with deciding how you're gonna use typeorm-model-generator.
 ## Naming strategy
 If you want to generate custom names for properties in generated entities you need to use custom naming strategy. You need to create your own version of [NamingStrategy](https://github.com/Kononnable/typeorm-model-generator/blob/master/src/NamingStrategy.ts) and pass it as command parameter.
 
