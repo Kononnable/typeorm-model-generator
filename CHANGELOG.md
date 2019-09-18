@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* change default case conversions for generated files (#196)
+
 ## 0.3.5
 
 * moved to ts-node - you can now use this library installed directly from github repo

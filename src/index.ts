@@ -119,19 +119,19 @@ function GetUtilParametersByArgs() {
         .option("cf", {
             alias: "case-file",
             choices: ["pascal", "param", "camel", "none"],
-            default: "none",
+            default: "pascal",
             describe: "Convert file names to specified case"
         })
         .option("ce", {
             alias: "case-entity",
             choices: ["pascal", "camel", "none"],
-            default: "none",
+            default: "pascal",
             describe: "Convert class names to specified case"
         })
         .option("cp", {
             alias: "case-property",
             choices: ["pascal", "camel", "none"],
-            default: "none",
+            default: "camel",
             describe: "Convert property names to specified case"
         })
         .option("pv", {
@@ -485,21 +485,21 @@ async function GetUtilParametersByInquirer() {
             const namingConventions = (await inquirer.prompt([
                 {
                     choices: ["pascal", "param", "camel", "none"],
-                    default: "none",
+                    default: "pascal",
                     message: "Convert file names to specified case:",
                     name: "fileCase",
                     type: "list"
                 },
                 {
                     choices: ["pascal", "camel", "none"],
-                    default: "none",
+                    default: "pascal",
                     message: "Convert class names to specified case:",
                     name: "entityCase",
                     type: "list"
                 },
                 {
                     choices: ["pascal", "camel", "none"],
-                    default: "none",
+                    default: "camel",
                     message: "Convert property names to specified case:",
                     name: "propertyCase",
                     type: "list"
