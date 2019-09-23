@@ -2,10 +2,10 @@ import { expect } from "chai";
 import * as MSSQL from "mssql";
 import * as Sinon from "sinon";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
-import EntityInfo from "../../src/models/EntityInfo";
-import ColumnInfo from "../../src/models/ColumnInfo";
-import IndexInfo from "../../src/models/IndexInfo";
-import RelationInfo from "../../src/models/RelationInfo";
+import EntityInfo from "../../src/oldModels/EntityInfo";
+import ColumnInfo from "../../src/oldModels/ColumnInfo";
+import IndexInfo from "../../src/oldModels/IndexInfo";
+import RelationInfo from "../../src/oldModels/RelationInfo";
 
 interface FakeResponse extends MSSQL.IResult<any> {
     recordsets: MSSQL.IRecordSet<any>[];

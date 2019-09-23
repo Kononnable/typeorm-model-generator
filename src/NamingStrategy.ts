@@ -1,6 +1,6 @@
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
-import RelationInfo from "./models/RelationInfo";
-import EntityInfo from "./models/EntityInfo";
+import RelationInfo from "./oldModels/RelationInfo";
+import EntityInfo from "./oldModels/EntityInfo";
 
 import changeCase = require("change-case");
 

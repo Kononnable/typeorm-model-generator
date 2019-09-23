@@ -5,12 +5,12 @@ import {
 } from "typeorm/driver/types/ColumnTypes";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
-import EntityInfo from "../models/EntityInfo";
-import RelationInfo from "../models/RelationInfo";
-import ColumnInfo from "../models/ColumnInfo";
+import EntityInfo from "../oldModels/EntityInfo";
+import RelationInfo from "../oldModels/RelationInfo";
+import ColumnInfo from "../oldModels/ColumnInfo";
 import IConnectionOptions from "../IConnectionOptions";
-import IndexInfo from "../models/IndexInfo";
-import RelationTempInfo from "../models/RelationTempInfo";
+import IndexInfo from "../oldModels/IndexInfo";
+import RelationTempInfo from "../oldModels/RelationTempInfo";
 
 export default abstract class AbstractDriver {
     public abstract standardPort: number;

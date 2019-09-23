@@ -2,11 +2,11 @@ import * as TypeormDriver from "typeorm/driver/oracle/OracleDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
-import EntityInfo from "../models/EntityInfo";
-import ColumnInfo from "../models/ColumnInfo";
-import IndexInfo from "../models/IndexInfo";
-import IndexColumnInfo from "../models/IndexColumnInfo";
-import RelationTempInfo from "../models/RelationTempInfo";
+import EntityInfo from "../oldModels/EntityInfo";
+import ColumnInfo from "../oldModels/ColumnInfo";
+import IndexInfo from "../oldModels/IndexInfo";
+import IndexColumnInfo from "../oldModels/IndexColumnInfo";
+import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
 
 export default class OracleDriver extends AbstractDriver {

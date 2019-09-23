@@ -9,7 +9,7 @@ import {
     modelGenerationPhase
 } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
-import EntityInfo from "../../src/models/EntityInfo";
+import EntityInfo from "../../src/oldModels/EntityInfo";
 import IConnectionOptions from "../../src/IConnectionOptions";
 
 import fs = require("fs-extra");

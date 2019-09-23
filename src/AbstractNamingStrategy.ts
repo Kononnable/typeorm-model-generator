@@ -1,6 +1,6 @@
-import RelationInfo from "./models/RelationInfo";
-import EntityInfo from "./models/EntityInfo";
-import ColumnInfo from "./models/ColumnInfo";
+import RelationInfo from "./oldModels/RelationInfo";
+import EntityInfo from "./oldModels/EntityInfo";
+import ColumnInfo from "./oldModels/ColumnInfo";
 
 export default abstract class AbstractNamingStrategy {
     public abstract relationName(
