@@ -164,21 +164,16 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
         enumValues: string | null
     ) {
         let ret: {
-            tsType:
-                | "number"
-                | "string"
-                | "boolean"
-                | "Date"
-                | "Buffer"
-                | "object"
-                | "string | object"
-                | "string | string[]"
-                | "any"
-                | null;
+            tsType?: ColumnInfo["tsType"];
             sqlType: string | null;
             isArray: boolean;
             enumValues: string[];
-        } = { tsType: null, sqlType: null, isArray: false, enumValues: [] };
+        } = {
+            tsType: undefined,
+            sqlType: null,
+            isArray: false,
+            enumValues: []
+        };
         ret.sqlType = dataType;
         switch (dataType) {
             case "int2":
@@ -380,19 +375,22 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                         break;
                     default:
                         if (enumValues) {
+                            ret.tsType = (`"${enumValues
+                                .split(",")
+                                .join('" | "')}"` as never) as string;
                             ret.sqlType = "enum";
                             ret.enumValues = (`"${enumValues
                                 .split(",")
                                 .join('","')}"` as never) as string[];
                         } else {
-                            ret.tsType = null;
+                            ret.tsType = undefined;
                             ret.sqlType = null;
                         }
                         break;
                 }
                 break;
             default:
-                ret.tsType = null;
+                ret.tsType = undefined;
                 ret.sqlType = null;
                 break;
         }

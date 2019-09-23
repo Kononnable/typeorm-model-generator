@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryColumn()
     id: number;
 
@@ -88,7 +87,7 @@ export class Post {
     longtext: string;
 
     @Column("enum", { enum: ["A", "B", "C"] })
-    enum: string;
+    enum: "A" | "B" | "C";
 
     @Column("json")
     json: object;

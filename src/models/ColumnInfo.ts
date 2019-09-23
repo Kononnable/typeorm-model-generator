@@ -15,7 +15,8 @@ export default class ColumnInfo {
         | "object"
         | "string | object"
         | "string | string[]"
-        | "any";
+        | "any"
+        | string;
 
     public relations: RelationInfo[] = [];
 }

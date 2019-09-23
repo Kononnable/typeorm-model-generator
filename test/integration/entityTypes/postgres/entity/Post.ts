@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryColumn()
     id: number;
 
@@ -120,7 +119,7 @@ export class Post {
     boolean: boolean;
 
     @Column("enum", { enum: ["A", "B", "C"] })
-    enum: string;
+    enum: "A" | "B" | "C";
 
     @Column("point")
     point: string | object;
@@ -187,5 +186,4 @@ export class Post {
 
     @Column("daterange")
     daterange: string;
-
 }

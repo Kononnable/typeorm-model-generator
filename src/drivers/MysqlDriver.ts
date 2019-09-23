@@ -165,7 +165,12 @@ export default class MysqlDriver extends AbstractDriver {
                             colInfo.tsType = "string";
                             break;
                         case "enum":
-                            colInfo.tsType = "string";
+                            colInfo.tsType = resp.COLUMN_TYPE.substring(
+                                5,
+                                resp.COLUMN_TYPE.length - 1
+                            )
+                                .replace(/'/gi, '"')
+                                .replace(/","/gi, '" | "');
                             colInfo.options.enum = resp.COLUMN_TYPE.substring(
                                 5,
                                 resp.COLUMN_TYPE.length - 1

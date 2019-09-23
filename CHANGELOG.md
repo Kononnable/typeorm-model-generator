@@ -3,6 +3,7 @@
 ## Unreleased
 
 * change default case conversions for generated files (#196)
+* enum type safety #205
 
 ## 0.3.5
 
