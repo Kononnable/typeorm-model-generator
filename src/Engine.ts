@@ -17,6 +17,7 @@ import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import changeCase = require("change-case");
 import fs = require("fs");
 import path = require("path");
+import { Entity } from "./models/Entity";
 
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
@@ -43,20 +44,80 @@ export async function createModelFromDatabase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
 ) {
-    let dbModel = await dataCollectionPhase(driver, connectionOptions);
-    if (dbModel.length === 0) {
-        TomgUtils.LogError(
-            "Tables not found in selected database. Skipping creation of typeorm model.",
-            false
-        );
-        return;
-    }
-    dbModel = modelCustomizationPhase(
-        dbModel,
-        generationOptions,
-        driver.defaultValues
-    );
-    modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+    // let dbModel = await dataCollectionPhase(driver, connectionOptions);
+    // if (dbModel.length === 0) {
+    //     TomgUtils.LogError(
+    //         "Tables not found in selected database. Skipping creation of typeorm model.",
+    //         false
+    //     );
+    //     return;
+    // }
+    // dbModel = modelCustomizationPhase(
+    //     dbModel,
+    //     generationOptions,
+    //     driver.defaultValues
+    // );
+    const dbModel: Entity = {
+        sqlName: "sqlName",
+        tscName: "typescriptName",
+        schema: "schema",
+        database: "database",
+        columns: [
+            {
+                tscType: "typescriptType",
+                tscName: "tscName",
+                options: {
+                    name: "sqlName",
+                    type: "integer",
+                    length: 2,
+                    scale: 2
+                }
+            },
+            {
+                tscType: "typescriptType",
+                tscName: "tscName",
+                options: {
+                    name: "sqlName",
+                    type: "integer",
+                    length: 2,
+                    scale: 2
+                }
+            }
+        ],
+        indices: [
+            {
+                columns: ["columns"],
+                name: "name"
+            },
+            {
+                columns: ["columns"],
+                name: "name"
+            }
+        ],
+        relations: [
+            {
+                relationType: "OneToMany",
+                relatedField: "relatedField",
+                fieldName: "relation",
+                relatedTable: "any",
+                relationOptions: {
+                    onUpdate: "CASCADE",
+                    onDelete: "NO ACTION"
+                }
+            },
+            {
+                relationType: "OneToOne",
+                relatedField: "relatedField",
+                fieldName: "relation",
+                relatedTable: "any",
+                relationOptions: {
+                    onUpdate: "CASCADE",
+                    onDelete: "NO ACTION"
+                }
+            }
+        ]
+    };
+    modelGenerationPhase(connectionOptions, generationOptions, [dbModel]);
 }
 export async function dataCollectionPhase(
     driver: AbstractDriver,
@@ -172,7 +233,7 @@ function setRelationId(
 export function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
-    databaseModel: EntityInfo[]
+    databaseModel: Entity[]
 ) {
     createHandlebarsHelpers(generationOptions);
     const templatePath = path.resolve(__dirname, "entity.mst");
@@ -197,16 +258,16 @@ export function modelGenerationPhase(
         let casedFileName = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
-                casedFileName = changeCase.camelCase(element.tsEntityName);
+                casedFileName = changeCase.camelCase(element.tscName);
                 break;
             case "param":
-                casedFileName = changeCase.paramCase(element.tsEntityName);
+                casedFileName = changeCase.paramCase(element.tscName);
                 break;
             case "pascal":
-                casedFileName = changeCase.pascalCase(element.tsEntityName);
+                casedFileName = changeCase.pascalCase(element.tscName);
                 break;
             case "none":
-                casedFileName = element.tsEntityName;
+                casedFileName = element.tscName;
                 break;
             default:
                 throw new Error("Unknown case style");
@@ -221,6 +282,11 @@ export function modelGenerationPhase(
 }
 
 function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
+    Handlebars.registerHelper("json", context => {
+        const json = JSON.stringify(context);
+        const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
+        return withoutQuotes.slice(1, withoutQuotes.length - 1);
+    });
     Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
     Handlebars.registerHelper("toEntityName", str => {
         let retStr = "";

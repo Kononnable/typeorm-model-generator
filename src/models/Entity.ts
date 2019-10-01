@@ -4,7 +4,7 @@ import { Index } from "./Index";
 
 export type Entity = {
     sqlName: string;
-    typescriptName?: string;
+    tscName: string;
 
     database?: string;
     schema?: string;
