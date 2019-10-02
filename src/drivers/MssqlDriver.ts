@@ -227,77 +227,79 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     }
 
     public async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
-        const request = new MSSQL.Request(this.Connection);
-        const response: {
-            TableName: string;
-            IndexName: string;
-            ColumnName: string;
-            is_unique: boolean;
-            is_primary_key: boolean;
-        }[] = [];
-        await Promise.all(
-            dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
-                const resp: {
-                    TableName: string;
-                    IndexName: string;
-                    ColumnName: string;
-                    is_unique: boolean;
-                    is_primary_key: boolean;
-                }[] = (await request.query(`SELECT
-         TableName = t.name,
-         IndexName = ind.name,
-         ColumnName = col.name,
-         ind.is_unique,
-         ind.is_primary_key
-    FROM
-         sys.indexes ind
-    INNER JOIN
-         sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
-    INNER JOIN
-         sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
-    INNER JOIN
-         sys.tables t ON ind.object_id = t.object_id
-    INNER JOIN
-         sys.schemas s on s.schema_id=t.schema_id
-    WHERE
-         t.is_ms_shipped = 0 and s.name in (${schema})
-    ORDER BY
-         t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
-                response.push(...resp);
-            })
-        );
-        entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.TableName === ent.tsEntityName)
-                .forEach(resp => {
-                    let indexInfo: IndexInfo = {} as IndexInfo;
-                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                    if (
-                        ent.Indexes.filter(filterVal => {
-                            return filterVal.name === resp.IndexName;
-                        }).length > 0
-                    ) {
-                        [indexInfo] = ent.Indexes.filter(filterVal => {
-                            return filterVal.name === resp.IndexName;
-                        });
-                    } else {
-                        indexInfo.columns = [] as IndexColumnInfo[];
-                        indexInfo.name = resp.IndexName;
-                        indexInfo.isUnique = resp.is_unique;
-                        indexInfo.isPrimaryKey = resp.is_primary_key;
-                        ent.Indexes.push(indexInfo);
-                    }
-                    indexColumnInfo.name = resp.ColumnName;
-                    indexInfo.columns.push(indexColumnInfo);
-                });
-        });
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        //     const request = new MSSQL.Request(this.Connection);
+        //     const response: {
+        //         TableName: string;
+        //         IndexName: string;
+        //         ColumnName: string;
+        //         is_unique: boolean;
+        //         is_primary_key: boolean;
+        //     }[] = [];
+        //     await Promise.all(
+        //         dbNames.split(",").map(async dbName => {
+        //             await this.UseDB(dbName);
+        //             const resp: {
+        //                 TableName: string;
+        //                 IndexName: string;
+        //                 ColumnName: string;
+        //                 is_unique: boolean;
+        //                 is_primary_key: boolean;
+        //             }[] = (await request.query(`SELECT
+        //      TableName = t.name,
+        //      IndexName = ind.name,
+        //      ColumnName = col.name,
+        //      ind.is_unique,
+        //      ind.is_primary_key
+        // FROM
+        //      sys.indexes ind
+        // INNER JOIN
+        //      sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
+        // INNER JOIN
+        //      sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
+        // INNER JOIN
+        //      sys.tables t ON ind.object_id = t.object_id
+        // INNER JOIN
+        //      sys.schemas s on s.schema_id=t.schema_id
+        // WHERE
+        //      t.is_ms_shipped = 0 and s.name in (${schema})
+        // ORDER BY
+        //      t.name, ind.name, ind.index_id, ic.key_ordinal;`)).recordset;
+        //             response.push(...resp);
+        //         })
+        //     );
+        //     entities.forEach(ent => {
+        //         response
+        //             .filter(filterVal => filterVal.TableName === ent.tsEntityName)
+        //             .forEach(resp => {
+        //                 let indexInfo: IndexInfo = {} as IndexInfo;
+        //                 const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
+        //                 if (
+        //                     ent.Indexes.filter(filterVal => {
+        //                         return filterVal.name === resp.IndexName;
+        //                     }).length > 0
+        //                 ) {
+        //                     [indexInfo] = ent.Indexes.filter(filterVal => {
+        //                         return filterVal.name === resp.IndexName;
+        //                     });
+        //                 } else {
+        //                     indexInfo.columns = [] as IndexColumnInfo[];
+        //                     indexInfo.name = resp.IndexName;
+        //                     indexInfo.isUnique = resp.is_unique;
+        //                     indexInfo.isPrimaryKey = resp.is_primary_key;
+        //                     ent.Indexes.push(indexInfo);
+        //                 }
+        //                 indexColumnInfo.name = resp.ColumnName;
+        //                 indexInfo.columns.push(indexColumnInfo);
+        //             });
+        //     });
 
-        return entities;
+        //     return entities;
     }
 
     public async GetRelations(

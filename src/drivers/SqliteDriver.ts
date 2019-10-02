@@ -42,6 +42,8 @@ export default class SqliteDriver extends AbstractDriver {
             }
             ret.push({
                 columns: [],
+                indices: [],
+                relations: [],
                 sqlName: val.tbl_name,
                 tscName: val.tbl_name
             });
@@ -217,62 +219,62 @@ export default class SqliteDriver extends AbstractDriver {
         // return entities;
     }
 
-    public async GetIndexesFromEntity(
-        entities: EntityInfo[]
-    ): Promise<EntityInfo[]> {
-        await Promise.all(
-            entities.map(async ent => {
-                const response = await this.ExecQuery<{
-                    seq: number;
-                    name: string;
-                    unique: number;
-                    origin: string;
-                    partial: number;
-                }>(`PRAGMA index_list('${ent.tsEntityName}');`);
-                await Promise.all(
-                    response.map(async resp => {
-                        const indexColumnsResponse = await this.ExecQuery<{
-                            seqno: number;
-                            cid: number;
-                            name: string;
-                        }>(`PRAGMA index_info('${resp.name}');`);
-                        indexColumnsResponse.forEach(element => {
-                            let indexInfo: IndexInfo = {} as IndexInfo;
-                            const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                            if (
-                                ent.Indexes.filter(filterVal => {
-                                    return filterVal.name === resp.name;
-                                }).length > 0
-                            ) {
-                                indexInfo = ent.Indexes.find(
-                                    filterVal => filterVal.name === resp.name
-                                )!;
-                            } else {
-                                indexInfo.columns = [] as IndexColumnInfo[];
-                                indexInfo.name = resp.name;
-                                indexInfo.isUnique = resp.unique === 1;
-                                ent.Indexes.push(indexInfo);
-                            }
-                            indexColumnInfo.name = element.name;
-                            if (
-                                indexColumnsResponse.length === 1 &&
-                                indexInfo.isUnique
-                            ) {
-                                ent.Columns.filter(
-                                    v => v.tsName === indexColumnInfo.name
-                                ).forEach(v => {
-                                    // eslint-disable-next-line no-param-reassign
-                                    v.options.unique = true;
-                                });
-                            }
-                            indexInfo.columns.push(indexColumnInfo);
-                        });
-                    })
-                );
-            })
-        );
+    public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // await Promise.all(
+        //     entities.map(async ent => {
+        //         const response = await this.ExecQuery<{
+        //             seq: number;
+        //             name: string;
+        //             unique: number;
+        //             origin: string;
+        //             partial: number;
+        //         }>(`PRAGMA index_list('${ent.tsEntityName}');`);
+        //         await Promise.all(
+        //             response.map(async resp => {
+        //                 const indexColumnsResponse = await this.ExecQuery<{
+        //                     seqno: number;
+        //                     cid: number;
+        //                     name: string;
+        //                 }>(`PRAGMA index_info('${resp.name}');`);
+        //                 indexColumnsResponse.forEach(element => {
+        //                     let indexInfo: IndexInfo = {} as IndexInfo;
+        //                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
+        //                     if (
+        //                         ent.Indexes.filter(filterVal => {
+        //                             return filterVal.name === resp.name;
+        //                         }).length > 0
+        //                     ) {
+        //                         indexInfo = ent.Indexes.find(
+        //                             filterVal => filterVal.name === resp.name
+        //                         )!;
+        //                     } else {
+        //                         indexInfo.columns = [] as IndexColumnInfo[];
+        //                         indexInfo.name = resp.name;
+        //                         indexInfo.isUnique = resp.unique === 1;
+        //                         ent.Indexes.push(indexInfo);
+        //                     }
+        //                     indexColumnInfo.name = element.name;
+        //                     if (
+        //                         indexColumnsResponse.length === 1 &&
+        //                         indexInfo.isUnique
+        //                     ) {
+        //                         ent.Columns.filter(
+        //                             v => v.tsName === indexColumnInfo.name
+        //                         ).forEach(v => {
+        //                             // eslint-disable-next-line no-param-reassign
+        //                             v.options.unique = true;
+        //                         });
+        //                     }
+        //                     indexInfo.columns.push(indexColumnInfo);
+        //                 });
+        //             })
+        //         );
+        //     })
+        // );
 
-        return entities;
+        // return entities;
     }
 
     public async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {

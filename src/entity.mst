@@ -1,5 +1,5 @@
 {{#*inline "Index"}}
-@Index("{{name}}")
+@Index("{{name}}",[{{#columns}}"{{.}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
 {{#*inline "Column"}}
 {{#generated}}@PrimaryGeneratedColumn({ {{/generated}}{{^generated}}@Column({ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}} })

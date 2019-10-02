@@ -10,6 +10,6 @@ export type Entity = {
     schema?: string;
 
     columns: Column[];
-    relations?: Relation[];
-    indices?: Index[];
+    relations: Relation[];
+    indices: Index[];
 };

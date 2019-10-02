@@ -207,49 +207,49 @@ export default class OracleDriver extends AbstractDriver {
         // return entities;
     }
 
-    public async GetIndexesFromEntity(
-        entities: EntityInfo[]
-    ): Promise<EntityInfo[]> {
-        const response: {
-            COLUMN_NAME: string;
-            TABLE_NAME: string;
-            INDEX_NAME: string;
-            UNIQUENESS: string;
-            ISPRIMARYKEY: number;
-        }[] = (await this.Connection
-            .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
-        FROM USER_INDEXES ind
-        JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
-        LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
-        ORDER BY col.INDEX_NAME ASC ,col.COLUMN_POSITION ASC`)).rows!;
+    public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // const response: {
+        //     COLUMN_NAME: string;
+        //     TABLE_NAME: string;
+        //     INDEX_NAME: string;
+        //     UNIQUENESS: string;
+        //     ISPRIMARYKEY: number;
+        // }[] = (await this.Connection
+        //     .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
+        // FROM USER_INDEXES ind
+        // JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
+        // LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
+        // ORDER BY col.INDEX_NAME ASC ,col.COLUMN_POSITION ASC`)).rows!;
 
-        entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
-                .forEach(resp => {
-                    let indexInfo: IndexInfo = {} as IndexInfo;
-                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                    if (
-                        ent.Indexes.filter(
-                            filterVal => filterVal.name === resp.INDEX_NAME
-                        ).length > 0
-                    ) {
-                        indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name === resp.INDEX_NAME
-                        )!;
-                    } else {
-                        indexInfo.columns = [] as IndexColumnInfo[];
-                        indexInfo.name = resp.INDEX_NAME;
-                        indexInfo.isUnique = resp.UNIQUENESS === "UNIQUE";
-                        indexInfo.isPrimaryKey = resp.ISPRIMARYKEY === 1;
-                        ent.Indexes.push(indexInfo);
-                    }
-                    indexColumnInfo.name = resp.COLUMN_NAME;
-                    indexInfo.columns.push(indexColumnInfo);
-                });
-        });
+        // entities.forEach(ent => {
+        //     response
+        //         .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
+        //         .forEach(resp => {
+        //             let indexInfo: IndexInfo = {} as IndexInfo;
+        //             const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
+        //             if (
+        //                 ent.Indexes.filter(
+        //                     filterVal => filterVal.name === resp.INDEX_NAME
+        //                 ).length > 0
+        //             ) {
+        //                 indexInfo = ent.Indexes.find(
+        //                     filterVal => filterVal.name === resp.INDEX_NAME
+        //                 )!;
+        //             } else {
+        //                 indexInfo.columns = [] as IndexColumnInfo[];
+        //                 indexInfo.name = resp.INDEX_NAME;
+        //                 indexInfo.isUnique = resp.UNIQUENESS === "UNIQUE";
+        //                 indexInfo.isPrimaryKey = resp.ISPRIMARYKEY === 1;
+        //                 ent.Indexes.push(indexInfo);
+        //             }
+        //             indexColumnInfo.name = resp.COLUMN_NAME;
+        //             indexInfo.columns.push(indexColumnInfo);
+        //         });
+        // });
 
-        return entities;
+        // return entities;
     }
 
     public async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {

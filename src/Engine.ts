@@ -44,80 +44,80 @@ export async function createModelFromDatabase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
 ) {
-    // let dbModel = await dataCollectionPhase(driver, connectionOptions);
-    // if (dbModel.length === 0) {
-    //     TomgUtils.LogError(
-    //         "Tables not found in selected database. Skipping creation of typeorm model.",
-    //         false
-    //     );
-    //     return;
-    // }
+    let dbModel = await dataCollectionPhase(driver, connectionOptions);
+    if (dbModel.length === 0) {
+        TomgUtils.LogError(
+            "Tables not found in selected database. Skipping creation of typeorm model.",
+            false
+        );
+        return;
+    }
     // dbModel = modelCustomizationPhase(
     //     dbModel,
     //     generationOptions,
     //     driver.defaultValues
     // );
-    const dbModel: Entity = {
-        sqlName: "sqlName",
-        tscName: "typescriptName",
-        schema: "schema",
-        database: "database",
-        columns: [
-            {
-                tscType: "typescriptType",
-                tscName: "tscName",
-                options: {
-                    name: "sqlName",
-                    type: "integer",
-                    length: 2,
-                    scale: 2
-                }
-            },
-            {
-                tscType: "typescriptType",
-                tscName: "tscName",
-                options: {
-                    name: "sqlName",
-                    type: "integer",
-                    length: 2,
-                    scale: 2
-                }
-            }
-        ],
-        indices: [
-            {
-                columns: ["columns"],
-                name: "name"
-            },
-            {
-                columns: ["columns"],
-                name: "name"
-            }
-        ],
-        relations: [
-            {
-                relationType: "OneToMany",
-                relatedField: "relatedField",
-                fieldName: "relation",
-                relatedTable: "any",
-                relationOptions: {
-                    onUpdate: "CASCADE",
-                    onDelete: "NO ACTION"
-                }
-            },
-            {
-                relationType: "OneToOne",
-                relatedField: "relatedField",
-                fieldName: "relation",
-                relatedTable: "any",
-                relationOptions: {
-                    onUpdate: "CASCADE",
-                    onDelete: "NO ACTION"
-                }
-            }
-        ]
-    };
-    modelGenerationPhase(connectionOptions, generationOptions, [dbModel]);
+    // const dbModel: Entity = {
+    //     sqlName: "sqlName",
+    //     tscName: "typescriptName",
+    //     schema: "schema",
+    //     database: "database",
+    //     columns: [
+    //         {
+    //             tscType: "typescriptType",
+    //             tscName: "tscName",
+    //             options: {
+    //                 name: "sqlName",
+    //                 type: "integer",
+    //                 length: 2,
+    //                 scale: 2
+    //             }
+    //         },
+    //         {
+    //             tscType: "typescriptType",
+    //             tscName: "tscName",
+    //             options: {
+    //                 name: "sqlName",
+    //                 type: "integer",
+    //                 length: 2,
+    //                 scale: 2
+    //             }
+    //         }
+    //     ],
+    //     indices: [
+    //         {
+    //             columns: ["columns"],
+    //             name: "name"
+    //         },
+    //         {
+    //             columns: ["columns"],
+    //             name: "name"
+    //         }
+    //     ],
+    //     relations: [
+    //         {
+    //             relationType: "OneToMany",
+    //             relatedField: "relatedField",
+    //             fieldName: "relation",
+    //             relatedTable: "any",
+    //             relationOptions: {
+    //                 onUpdate: "CASCADE",
+    //                 onDelete: "NO ACTION"
+    //             }
+    //         },
+    //         {
+    //             relationType: "OneToOne",
+    //             relatedField: "relatedField",
+    //             fieldName: "relation",
+    //             relatedTable: "any",
+    //             relationOptions: {
+    //                 onUpdate: "CASCADE",
+    //                 onDelete: "NO ACTION"
+    //             }
+    //         }
+    //     ]
+    // };
+    modelGenerationPhase(connectionOptions, generationOptions, dbModel);
 }
 export async function dataCollectionPhase(
     driver: AbstractDriver,

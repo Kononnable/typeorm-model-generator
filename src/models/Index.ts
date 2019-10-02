@@ -1,5 +1,8 @@
 export type Index = {
-    name?: string;
-    columns?: ((object?: any) => any[] | { [key: string]: number }) | string[];
-    unique?: boolean;
+    name: string;
+    columns: string[];
+    options: {
+        unique?: boolean;
+    };
+    primary?: boolean;
 };

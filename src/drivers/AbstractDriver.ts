@@ -175,12 +175,12 @@ export default abstract class AbstractDriver {
             sqlEscapedSchema,
             connectionOptons.databaseName
         );
+        await this.GetIndexesFromEntity(
+            dbModel,
+            sqlEscapedSchema,
+            connectionOptons.databaseName
+        );
         // TODO: Uncomment
-        // await this.GetIndexesFromEntity(
-        //     dbModel,
-        //     sqlEscapedSchema,
-        //     connectionOptons.databaseName
-        // );
         // dbModel = await this.GetRelations(
         //     dbModel,
         //     sqlEscapedSchema,
@@ -203,6 +203,8 @@ export default abstract class AbstractDriver {
         response.forEach(val => {
             ret.push({
                 columns: [],
+                indices: [],
+                relations: [],
                 sqlName: val.TABLE_NAME,
                 tscName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
@@ -381,10 +383,10 @@ export default abstract class AbstractDriver {
     ): Promise<Entity[]>;
 
     public abstract async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]>;
+    ): Promise<Entity[]>;
 
     public abstract async GetRelations(
         entities: EntityInfo[],

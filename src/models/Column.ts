@@ -7,7 +7,7 @@ export type Column = {
     primary?: boolean;
     generated?: true | "increment" | "uuid";
     options: {
-        type: ColumnType;
+        type: ColumnType | string; // todo: remove ?
         name: string;
         length?: number;
         width?: number;
@@ -17,7 +17,7 @@ export type Column = {
         precision?: number;
         scale?: number;
         unsigned?: boolean;
-        enum?: string[];
+        enum?: string; // string[];
         array?: boolean; // ?
     };
 };

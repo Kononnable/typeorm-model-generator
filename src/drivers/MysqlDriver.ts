@@ -12,6 +12,7 @@ import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
 import { Column } from "../models/Column";
+import { Index } from "../models/Index";
 
 export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
@@ -248,10 +249,9 @@ export default class MysqlDriver extends AbstractDriver {
                     if (options.type) {
                         ent.columns.push({
                             generated,
-                            options,
+                            options: { type: "integer", name: "", ...options }, // TODO: Change
                             tscName,
-                            tscType,
-                            primary
+                            tscType
                         });
                     }
                 });
@@ -260,10 +260,10 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     public async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
+    ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TableName: string;
             IndexName: string;
@@ -277,29 +277,28 @@ export default class MysqlDriver extends AbstractDriver {
                 dbNames
             )})`);
         entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.TableName === ent.tsEntityName)
-                .forEach(resp => {
-                    let indexInfo: IndexInfo = {} as IndexInfo;
-                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                    if (
-                        ent.Indexes.filter(
-                            filterVal => filterVal.name === resp.IndexName
-                        ).length > 0
-                    ) {
-                        indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name === resp.IndexName
-                        )!;
-                    } else {
-                        indexInfo.columns = [] as IndexColumnInfo[];
-                        indexInfo.name = resp.IndexName;
-                        indexInfo.isUnique = resp.is_unique === 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
-                        ent.Indexes.push(indexInfo);
-                    }
-                    indexColumnInfo.name = resp.ColumnName;
-                    indexInfo.columns.push(indexColumnInfo);
+            const entityIndices = response.filter(
+                filterVal => filterVal.TableName === ent.tscName
+            );
+            const indexNames = new Set(entityIndices.map(v => v.IndexName));
+            indexNames.forEach(indexName => {
+                const records = entityIndices.filter(
+                    v => v.IndexName === indexName
+                );
+
+                const indexInfo: Index = {
+                    name: indexName,
+                    columns: [],
+                    options: {}
+                };
+                if (records[0].is_primary_key === 1) indexInfo.primary = true;
+                if (records[0].is_unique === 1) indexInfo.options.unique = true;
+
+                records.forEach(record => {
+                    indexInfo.columns.push(record.ColumnName);
                 });
+                ent.indices.push(indexInfo);
+            });
         });
 
         return entities;

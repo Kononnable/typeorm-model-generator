@@ -401,69 +401,71 @@ export default class PostgresDriver extends AbstractDriver {
     }
 
     public async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string
-    ): Promise<EntityInfo[]> {
-        const response: {
-            tablename: string;
-            indexname: string;
-            columnname: string;
-            is_unique: number;
-            is_primary_key: number;
-        }[] = (await this.Connection.query(`SELECT
-        c.relname AS tablename,
-        i.relname as indexname,
-        f.attname AS columnname,
-        CASE
-            WHEN ix.indisunique = true THEN 1
-            ELSE 0
-        END AS is_unique,
-        CASE
-            WHEN ix.indisprimary='true' THEN 1
-            ELSE 0
-        END AS is_primary_key
-        FROM pg_attribute f
-        JOIN pg_class c ON c.oid = f.attrelid
-        JOIN pg_type t ON t.oid = f.atttypid
-        LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum
-        LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-        LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid
-        LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
-        WHERE c.relkind = 'r'::char
-        AND n.nspname in (${schema})
-        AND f.attnum > 0
-        AND i.oid<>0
-        ORDER BY c.relname,f.attname;`)).rows;
-        entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.tablename === ent.tsEntityName)
-                .forEach(resp => {
-                    let indexInfo: IndexInfo = {} as IndexInfo;
-                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                    if (
-                        ent.Indexes.filter(
-                            filterVal => filterVal.name === resp.indexname
-                        ).length > 0
-                    ) {
-                        indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name === resp.indexname
-                        )!;
-                    } else {
-                        indexInfo.columns = [] as IndexColumnInfo[];
-                        indexInfo.name = resp.indexname;
-                        indexInfo.isUnique = resp.is_unique === 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
-                        ent.Indexes.push(indexInfo);
-                    }
-                    indexColumnInfo.name = resp.columnname;
-                    if (resp.is_primary_key === 0) {
-                        indexInfo.isPrimaryKey = false;
-                    }
-                    indexInfo.columns.push(indexColumnInfo);
-                });
-        });
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // const response: {
+        //     tablename: string;
+        //     indexname: string;
+        //     columnname: string;
+        //     is_unique: number;
+        //     is_primary_key: number;
+        // }[] = (await this.Connection.query(`SELECT
+        // c.relname AS tablename,
+        // i.relname as indexname,
+        // f.attname AS columnname,
+        // CASE
+        //     WHEN ix.indisunique = true THEN 1
+        //     ELSE 0
+        // END AS is_unique,
+        // CASE
+        //     WHEN ix.indisprimary='true' THEN 1
+        //     ELSE 0
+        // END AS is_primary_key
+        // FROM pg_attribute f
+        // JOIN pg_class c ON c.oid = f.attrelid
+        // JOIN pg_type t ON t.oid = f.atttypid
+        // LEFT JOIN pg_attrdef d ON d.adrelid = c.oid AND d.adnum = f.attnum
+        // LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+        // LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid
+        // LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
+        // WHERE c.relkind = 'r'::char
+        // AND n.nspname in (${schema})
+        // AND f.attnum > 0
+        // AND i.oid<>0
+        // ORDER BY c.relname,f.attname;`)).rows;
+        // entities.forEach(ent => {
+        //     response
+        //         .filter(filterVal => filterVal.tablename === ent.tsEntityName)
+        //         .forEach(resp => {
+        //             let indexInfo: IndexInfo = {} as IndexInfo;
+        //             const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
+        //             if (
+        //                 ent.Indexes.filter(
+        //                     filterVal => filterVal.name === resp.indexname
+        //                 ).length > 0
+        //             ) {
+        //                 indexInfo = ent.Indexes.find(
+        //                     filterVal => filterVal.name === resp.indexname
+        //                 )!;
+        //             } else {
+        //                 indexInfo.columns = [] as IndexColumnInfo[];
+        //                 indexInfo.name = resp.indexname;
+        //                 indexInfo.isUnique = resp.is_unique === 1;
+        //                 indexInfo.isPrimaryKey = resp.is_primary_key === 1;
+        //                 ent.Indexes.push(indexInfo);
+        //             }
+        //             indexColumnInfo.name = resp.columnname;
+        //             if (resp.is_primary_key === 0) {
+        //                 indexInfo.isPrimaryKey = false;
+        //             }
+        //             indexInfo.columns.push(indexColumnInfo);
+        //         });
+        // });
 
-        return entities;
+        // return entities;
     }
 
     public async GetRelations(
