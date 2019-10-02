@@ -10,6 +10,7 @@ import IndexInfo from "../oldModels/IndexInfo";
 import IndexColumnInfo from "../oldModels/IndexColumnInfo";
 import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
 
 export default class SqliteDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqliteDriver({
@@ -30,190 +31,190 @@ export default class SqliteDriver extends AbstractDriver {
 
     public GetAllTablesQuery: any;
 
-    public async GetAllTables(): Promise<EntityInfo[]> {
-        const ret: EntityInfo[] = [] as EntityInfo[];
+    public async GetAllTables(): Promise<Entity[]> {
+        const ret: Entity[] = [] as Entity[];
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
             `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
         );
         rows.forEach(val => {
-            const ent: EntityInfo = new EntityInfo();
-            ent.tsEntityName = val.tbl_name;
-            ent.Columns = [] as ColumnInfo[];
-            ent.Indexes = [] as IndexInfo[];
             if (val.sql.includes("AUTOINCREMENT")) {
-                this.tablesWithGeneratedPrimaryKey.push(ent.tsEntityName);
+                this.tablesWithGeneratedPrimaryKey.push(val.tbl_name);
             }
-            ret.push(ent);
+            ret.push({
+                columns: [],
+                sqlName: val.tbl_name,
+                tscName: val.tbl_name
+            });
         });
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(
-        entities: EntityInfo[]
-    ): Promise<EntityInfo[]> {
-        await Promise.all(
-            entities.map(async ent => {
-                const response = await this.ExecQuery<{
-                    cid: number;
-                    name: string;
-                    type: string;
-                    notnull: number;
-                    dflt_value: string;
-                    pk: number;
-                }>(`PRAGMA table_info('${ent.tsEntityName}');`);
-                response.forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.name;
-                    colInfo.options.name = resp.name;
-                    colInfo.options.nullable = resp.notnull === 0;
-                    colInfo.options.primary = resp.pk > 0;
-                    colInfo.options.default = SqliteDriver.ReturnDefaultValueFunction(
-                        resp.dflt_value
-                    );
-                    colInfo.options.type = resp.type
-                        .replace(/\([0-9 ,]+\)/g, "")
-                        .toLowerCase()
-                        .trim() as any;
-                    colInfo.options.generated =
-                        colInfo.options.primary &&
-                        this.tablesWithGeneratedPrimaryKey.includes(
-                            ent.tsEntityName
-                        );
-                    switch (colInfo.options.type) {
-                        case "int":
-                            colInfo.tsType = "number";
-                            break;
-                        case "integer":
-                            colInfo.tsType = "number";
-                            break;
-                        case "int2":
-                            colInfo.tsType = "number";
-                            break;
-                        case "int8":
-                            colInfo.tsType = "number";
-                            break;
-                        case "tinyint":
-                            colInfo.tsType = "number";
-                            break;
-                        case "smallint":
-                            colInfo.tsType = "number";
-                            break;
-                        case "mediumint":
-                            colInfo.tsType = "number";
-                            break;
-                        case "bigint":
-                            colInfo.tsType = "string";
-                            break;
-                        case "unsigned big int":
-                            colInfo.tsType = "string";
-                            break;
-                        case "character":
-                            colInfo.tsType = "string";
-                            break;
-                        case "varchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "varying character":
-                            colInfo.tsType = "string";
-                            break;
-                        case "nchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "native character":
-                            colInfo.tsType = "string";
-                            break;
-                        case "nvarchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "text":
-                            colInfo.tsType = "string";
-                            break;
-                        case "blob":
-                            colInfo.tsType = "Buffer";
-                            break;
-                        case "clob":
-                            colInfo.tsType = "string";
-                            break;
-                        case "real":
-                            colInfo.tsType = "number";
-                            break;
-                        case "double":
-                            colInfo.tsType = "number";
-                            break;
-                        case "double precision":
-                            colInfo.tsType = "number";
-                            break;
-                        case "float":
-                            colInfo.tsType = "number";
-                            break;
-                        case "numeric":
-                            colInfo.tsType = "number";
-                            break;
-                        case "decimal":
-                            colInfo.tsType = "number";
-                            break;
-                        case "boolean":
-                            colInfo.tsType = "boolean";
-                            break;
-                        case "date":
-                            colInfo.tsType = "string";
-                            break;
-                        case "datetime":
-                            colInfo.tsType = "Date";
-                            break;
-                        default:
-                            TomgUtils.LogError(
-                                `Unknown column type: ${colInfo.options.type}  table name: ${ent.tsEntityName} column name: ${resp.name}`
-                            );
-                            break;
-                    }
-                    const options = resp.type.match(/\([0-9 ,]+\)/g);
-                    if (
-                        this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
-                        ) &&
-                        options
-                    ) {
-                        colInfo.options.precision = options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[0] as any;
-                        colInfo.options.scale = options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[1] as any;
-                    }
-                    if (
-                        this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
-                        ) &&
-                        options
-                    ) {
-                        colInfo.options.length = options[0].substring(
-                            1,
-                            options[0].length - 1
-                        ) as any;
-                    }
-                    if (
-                        this.ColumnTypesWithWidth.some(
-                            v =>
-                                v === colInfo.options.type &&
-                                colInfo.tsType !== "boolean"
-                        ) &&
-                        options
-                    ) {
-                        colInfo.options.width = options[0].substring(
-                            1,
-                            options[0].length - 1
-                        ) as any;
-                    }
+    public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // await Promise.all(
+        //     entities.map(async ent => {
+        //         const response = await this.ExecQuery<{
+        //             cid: number;
+        //             name: string;
+        //             type: string;
+        //             notnull: number;
+        //             dflt_value: string;
+        //             pk: number;
+        //         }>(`PRAGMA table_info('${ent.tsEntityName}');`);
+        //         response.forEach(resp => {
+        //             const colInfo: ColumnInfo = new ColumnInfo();
+        //             colInfo.tsName = resp.name;
+        //             colInfo.options.name = resp.name;
+        //             colInfo.options.nullable = resp.notnull === 0;
+        //             colInfo.options.primary = resp.pk > 0;
+        //             colInfo.options.default = SqliteDriver.ReturnDefaultValueFunction(
+        //                 resp.dflt_value
+        //             );
+        //             colInfo.options.type = resp.type
+        //                 .replace(/\([0-9 ,]+\)/g, "")
+        //                 .toLowerCase()
+        //                 .trim() as any;
+        //             colInfo.options.generated =
+        //                 colInfo.options.primary &&
+        //                 this.tablesWithGeneratedPrimaryKey.includes(
+        //                     ent.tsEntityName
+        //                 );
+        //             switch (colInfo.options.type) {
+        //                 case "int":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "integer":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "int2":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "int8":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "tinyint":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "smallint":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "mediumint":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "bigint":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "unsigned big int":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "character":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "varchar":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "varying character":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "nchar":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "native character":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "nvarchar":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "text":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "blob":
+        //                     colInfo.tsType = "Buffer";
+        //                     break;
+        //                 case "clob":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "real":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "double":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "double precision":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "float":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "numeric":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "decimal":
+        //                     colInfo.tsType = "number";
+        //                     break;
+        //                 case "boolean":
+        //                     colInfo.tsType = "boolean";
+        //                     break;
+        //                 case "date":
+        //                     colInfo.tsType = "string";
+        //                     break;
+        //                 case "datetime":
+        //                     colInfo.tsType = "Date";
+        //                     break;
+        //                 default:
+        //                     TomgUtils.LogError(
+        //                         `Unknown column type: ${colInfo.options.type}  table name: ${ent.tsEntityName} column name: ${resp.name}`
+        //                     );
+        //                     break;
+        //             }
+        //             const options = resp.type.match(/\([0-9 ,]+\)/g);
+        //             if (
+        //                 this.ColumnTypesWithPrecision.some(
+        //                     v => v === colInfo.options.type
+        //                 ) &&
+        //                 options
+        //             ) {
+        //                 colInfo.options.precision = options[0]
+        //                     .substring(1, options[0].length - 1)
+        //                     .split(",")[0] as any;
+        //                 colInfo.options.scale = options[0]
+        //                     .substring(1, options[0].length - 1)
+        //                     .split(",")[1] as any;
+        //             }
+        //             if (
+        //                 this.ColumnTypesWithLength.some(
+        //                     v => v === colInfo.options.type
+        //                 ) &&
+        //                 options
+        //             ) {
+        //                 colInfo.options.length = options[0].substring(
+        //                     1,
+        //                     options[0].length - 1
+        //                 ) as any;
+        //             }
+        //             if (
+        //                 this.ColumnTypesWithWidth.some(
+        //                     v =>
+        //                         v === colInfo.options.type &&
+        //                         colInfo.tsType !== "boolean"
+        //                 ) &&
+        //                 options
+        //             ) {
+        //                 colInfo.options.width = options[0].substring(
+        //                     1,
+        //                     options[0].length - 1
+        //                 ) as any;
+        //             }
 
-                    if (colInfo.options.type) {
-                        ent.Columns.push(colInfo);
-                    }
-                });
-            })
-        );
+        //             if (colInfo.options.type) {
+        //                 ent.Columns.push(colInfo);
+        //             }
+        //         });
+        //     })
+        // );
 
-        return entities;
+        // return entities;
     }
 
     public async GetIndexesFromEntity(

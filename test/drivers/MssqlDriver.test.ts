@@ -103,12 +103,15 @@ describe("MssqlDriver", function() {
             tsType: "number",
             relations: [] as RelationInfo[]
         });
-        const result = await driver.GetCoulmnsFromEntity(
-            entities,
-            "schema",
-            "db"
-        );
-        expect(result).to.be.deep.equal(expected);
+
+        throw new Error();
+        // TODO: Remove
+        // const result = await driver.GetCoulmnsFromEntity(
+        //     entities,
+        //     "schema",
+        //     "db"
+        // );
+        // expect(result).to.be.deep.equal(expected);
     });
     it("should find primary indexes");
     it("should get indexes info");

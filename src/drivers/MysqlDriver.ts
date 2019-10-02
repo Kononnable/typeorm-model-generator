@@ -10,6 +10,8 @@ import IndexInfo from "../oldModels/IndexInfo";
 import IndexColumnInfo from "../oldModels/IndexColumnInfo";
 import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
+import { Column } from "../models/Column";
 
 export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
@@ -41,10 +43,10 @@ export default class MysqlDriver extends AbstractDriver {
     };
 
     public async GetCoulmnsFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
+    ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TABLE_NAME: string;
             COLUMN_NAME: string;
@@ -66,150 +68,149 @@ export default class MysqlDriver extends AbstractDriver {
 			order by ordinal_position`);
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.tsEntityName)
+                .filter(filterVal => filterVal.TABLE_NAME === ent.tscName)
                 .forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.COLUMN_NAME;
-                    colInfo.options.name = resp.COLUMN_NAME;
-                    colInfo.options.nullable = resp.IS_NULLABLE === "YES";
-                    colInfo.options.generated = resp.IsIdentity === 1;
-                    colInfo.options.unique = resp.COLUMN_KEY === "UNI";
-                    colInfo.options.default = MysqlDriver.ReturnDefaultValueFunction(
+                    const tscName = resp.COLUMN_NAME;
+                    let tscType = "";
+                    const options: Partial<Column["options"]> = {};
+                    options.name = resp.COLUMN_NAME;
+                    options.nullable = resp.IS_NULLABLE === "YES";
+                    const generated = resp.IsIdentity === 1 ? true : undefined;
+                    options.unique = resp.COLUMN_KEY === "UNI";
+                    options.default = MysqlDriver.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
-                    colInfo.options.type = resp.DATA_TYPE as any;
-                    colInfo.options.unsigned = resp.COLUMN_TYPE.endsWith(
-                        " unsigned"
-                    );
+                    options.type = resp.DATA_TYPE as any;
+                    options.unsigned = resp.COLUMN_TYPE.endsWith(" unsigned");
                     switch (resp.DATA_TYPE) {
                         case "int":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "bit":
                             if (resp.COLUMN_TYPE === "bit(1)") {
-                                colInfo.options.width = 1;
-                                colInfo.tsType = "boolean";
+                                options.width = 1;
+                                tscType = "boolean";
                             } else {
-                                colInfo.tsType = "number";
+                                tscType = "number";
                             }
                             break;
                         case "tinyint":
                             if (resp.COLUMN_TYPE === "tinyint(1)") {
-                                colInfo.options.width = 1;
-                                colInfo.tsType = "boolean";
+                                options.width = 1;
+                                tscType = "boolean";
                             } else {
-                                colInfo.tsType = "number";
+                                tscType = "number";
                             }
                             break;
                         case "smallint":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "mediumint":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "bigint":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "float":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "double":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "decimal":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "date":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "datetime":
-                            colInfo.tsType = "Date";
+                            tscType = "Date";
                             break;
                         case "timestamp":
-                            colInfo.tsType = "Date";
+                            tscType = "Date";
                             break;
                         case "time":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "year":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "char":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "varchar":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "blob":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "text":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "tinyblob":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "tinytext":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "mediumblob":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "mediumtext":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "longblob":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "longtext":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "enum":
-                            colInfo.tsType = resp.COLUMN_TYPE.substring(
+                            tscType = resp.COLUMN_TYPE.substring(
                                 5,
                                 resp.COLUMN_TYPE.length - 1
                             )
                                 .replace(/'/gi, '"')
                                 .replace(/","/gi, '" | "');
-                            colInfo.options.enum = resp.COLUMN_TYPE.substring(
+                            options.enum = resp.COLUMN_TYPE.substring(
                                 5,
                                 resp.COLUMN_TYPE.length - 1
                             ).replace(/'/gi, '"');
                             break;
                         case "json":
-                            colInfo.tsType = "object";
+                            tscType = "object";
                             break;
                         case "binary":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "varbinary":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "geometry":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "point":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "linestring":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "polygon":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "multipoint":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "multilinestring":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "multipolygon":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "geometrycollection":
                         case "geomcollection":
-                            colInfo.options.type = "geometrycollection";
-                            colInfo.tsType = "string";
+                            options.type = "geometrycollection";
+                            tscType = "string";
                             break;
                         default:
                             TomgUtils.LogError(
@@ -219,37 +220,39 @@ export default class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
+                            v => v === options.type
                         )
                     ) {
-                        colInfo.options.precision = resp.NUMERIC_PRECISION;
-                        colInfo.options.scale = resp.NUMERIC_SCALE;
+                        options.precision = resp.NUMERIC_PRECISION;
+                        options.scale = resp.NUMERIC_SCALE;
                     }
                     if (
-                        this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
-                        )
+                        this.ColumnTypesWithLength.some(v => v === options.type)
                     ) {
-                        colInfo.options.length =
+                        options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
                                 : undefined;
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v =>
-                                v === colInfo.options.type &&
-                                colInfo.tsType !== "boolean"
+                            v => v === options.type && tscType !== "boolean"
                         )
                     ) {
-                        colInfo.options.width =
+                        options.width =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
                                 : undefined;
                     }
 
-                    if (colInfo.options.type) {
-                        ent.Columns.push(colInfo);
+                    if (options.type) {
+                        ent.columns.push({
+                            generated,
+                            options,
+                            tscName,
+                            tscType,
+                            primary
+                        });
                     }
                 });
         });
@@ -463,11 +466,11 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     private static ReturnDefaultValueFunction(
-        defVal: string | null
-    ): string | null {
+        defVal: string | undefined
+    ): string | undefined {
         let defaultValue = defVal;
         if (!defaultValue || defaultValue === "NULL") {
-            return null;
+            return undefined;
         }
         if (defaultValue.toLowerCase() === "current_timestamp()") {
             defaultValue = "CURRENT_TIMESTAMP";

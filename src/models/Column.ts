@@ -13,7 +13,7 @@ export type Column = {
         width?: number;
         nullable?: boolean;
         unique?: boolean; // ?
-        default?: boolean;
+        default?: string; // ?
         precision?: number;
         scale?: number;
         unsigned?: boolean;

@@ -10,6 +10,7 @@ import IndexInfo from "../oldModels/IndexInfo";
 import IndexColumnInfo from "../oldModels/IndexColumnInfo";
 import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
 
 export default class MssqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqlServerDriver({
@@ -40,187 +41,189 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     };
 
     public async GetCoulmnsFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
-        const request = new MSSQL.Request(this.Connection);
-        const response: {
-            TABLE_NAME: string;
-            COLUMN_NAME: string;
-            COLUMN_DEFAULT: string;
-            IS_NULLABLE: string;
-            DATA_TYPE: string;
-            CHARACTER_MAXIMUM_LENGTH: number;
-            NUMERIC_PRECISION: number;
-            NUMERIC_SCALE: number;
-            IsIdentity: number;
-            IsUnique: number;
-        }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
-   DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-   COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
-   (SELECT count(*)
-    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-    where
-        tc.CONSTRAINT_TYPE = 'UNIQUE'
-        and tc.TABLE_NAME = c.TABLE_NAME
-        and cu.COLUMN_NAME = c.COLUMN_NAME
-        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-   FROM INFORMATION_SCHEMA.COLUMNS c
-   where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
-            dbNames
-        )})
-        order by ordinal_position`)).recordset;
-        entities.forEach(ent => {
-            response
-                .filter(filterVal => {
-                    return filterVal.TABLE_NAME === ent.tsEntityName;
-                })
-                .forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.COLUMN_NAME;
-                    colInfo.options.name = resp.COLUMN_NAME;
-                    colInfo.options.nullable = resp.IS_NULLABLE === "YES";
-                    colInfo.options.generated = resp.IsIdentity === 1;
-                    colInfo.options.unique = resp.IsUnique === 1;
-                    colInfo.options.default = MssqlDriver.ReturnDefaultValueFunction(
-                        resp.COLUMN_DEFAULT
-                    );
-                    colInfo.options.type = resp.DATA_TYPE as any;
-                    switch (resp.DATA_TYPE) {
-                        case "bigint":
-                            colInfo.tsType = "string";
-                            break;
-                        case "bit":
-                            colInfo.tsType = "boolean";
-                            break;
-                        case "decimal":
-                            colInfo.tsType = "number";
-                            break;
-                        case "int":
-                            colInfo.tsType = "number";
-                            break;
-                        case "money":
-                            colInfo.tsType = "number";
-                            break;
-                        case "numeric":
-                            colInfo.tsType = "number";
-                            break;
-                        case "smallint":
-                            colInfo.tsType = "number";
-                            break;
-                        case "smallmoney":
-                            colInfo.tsType = "number";
-                            break;
-                        case "tinyint":
-                            colInfo.tsType = "number";
-                            break;
-                        case "float":
-                            colInfo.tsType = "number";
-                            break;
-                        case "real":
-                            colInfo.tsType = "number";
-                            break;
-                        case "date":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "datetime2":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "datetime":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "datetimeoffset":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "smalldatetime":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "time":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "char":
-                            colInfo.tsType = "string";
-                            break;
-                        case "text":
-                            colInfo.tsType = "string";
-                            break;
-                        case "varchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "nchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "ntext":
-                            colInfo.tsType = "string";
-                            break;
-                        case "nvarchar":
-                            colInfo.tsType = "string";
-                            break;
-                        case "binary":
-                            colInfo.tsType = "Buffer";
-                            break;
-                        case "image":
-                            colInfo.tsType = "Buffer";
-                            break;
-                        case "varbinary":
-                            colInfo.tsType = "Buffer";
-                            break;
-                        case "hierarchyid":
-                            colInfo.tsType = "string";
-                            break;
-                        case "sql_variant":
-                            colInfo.tsType = "string";
-                            break;
-                        case "timestamp":
-                            colInfo.tsType = "Date";
-                            break;
-                        case "uniqueidentifier":
-                            colInfo.tsType = "string";
-                            break;
-                        case "xml":
-                            colInfo.tsType = "string";
-                            break;
-                        case "geometry":
-                            colInfo.tsType = "string";
-                            break;
-                        case "geography":
-                            colInfo.tsType = "string";
-                            break;
-                        default:
-                            TomgUtils.LogError(
-                                `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
-                            );
-                            break;
-                    }
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        //         const request = new MSSQL.Request(this.Connection);
+        //         const response: {
+        //             TABLE_NAME: string;
+        //             COLUMN_NAME: string;
+        //             COLUMN_DEFAULT: string;
+        //             IS_NULLABLE: string;
+        //             DATA_TYPE: string;
+        //             CHARACTER_MAXIMUM_LENGTH: number;
+        //             NUMERIC_PRECISION: number;
+        //             NUMERIC_SCALE: number;
+        //             IsIdentity: number;
+        //             IsUnique: number;
+        //         }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+        //    DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
+        //    COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
+        //    (SELECT count(*)
+        //     FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        //         inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+        //             on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+        //     where
+        //         tc.CONSTRAINT_TYPE = 'UNIQUE'
+        //         and tc.TABLE_NAME = c.TABLE_NAME
+        //         and cu.COLUMN_NAME = c.COLUMN_NAME
+        //         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+        //    FROM INFORMATION_SCHEMA.COLUMNS c
+        //    where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
+        //             dbNames
+        //         )})
+        //         order by ordinal_position`)).recordset;
+        //         entities.forEach(ent => {
+        //             response
+        //                 .filter(filterVal => {
+        //                     return filterVal.TABLE_NAME === ent.tsEntityName;
+        //                 })
+        //                 .forEach(resp => {
+        //                     const colInfo: ColumnInfo = new ColumnInfo();
+        //                     colInfo.tsName = resp.COLUMN_NAME;
+        //                     colInfo.options.name = resp.COLUMN_NAME;
+        //                     colInfo.options.nullable = resp.IS_NULLABLE === "YES";
+        //                     colInfo.options.generated = resp.IsIdentity === 1;
+        //                     colInfo.options.unique = resp.IsUnique === 1;
+        //                     colInfo.options.default = MssqlDriver.ReturnDefaultValueFunction(
+        //                         resp.COLUMN_DEFAULT
+        //                     );
+        //                     colInfo.options.type = resp.DATA_TYPE as any;
+        //                     switch (resp.DATA_TYPE) {
+        //                         case "bigint":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "bit":
+        //                             colInfo.tsType = "boolean";
+        //                             break;
+        //                         case "decimal":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "int":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "money":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "numeric":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "smallint":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "smallmoney":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "tinyint":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "float":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "real":
+        //                             colInfo.tsType = "number";
+        //                             break;
+        //                         case "date":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "datetime2":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "datetime":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "datetimeoffset":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "smalldatetime":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "time":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "char":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "text":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "varchar":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "nchar":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "ntext":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "nvarchar":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "binary":
+        //                             colInfo.tsType = "Buffer";
+        //                             break;
+        //                         case "image":
+        //                             colInfo.tsType = "Buffer";
+        //                             break;
+        //                         case "varbinary":
+        //                             colInfo.tsType = "Buffer";
+        //                             break;
+        //                         case "hierarchyid":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "sql_variant":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "timestamp":
+        //                             colInfo.tsType = "Date";
+        //                             break;
+        //                         case "uniqueidentifier":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "xml":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "geometry":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         case "geography":
+        //                             colInfo.tsType = "string";
+        //                             break;
+        //                         default:
+        //                             TomgUtils.LogError(
+        //                                 `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
+        //                             );
+        //                             break;
+        //                     }
 
-                    if (
-                        this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.precision = resp.NUMERIC_PRECISION;
-                        colInfo.options.scale = resp.NUMERIC_SCALE;
-                    }
-                    if (
-                        this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.length =
-                            resp.CHARACTER_MAXIMUM_LENGTH > 0
-                                ? resp.CHARACTER_MAXIMUM_LENGTH
-                                : undefined;
-                    }
+        //                     if (
+        //                         this.ColumnTypesWithPrecision.some(
+        //                             v => v === colInfo.options.type
+        //                         )
+        //                     ) {
+        //                         colInfo.options.precision = resp.NUMERIC_PRECISION;
+        //                         colInfo.options.scale = resp.NUMERIC_SCALE;
+        //                     }
+        //                     if (
+        //                         this.ColumnTypesWithLength.some(
+        //                             v => v === colInfo.options.type
+        //                         )
+        //                     ) {
+        //                         colInfo.options.length =
+        //                             resp.CHARACTER_MAXIMUM_LENGTH > 0
+        //                                 ? resp.CHARACTER_MAXIMUM_LENGTH
+        //                                 : undefined;
+        //                     }
 
-                    if (colInfo.options.type) {
-                        ent.Columns.push(colInfo);
-                    }
-                });
-        });
-        return entities;
+        //                     if (colInfo.options.type) {
+        //                         ent.Columns.push(colInfo);
+        //                     }
+        //                 });
+        //         });
+        //         return entities;
     }
 
     public async GetIndexesFromEntity(

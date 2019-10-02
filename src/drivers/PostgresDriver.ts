@@ -10,6 +10,7 @@ import IndexInfo from "../oldModels/IndexInfo";
 import IndexColumnInfo from "../oldModels/IndexColumnInfo";
 import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
 
 export default class PostgresDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
@@ -36,126 +37,128 @@ export default class PostgresDriver extends AbstractDriver {
     };
 
     public async GetCoulmnsFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string
-    ): Promise<EntityInfo[]> {
-        const response: {
-            table_name: string;
-            column_name: string;
-            udt_name: string;
-            column_default: string;
-            is_nullable: string;
-            data_type: string;
-            character_maximum_length: number;
-            numeric_precision: number;
-            numeric_scale: number;
-            isidentity: string;
-            isunique: string;
-            enumvalues: string | null;
-        }[] = (await this.Connection
-            .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
-            data_type,character_maximum_length,numeric_precision,numeric_scale,
-            case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
-			(SELECT count(*)
-    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-    where
-        tc.CONSTRAINT_TYPE = 'UNIQUE'
-        and tc.TABLE_NAME = c.TABLE_NAME
-        and cu.COLUMN_NAME = c.COLUMN_NAME
-        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-        (SELECT
-string_agg(enumlabel, ',')
-FROM "pg_enum" "e"
-INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-        ) enumValues
-            FROM INFORMATION_SCHEMA.COLUMNS c
-            where table_schema in (${schema})
-			order by ordinal_position`)).rows;
-        entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.table_name === ent.tsEntityName)
-                .forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.column_name;
-                    colInfo.options.name = resp.column_name;
-                    colInfo.options.nullable = resp.is_nullable === "YES";
-                    colInfo.options.generated = resp.isidentity === "YES";
-                    colInfo.options.unique = resp.isunique === "1";
-                    colInfo.options.default = colInfo.options.generated
-                        ? null
-                        : PostgresDriver.ReturnDefaultValueFunction(
-                              resp.column_default
-                          );
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        //         const response: {
+        //             table_name: string;
+        //             column_name: string;
+        //             udt_name: string;
+        //             column_default: string;
+        //             is_nullable: string;
+        //             data_type: string;
+        //             character_maximum_length: number;
+        //             numeric_precision: number;
+        //             numeric_scale: number;
+        //             isidentity: string;
+        //             isunique: string;
+        //             enumvalues: string | null;
+        //         }[] = (await this.Connection
+        //             .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
+        //             data_type,character_maximum_length,numeric_precision,numeric_scale,
+        //             case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+        // 			(SELECT count(*)
+        //     FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+        //         inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+        //             on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+        //     where
+        //         tc.CONSTRAINT_TYPE = 'UNIQUE'
+        //         and tc.TABLE_NAME = c.TABLE_NAME
+        //         and cu.COLUMN_NAME = c.COLUMN_NAME
+        //         and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+        //         (SELECT
+        // string_agg(enumlabel, ',')
+        // FROM "pg_enum" "e"
+        // INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+        // INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+        // WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        //         ) enumValues
+        //             FROM INFORMATION_SCHEMA.COLUMNS c
+        //             where table_schema in (${schema})
+        // 			order by ordinal_position`)).rows;
+        //         entities.forEach(ent => {
+        //             response
+        //                 .filter(filterVal => filterVal.table_name === ent.tsEntityName)
+        //                 .forEach(resp => {
+        //                     const colInfo: ColumnInfo = new ColumnInfo();
+        //                     colInfo.tsName = resp.column_name;
+        //                     colInfo.options.name = resp.column_name;
+        //                     colInfo.options.nullable = resp.is_nullable === "YES";
+        //                     colInfo.options.generated = resp.isidentity === "YES";
+        //                     colInfo.options.unique = resp.isunique === "1";
+        //                     colInfo.options.default = colInfo.options.generated
+        //                         ? null
+        //                         : PostgresDriver.ReturnDefaultValueFunction(
+        //                               resp.column_default
+        //                           );
 
-                    const columnTypes = this.MatchColumnTypes(
-                        resp.data_type,
-                        resp.udt_name,
-                        resp.enumvalues
-                    );
-                    if (!columnTypes.sqlType || !columnTypes.tsType) {
-                        if (
-                            resp.data_type === "USER-DEFINED" ||
-                            resp.data_type === "ARRAY"
-                        ) {
-                            TomgUtils.LogError(
-                                `Unknown ${resp.data_type} column type: ${resp.udt_name}  table name: ${resp.table_name} column name: ${resp.column_name}`
-                            );
-                        } else {
-                            TomgUtils.LogError(
-                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
-                            );
-                        }
-                        return;
-                    }
-                    colInfo.options.type = columnTypes.sqlType as any;
-                    colInfo.tsType = columnTypes.tsType;
-                    colInfo.options.array = columnTypes.isArray;
-                    colInfo.options.enum = columnTypes.enumValues;
-                    if (colInfo.options.array) {
-                        colInfo.tsType = colInfo.tsType
-                            .split("|")
-                            .map(x => `${x.replace("|", "").trim()}[]`)
-                            .join(" | ") as any;
-                    }
+        //                     const columnTypes = this.MatchColumnTypes(
+        //                         resp.data_type,
+        //                         resp.udt_name,
+        //                         resp.enumvalues
+        //                     );
+        //                     if (!columnTypes.sqlType || !columnTypes.tsType) {
+        //                         if (
+        //                             resp.data_type === "USER-DEFINED" ||
+        //                             resp.data_type === "ARRAY"
+        //                         ) {
+        //                             TomgUtils.LogError(
+        //                                 `Unknown ${resp.data_type} column type: ${resp.udt_name}  table name: ${resp.table_name} column name: ${resp.column_name}`
+        //                             );
+        //                         } else {
+        //                             TomgUtils.LogError(
+        //                                 `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
+        //                             );
+        //                         }
+        //                         return;
+        //                     }
+        //                     colInfo.options.type = columnTypes.sqlType as any;
+        //                     colInfo.tsType = columnTypes.tsType;
+        //                     colInfo.options.array = columnTypes.isArray;
+        //                     colInfo.options.enum = columnTypes.enumValues;
+        //                     if (colInfo.options.array) {
+        //                         colInfo.tsType = colInfo.tsType
+        //                             .split("|")
+        //                             .map(x => `${x.replace("|", "").trim()}[]`)
+        //                             .join(" | ") as any;
+        //                     }
 
-                    if (
-                        this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.precision = resp.numeric_precision;
-                        colInfo.options.scale = resp.numeric_scale;
-                    }
-                    if (
-                        this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.length =
-                            resp.character_maximum_length > 0
-                                ? resp.character_maximum_length
-                                : undefined;
-                    }
-                    if (
-                        this.ColumnTypesWithWidth.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.width =
-                            resp.character_maximum_length > 0
-                                ? resp.character_maximum_length
-                                : undefined;
-                    }
-                    if (colInfo.options.type && colInfo.tsType) {
-                        ent.Columns.push(colInfo);
-                    }
-                });
-        });
-        return entities;
+        //                     if (
+        //                         this.ColumnTypesWithPrecision.some(
+        //                             v => v === colInfo.options.type
+        //                         )
+        //                     ) {
+        //                         colInfo.options.precision = resp.numeric_precision;
+        //                         colInfo.options.scale = resp.numeric_scale;
+        //                     }
+        //                     if (
+        //                         this.ColumnTypesWithLength.some(
+        //                             v => v === colInfo.options.type
+        //                         )
+        //                     ) {
+        //                         colInfo.options.length =
+        //                             resp.character_maximum_length > 0
+        //                                 ? resp.character_maximum_length
+        //                                 : undefined;
+        //                     }
+        //                     if (
+        //                         this.ColumnTypesWithWidth.some(
+        //                             v => v === colInfo.options.type
+        //                         )
+        //                     ) {
+        //                         colInfo.options.width =
+        //                             resp.character_maximum_length > 0
+        //                                 ? resp.character_maximum_length
+        //                                 : undefined;
+        //                     }
+        //                     if (colInfo.options.type && colInfo.tsType) {
+        //                         ent.Columns.push(colInfo);
+        //                     }
+        //                 });
+        //         });
+        //         return entities;
     }
 
     public MatchColumnTypes(
