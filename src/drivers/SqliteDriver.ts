@@ -277,50 +277,52 @@ export default class SqliteDriver extends AbstractDriver {
         // return entities;
     }
 
-    public async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        let retVal = entities;
-        await Promise.all(
-            retVal.map(async entity => {
-                const response = await this.ExecQuery<{
-                    id: number;
-                    seq: number;
-                    table: string;
-                    from: string;
-                    to: string;
-                    on_update:
-                        | "RESTRICT"
-                        | "CASCADE"
-                        | "SET NULL"
-                        | "NO ACTION";
-                    on_delete:
-                        | "RESTRICT"
-                        | "CASCADE"
-                        | "SET NULL"
-                        | "NO ACTION";
-                    match: string;
-                }>(`PRAGMA foreign_key_list('${entity.tsEntityName}');`);
-                const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-                response.forEach(resp => {
-                    const rels = {} as RelationTempInfo;
-                    rels.ownerColumnsNames = [];
-                    rels.referencedColumnsNames = [];
-                    rels.actionOnDelete =
-                        resp.on_delete === "NO ACTION" ? null : resp.on_delete;
-                    rels.actionOnUpdate =
-                        resp.on_update === "NO ACTION" ? null : resp.on_update;
-                    rels.ownerTable = entity.tsEntityName;
-                    rels.referencedTable = resp.table;
-                    relationsTemp.push(rels);
-                    rels.ownerColumnsNames.push(resp.from);
-                    rels.referencedColumnsNames.push(resp.to);
-                });
-                retVal = SqliteDriver.GetRelationsFromRelationTempInfo(
-                    relationsTemp,
-                    retVal
-                );
-            })
-        );
-        return retVal;
+    public async GetRelations(entities: Entity[]): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // let retVal = entities;
+        // await Promise.all(
+        //     retVal.map(async entity => {
+        //         const response = await this.ExecQuery<{
+        //             id: number;
+        //             seq: number;
+        //             table: string;
+        //             from: string;
+        //             to: string;
+        //             on_update:
+        //                 | "RESTRICT"
+        //                 | "CASCADE"
+        //                 | "SET NULL"
+        //                 | "NO ACTION";
+        //             on_delete:
+        //                 | "RESTRICT"
+        //                 | "CASCADE"
+        //                 | "SET NULL"
+        //                 | "NO ACTION";
+        //             match: string;
+        //         }>(`PRAGMA foreign_key_list('${entity.tsEntityName}');`);
+        //         const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        //         response.forEach(resp => {
+        //             const rels = {} as RelationTempInfo;
+        //             rels.ownerColumnsNames = [];
+        //             rels.referencedColumnsNames = [];
+        //             rels.actionOnDelete =
+        //                 resp.on_delete === "NO ACTION" ? null : resp.on_delete;
+        //             rels.actionOnUpdate =
+        //                 resp.on_update === "NO ACTION" ? null : resp.on_update;
+        //             rels.ownerTable = entity.tsEntityName;
+        //             rels.referencedTable = resp.table;
+        //             relationsTemp.push(rels);
+        //             rels.ownerColumnsNames.push(resp.from);
+        //             rels.referencedColumnsNames.push(resp.to);
+        //         });
+        //         retVal = SqliteDriver.GetRelationsFromRelationTempInfo(
+        //             relationsTemp,
+        //             retVal
+        //         );
+        //     })
+        // );
+        // return retVal;
     }
 
     public async DisconnectFromServer() {

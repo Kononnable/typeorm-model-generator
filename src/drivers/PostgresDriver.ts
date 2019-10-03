@@ -469,85 +469,87 @@ export default class PostgresDriver extends AbstractDriver {
     }
 
     public async GetRelations(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string
-    ): Promise<EntityInfo[]> {
-        const response: {
-            tablewithforeignkey: string;
-            fk_partno: number;
-            foreignkeycolumn: string;
-            tablereferenced: string;
-            foreignkeycolumnreferenced: string;
-            ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
-            onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
-            object_id: string;
-            // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
-        }[] = (await this.Connection.query(`SELECT DISTINCT
-            con.relname AS tablewithforeignkey,
-            att.attnum as fk_partno,
-                 att2.attname AS foreignkeycolumn,
-              cl.relname AS tablereferenced,
-              att.attname AS foreignkeycolumnreferenced,
-              delete_rule as ondelete,
-              update_rule as onupdate,
-                concat(con.conname,con.conrelid,con.confrelid) as object_id
-               FROM (
-                   SELECT
-                     unnest(con1.conkey) AS parent,
-                     unnest(con1.confkey) AS child,
-                     con1.confrelid,
-                     con1.conrelid,
-                     cl_1.relname,
-                   con1.conname,
-                   nspname
-                   FROM
-                     pg_class cl_1,
-                     pg_namespace ns,
-                     pg_constraint con1
-                   WHERE
-                     con1.contype = 'f'::"char"
-                     AND cl_1.relnamespace = ns.oid
-                     AND con1.conrelid = cl_1.oid
-                     and nspname in (${schema})
-              ) con,
-                pg_attribute att,
-                pg_class cl,
-                pg_attribute att2,
-                information_schema.referential_constraints rc
-              WHERE
-                att.attrelid = con.confrelid
-                AND att.attnum = con.child
-                AND cl.oid = con.confrelid
-                AND att2.attrelid = con.conrelid
-                AND att2.attnum = con.parent
-                AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
-                `)).rows;
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        response.forEach(resp => {
-            let rels = relationsTemp.find(
-                val => val.objectId === resp.object_id
-            );
-            if (rels === undefined) {
-                rels = {} as RelationTempInfo;
-                rels.ownerColumnsNames = [];
-                rels.referencedColumnsNames = [];
-                rels.actionOnDelete =
-                    resp.ondelete === "NO ACTION" ? null : resp.ondelete;
-                rels.actionOnUpdate =
-                    resp.onupdate === "NO ACTION" ? null : resp.onupdate;
-                rels.objectId = resp.object_id;
-                rels.ownerTable = resp.tablewithforeignkey;
-                rels.referencedTable = resp.tablereferenced;
-                relationsTemp.push(rels);
-            }
-            rels.ownerColumnsNames.push(resp.foreignkeycolumn);
-            rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
-        });
-        const retVal = PostgresDriver.GetRelationsFromRelationTempInfo(
-            relationsTemp,
-            entities
-        );
-        return retVal;
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // const response: {
+        //     tablewithforeignkey: string;
+        //     fk_partno: number;
+        //     foreignkeycolumn: string;
+        //     tablereferenced: string;
+        //     foreignkeycolumnreferenced: string;
+        //     ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+        //     onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+        //     object_id: string;
+        //     // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
+        // }[] = (await this.Connection.query(`SELECT DISTINCT
+        //     con.relname AS tablewithforeignkey,
+        //     att.attnum as fk_partno,
+        //          att2.attname AS foreignkeycolumn,
+        //       cl.relname AS tablereferenced,
+        //       att.attname AS foreignkeycolumnreferenced,
+        //       delete_rule as ondelete,
+        //       update_rule as onupdate,
+        //         concat(con.conname,con.conrelid,con.confrelid) as object_id
+        //        FROM (
+        //            SELECT
+        //              unnest(con1.conkey) AS parent,
+        //              unnest(con1.confkey) AS child,
+        //              con1.confrelid,
+        //              con1.conrelid,
+        //              cl_1.relname,
+        //            con1.conname,
+        //            nspname
+        //            FROM
+        //              pg_class cl_1,
+        //              pg_namespace ns,
+        //              pg_constraint con1
+        //            WHERE
+        //              con1.contype = 'f'::"char"
+        //              AND cl_1.relnamespace = ns.oid
+        //              AND con1.conrelid = cl_1.oid
+        //              and nspname in (${schema})
+        //       ) con,
+        //         pg_attribute att,
+        //         pg_class cl,
+        //         pg_attribute att2,
+        //         information_schema.referential_constraints rc
+        //       WHERE
+        //         att.attrelid = con.confrelid
+        //         AND att.attnum = con.child
+        //         AND cl.oid = con.confrelid
+        //         AND att2.attrelid = con.conrelid
+        //         AND att2.attnum = con.parent
+        //         AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
+        //         `)).rows;
+        // const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        // response.forEach(resp => {
+        //     let rels = relationsTemp.find(
+        //         val => val.objectId === resp.object_id
+        //     );
+        //     if (rels === undefined) {
+        //         rels = {} as RelationTempInfo;
+        //         rels.ownerColumnsNames = [];
+        //         rels.referencedColumnsNames = [];
+        //         rels.actionOnDelete =
+        //             resp.ondelete === "NO ACTION" ? null : resp.ondelete;
+        //         rels.actionOnUpdate =
+        //             resp.onupdate === "NO ACTION" ? null : resp.onupdate;
+        //         rels.objectId = resp.object_id;
+        //         rels.ownerTable = resp.tablewithforeignkey;
+        //         rels.referencedTable = resp.tablereferenced;
+        //         relationsTemp.push(rels);
+        //     }
+        //     rels.ownerColumnsNames.push(resp.foreignkeycolumn);
+        //     rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
+        // });
+        // const retVal = PostgresDriver.GetRelationsFromRelationTempInfo(
+        //     relationsTemp,
+        //     entities
+        // );
+        // return retVal;
     }
 
     public async DisconnectFromServer() {

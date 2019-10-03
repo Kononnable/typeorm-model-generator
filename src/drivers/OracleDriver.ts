@@ -252,52 +252,54 @@ export default class OracleDriver extends AbstractDriver {
         // return entities;
     }
 
-    public async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
-        const response: {
-            OWNER_TABLE_NAME: string;
-            OWNER_POSITION: string;
-            OWNER_COLUMN_NAME: string;
-            CHILD_TABLE_NAME: string;
-            CHILD_COLUMN_NAME: string;
-            DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
-            CONSTRAINT_NAME: string;
-        }[] = (await this.Connection
-            .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
-        child.TABLE_NAME CHILD_TABLE_NAME ,childCol.COLUMN_NAME CHILD_COLUMN_NAME,
-        owner.DELETE_RULE,
-        owner.CONSTRAINT_NAME
-        from user_constraints owner
-        join user_constraints child on owner.r_constraint_name=child.CONSTRAINT_NAME and child.constraint_type in ('P','U')
-        JOIN USER_CONS_COLUMNS ownCol ON owner.CONSTRAINT_NAME = ownCol.CONSTRAINT_NAME
-        JOIN USER_CONS_COLUMNS childCol ON child.CONSTRAINT_NAME = childCol.CONSTRAINT_NAME AND ownCol.POSITION=childCol.POSITION
-        ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`))
-            .rows!;
+    public async GetRelations(entities: Entity[]): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        // const response: {
+        //     OWNER_TABLE_NAME: string;
+        //     OWNER_POSITION: string;
+        //     OWNER_COLUMN_NAME: string;
+        //     CHILD_TABLE_NAME: string;
+        //     CHILD_COLUMN_NAME: string;
+        //     DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+        //     CONSTRAINT_NAME: string;
+        // }[] = (await this.Connection
+        //     .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
+        // child.TABLE_NAME CHILD_TABLE_NAME ,childCol.COLUMN_NAME CHILD_COLUMN_NAME,
+        // owner.DELETE_RULE,
+        // owner.CONSTRAINT_NAME
+        // from user_constraints owner
+        // join user_constraints child on owner.r_constraint_name=child.CONSTRAINT_NAME and child.constraint_type in ('P','U')
+        // JOIN USER_CONS_COLUMNS ownCol ON owner.CONSTRAINT_NAME = ownCol.CONSTRAINT_NAME
+        // JOIN USER_CONS_COLUMNS childCol ON child.CONSTRAINT_NAME = childCol.CONSTRAINT_NAME AND ownCol.POSITION=childCol.POSITION
+        // ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`))
+        //     .rows!;
 
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        response.forEach(resp => {
-            let rels = relationsTemp.find(
-                val => val.objectId === resp.CONSTRAINT_NAME
-            );
-            if (rels === undefined) {
-                rels = {} as RelationTempInfo;
-                rels.ownerColumnsNames = [];
-                rels.referencedColumnsNames = [];
-                rels.actionOnDelete =
-                    resp.DELETE_RULE === "NO ACTION" ? null : resp.DELETE_RULE;
-                rels.actionOnUpdate = null;
-                rels.objectId = resp.CONSTRAINT_NAME;
-                rels.ownerTable = resp.OWNER_TABLE_NAME;
-                rels.referencedTable = resp.CHILD_TABLE_NAME;
-                relationsTemp.push(rels);
-            }
-            rels.ownerColumnsNames.push(resp.OWNER_COLUMN_NAME);
-            rels.referencedColumnsNames.push(resp.CHILD_COLUMN_NAME);
-        });
-        const retVal = OracleDriver.GetRelationsFromRelationTempInfo(
-            relationsTemp,
-            entities
-        );
-        return retVal;
+        // const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        // response.forEach(resp => {
+        //     let rels = relationsTemp.find(
+        //         val => val.objectId === resp.CONSTRAINT_NAME
+        //     );
+        //     if (rels === undefined) {
+        //         rels = {} as RelationTempInfo;
+        //         rels.ownerColumnsNames = [];
+        //         rels.referencedColumnsNames = [];
+        //         rels.actionOnDelete =
+        //             resp.DELETE_RULE === "NO ACTION" ? null : resp.DELETE_RULE;
+        //         rels.actionOnUpdate = null;
+        //         rels.objectId = resp.CONSTRAINT_NAME;
+        //         rels.ownerTable = resp.OWNER_TABLE_NAME;
+        //         rels.referencedTable = resp.CHILD_TABLE_NAME;
+        //         relationsTemp.push(rels);
+        //     }
+        //     rels.ownerColumnsNames.push(resp.OWNER_COLUMN_NAME);
+        //     rels.referencedColumnsNames.push(resp.CHILD_COLUMN_NAME);
+        // });
+        // const retVal = OracleDriver.GetRelationsFromRelationTempInfo(
+        //     relationsTemp,
+        //     entities
+        // );
+        // return retVal;
     }
 
     public async DisconnectFromServer() {

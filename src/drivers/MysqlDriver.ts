@@ -13,6 +13,7 @@ import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
 import { Column } from "../models/Column";
 import { Index } from "../models/Index";
+import { RelationInternal } from "../models/RelationInternal";
 
 export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
@@ -305,10 +306,10 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     public async GetRelations(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
+    ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TableWithForeignKey: string;
             FK_PartNo: number;
@@ -336,27 +337,43 @@ export default class MysqlDriver extends AbstractDriver {
             TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(dbNames)})
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        response.forEach(resp => {
-            let rels = relationsTemp.find(
-                val => val.objectId === resp.object_id
+        const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+        const relationKeys = new Set(response.map(v => v.object_id));
+
+        relationKeys.forEach(relationId => {
+            const rows = response.filter(v => v.object_id === relationId);
+            const ownerTable = entities.find(
+                v => v.sqlName === rows[0].TableWithForeignKey
             );
-            if (rels === undefined) {
-                rels = {} as RelationTempInfo;
-                rels.ownerColumnsNames = [];
-                rels.referencedColumnsNames = [];
-                rels.actionOnDelete =
-                    resp.onDelete === "NO_ACTION" ? null : resp.onDelete;
-                rels.actionOnUpdate =
-                    resp.onUpdate === "NO_ACTION" ? null : resp.onUpdate;
-                rels.objectId = resp.object_id;
-                rels.ownerTable = resp.TableWithForeignKey;
-                rels.referencedTable = resp.TableReferenced;
-                relationsTemp.push(rels);
+            const relatedTable = entities.find(
+                v => v.sqlName === rows[0].TableReferenced
+            );
+
+            if (!ownerTable || !relatedTable) {
+                TomgUtils.LogError(
+                    `Relation between tables ${rows[0].TableWithForeignKey} and ${rows[0].TableReferenced} wasn't found in entity model.`,
+                    true
+                );
+                return;
             }
-            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
-            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
+            const internal: RelationInternal = {
+                ownerColumns: [],
+                relatedColumns: [],
+                ownerTable,
+                relatedTable
+            };
+            if (rows[0].onDelete !== "NO_ACTION") {
+                internal.onDelete = rows[0].onDelete;
+            }
+            if (rows[0].onUpdate !== "NO_ACTION") {
+                internal.onUpdate = rows[0].onUpdate;
+            }
+            rows.forEach(row => {
+                internal.ownerColumns.push(row.ForeignKeyColumn);
+                internal.relatedColumns.push(row.ForeignKeyColumnReferenced);
+            });
         });
+
         const retVal = MysqlDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
             entities

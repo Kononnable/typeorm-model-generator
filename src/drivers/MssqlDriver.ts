@@ -303,107 +303,109 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     }
 
     public async GetRelations(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]> {
-        const request = new MSSQL.Request(this.Connection);
-        const response: {
-            TableWithForeignKey: string;
-            FK_PartNo: number;
-            ForeignKeyColumn: string;
-            TableReferenced: string;
-            ForeignKeyColumnReferenced: string;
-            onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-            onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-            objectId: number;
-        }[] = [];
-        await Promise.all(
-            dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
-                const resp: {
-                    TableWithForeignKey: string;
-                    FK_PartNo: number;
-                    ForeignKeyColumn: string;
-                    TableReferenced: string;
-                    ForeignKeyColumnReferenced: string;
-                    onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                    onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                    objectId: number;
-                }[] = (await request.query(`select
-    parentTable.name as TableWithForeignKey,
-    fkc.constraint_column_id as FK_PartNo,
-     parentColumn.name as ForeignKeyColumn,
-     referencedTable.name as TableReferenced,
-     referencedColumn.name as ForeignKeyColumnReferenced,
-     fk.delete_referential_action_desc as onDelete,
-     fk.update_referential_action_desc as onUpdate,
-     fk.object_id as objectId
-from
-    sys.foreign_keys fk
-inner join
-    sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
-inner join
-    sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
-inner join
-    sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
-inner join
-    sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
-inner join
-    sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
-inner join
-	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
-where
-    fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
-order by
-    TableWithForeignKey, FK_PartNo`)).recordset;
-                response.push(...resp);
-            })
-        );
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        response.forEach(resp => {
-            let rels = relationsTemp.find(
-                val => val.objectId === resp.objectId
-            );
-            if (rels === undefined) {
-                rels = {} as RelationTempInfo;
-                rels.ownerColumnsNames = [];
-                rels.referencedColumnsNames = [];
-                switch (resp.onDelete) {
-                    case "NO_ACTION":
-                        rels.actionOnDelete = null;
-                        break;
-                    case "SET_NULL":
-                        rels.actionOnDelete = "SET NULL";
-                        break;
-                    default:
-                        rels.actionOnDelete = resp.onDelete;
-                        break;
-                }
-                switch (resp.onUpdate) {
-                    case "NO_ACTION":
-                        rels.actionOnUpdate = null;
-                        break;
-                    case "SET_NULL":
-                        rels.actionOnUpdate = "SET NULL";
-                        break;
-                    default:
-                        rels.actionOnUpdate = resp.onUpdate;
-                        break;
-                }
-                rels.objectId = resp.objectId;
-                rels.ownerTable = resp.TableWithForeignKey;
-                rels.referencedTable = resp.TableReferenced;
-                relationsTemp.push(rels);
-            }
-            rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
-            rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
-        });
-        const retVal = MssqlDriver.GetRelationsFromRelationTempInfo(
-            relationsTemp,
-            entities
-        );
-        return retVal;
+    ): Promise<Entity[]> {
+        throw new Error();
+        // TODO: Remove
+        //         const request = new MSSQL.Request(this.Connection);
+        //         const response: {
+        //             TableWithForeignKey: string;
+        //             FK_PartNo: number;
+        //             ForeignKeyColumn: string;
+        //             TableReferenced: string;
+        //             ForeignKeyColumnReferenced: string;
+        //             onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+        //             onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+        //             objectId: number;
+        //         }[] = [];
+        //         await Promise.all(
+        //             dbNames.split(",").map(async dbName => {
+        //                 await this.UseDB(dbName);
+        //                 const resp: {
+        //                     TableWithForeignKey: string;
+        //                     FK_PartNo: number;
+        //                     ForeignKeyColumn: string;
+        //                     TableReferenced: string;
+        //                     ForeignKeyColumnReferenced: string;
+        //                     onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+        //                     onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+        //                     objectId: number;
+        //                 }[] = (await request.query(`select
+        //     parentTable.name as TableWithForeignKey,
+        //     fkc.constraint_column_id as FK_PartNo,
+        //      parentColumn.name as ForeignKeyColumn,
+        //      referencedTable.name as TableReferenced,
+        //      referencedColumn.name as ForeignKeyColumnReferenced,
+        //      fk.delete_referential_action_desc as onDelete,
+        //      fk.update_referential_action_desc as onUpdate,
+        //      fk.object_id as objectId
+        // from
+        //     sys.foreign_keys fk
+        // inner join
+        //     sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
+        // inner join
+        //     sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
+        // inner join
+        //     sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
+        // inner join
+        //     sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
+        // inner join
+        //     sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
+        // inner join
+        // 	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
+        // where
+        //     fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
+        // order by
+        //     TableWithForeignKey, FK_PartNo`)).recordset;
+        //                 response.push(...resp);
+        //             })
+        //         );
+        //         const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
+        //         response.forEach(resp => {
+        //             let rels = relationsTemp.find(
+        //                 val => val.objectId === resp.objectId
+        //             );
+        //             if (rels === undefined) {
+        //                 rels = {} as RelationTempInfo;
+        //                 rels.ownerColumnsNames = [];
+        //                 rels.referencedColumnsNames = [];
+        //                 switch (resp.onDelete) {
+        //                     case "NO_ACTION":
+        //                         rels.actionOnDelete = null;
+        //                         break;
+        //                     case "SET_NULL":
+        //                         rels.actionOnDelete = "SET NULL";
+        //                         break;
+        //                     default:
+        //                         rels.actionOnDelete = resp.onDelete;
+        //                         break;
+        //                 }
+        //                 switch (resp.onUpdate) {
+        //                     case "NO_ACTION":
+        //                         rels.actionOnUpdate = null;
+        //                         break;
+        //                     case "SET_NULL":
+        //                         rels.actionOnUpdate = "SET NULL";
+        //                         break;
+        //                     default:
+        //                         rels.actionOnUpdate = resp.onUpdate;
+        //                         break;
+        //                 }
+        //                 rels.objectId = resp.objectId;
+        //                 rels.ownerTable = resp.TableWithForeignKey;
+        //                 rels.referencedTable = resp.TableReferenced;
+        //                 relationsTemp.push(rels);
+        //             }
+        //             rels.ownerColumnsNames.push(resp.ForeignKeyColumn);
+        //             rels.referencedColumnsNames.push(resp.ForeignKeyColumnReferenced);
+        //         });
+        //         const retVal = MssqlDriver.GetRelationsFromRelationTempInfo(
+        //             relationsTemp,
+        //             entities
+        //         );
+        //         return retVal;
     }
 
     public async DisconnectFromServer() {
