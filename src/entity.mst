@@ -2,7 +2,7 @@
 @Index("{{name}}",[{{#columns}}"{{.}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
 {{#*inline "Column"}}
-{{#generated}}@PrimaryGeneratedColumn({ {{/generated}}{{^generated}}@Column({ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}} })
+{{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
 {{tscName}}:{{tscType}};
 
 {{/inline}}
@@ -21,11 +21,12 @@ export class {{tscName}} {
 }
 {{/inline}}
 
+import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
+
 {{~> Entity}}
 
 
-
-import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
+{{!--
 {{relationImports}}{{#each UniqueImports}}import {{curly true}}{{toEntityName this}}{{curly false}} from "./{{toFileName this}}";
 {{/each}}
 
@@ -71,3 +72,4 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 	}
     {{/if}}
 }
+--}}

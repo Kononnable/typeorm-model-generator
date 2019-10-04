@@ -92,9 +92,16 @@ export default class EntityFileToJson {
                     /default: \(\) => (.*)/,
                     `default: $1`
                 );
-                col.columnOptions = JSON.parse(
-                    badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
-                );
+                try {
+                    col.columnOptions = JSON.parse(
+                        badJSON.replace(
+                            /(['"])?([a-z0-9A-Z_]+)(['"])?:/g,
+                            '"$2": '
+                        )
+                    );
+                } catch (error) {
+                    debugger;
+                }
             } else if (
                 decoratorParameters[0] === '"' &&
                 decoratorParameters.endsWith('"')
@@ -241,6 +248,14 @@ export default class EntityFileToJson {
             }
             if (!isInClassBody) {
                 if (trimmedLine.startsWith("import")) {
+                    if (
+                        EntityFileToJson.isPartOfMultilineStatement(trimmedLine)
+                    ) {
+                        isMultilineStatement = true;
+                        priorPartOfMultilineStatement = trimmedLine;
+                    } else {
+                        isMultilineStatement = false;
+                    }
                     return;
                 }
                 if (trimmedLine.startsWith("@Entity")) {

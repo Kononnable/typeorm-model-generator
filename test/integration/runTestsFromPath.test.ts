@@ -17,6 +17,7 @@ import path = require("path");
 import chaiSubset = require("chai-subset");
 import chai = require("chai");
 import yn = require("yn");
+import { Entity } from "../../src/models/Entity";
 
 require("dotenv").config();
 
@@ -80,50 +81,48 @@ function runTestForMultipleDrivers(
     it(testName, async function() {
         const driversToRun = selectDriversForSpecyficTest();
         const modelGenerationPromises = driversToRun.map(async dbDriver => {
-            throw new Error();
+            const {
+                generationOptions,
+                driver,
+                connectionOptions,
+                resultsPath,
+                filesOrgPathTS
+            } = await prepareTestRuns(testPartialPath, testName, dbDriver);
+            let dbModel: Entity[] = [];
+            switch (testName) {
+                case "144":
+                    dbModel = await dataCollectionPhase(
+                        driver,
+                        Object.assign(connectionOptions, {
+                            databaseName: "db1,db2"
+                        })
+                    );
+                    break;
+
+                default:
+                    dbModel = await dataCollectionPhase(
+                        driver,
+                        connectionOptions
+                    );
+                    break;
+            }
             // TODO: Remove
-            // const {
-            //         generationOptions,
-            //         driver,
-            //         connectionOptions,
-            //         resultsPath,
-            //         filesOrgPathTS
-            //     } = await prepareTestRuns(testPartialPath, testName, dbDriver);
-            //     let dbModel: EntityInfo[] = [];
-            //     switch (testName) {
-            //         case "144":
-            //             dbModel = await dataCollectionPhase(
-            //                 driver,
-            //                 Object.assign(connectionOptions, {
-            //                     databaseName: "db1,db2"
-            //                 })
-            //             );
-            //             break;
-
-            //         default:
-            //             dbModel = await dataCollectionPhase(
-            //                 driver,
-            //                 connectionOptions
-            //             );
-            //             break;
-            //     }
-
-            //     dbModel = modelCustomizationPhase(
-            //         dbModel,
-            //         generationOptions,
-            //         driver.defaultValues
-            //     );
-            //     modelGenerationPhase(connectionOptions, generationOptions, dbModel);
-            //     const filesGenPath = path.resolve(resultsPath, "entities");
-            //     compareGeneratedFiles(filesOrgPathTS, filesGenPath);
-            //     return {
-            //         dbModel,
-            //         generationOptions,
-            //         connectionOptions,
-            //         resultsPath,
-            //         filesOrgPathTS,
-            //         dbDriver
-            //     };
+            // dbModel = modelCustomizationPhase(
+            //     dbModel,
+            //     generationOptions,
+            //     driver.defaultValues
+            // );
+            modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            compareGeneratedFiles(filesOrgPathTS, filesGenPath);
+            return {
+                dbModel,
+                generationOptions,
+                connectionOptions,
+                resultsPath,
+                filesOrgPathTS,
+                dbDriver
+            };
         });
         await Promise.all(modelGenerationPromises);
         compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
@@ -164,24 +163,23 @@ async function runTest(
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
-            throw new Error();
             // TODO: Remove
             // dbModel = modelCustomizationPhase(
             //     dbModel,
             //     generationOptions,
             //     driver.defaultValues
             // );
-            // modelGenerationPhase(connectionOptions, generationOptions, dbModel);
-            // const filesGenPath = path.resolve(resultsPath, "entities");
-            // compareGeneratedFiles(filesOrgPathTS, filesGenPath);
-            // return {
-            //     dbModel,
-            //     generationOptions,
-            //     connectionOptions,
-            //     resultsPath,
-            //     filesOrgPathTS,
-            //     dbDriver
-            // };
+            modelGenerationPhase(connectionOptions, generationOptions, dbModel);
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            compareGeneratedFiles(filesOrgPathTS, filesGenPath);
+            return {
+                dbModel,
+                generationOptions,
+                connectionOptions,
+                resultsPath,
+                filesOrgPathTS,
+                dbDriver
+            };
         });
     await Promise.all(modelGenerationPromises);
     compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
@@ -198,11 +196,11 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
         filesGen
     );
     filesOrg.forEach(file => {
-        const jsonEntityOrg = EntityFileToJson.convert(
-            fs.readFileSync(path.resolve(filesOrgPathTS, file))
-        );
         const jsonEntityGen = EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesGenPath, file))
+        );
+        const jsonEntityOrg = EntityFileToJson.convert(
+            fs.readFileSync(path.resolve(filesOrgPathTS, file))
         );
         expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(
             jsonEntityOrg

@@ -56,8 +56,8 @@ export default class MysqlDriver extends AbstractDriver {
             IS_NULLABLE: string;
             DATA_TYPE: string;
             CHARACTER_MAXIMUM_LENGTH: number;
-            NUMERIC_PRECISION: number;
-            NUMERIC_SCALE: number;
+            NUMERIC_PRECISION: number | null;
+            NUMERIC_SCALE: number | null;
             IsIdentity: number;
             COLUMN_TYPE: string;
             COLUMN_KEY: string;
@@ -76,21 +76,21 @@ export default class MysqlDriver extends AbstractDriver {
                     let tscType = "";
                     const options: Partial<Column["options"]> = {};
                     options.name = resp.COLUMN_NAME;
-                    options.nullable = resp.IS_NULLABLE === "YES";
                     const generated = resp.IsIdentity === 1 ? true : undefined;
-                    options.unique = resp.COLUMN_KEY === "UNI";
-                    options.default = MysqlDriver.ReturnDefaultValueFunction(
+                    const defaultValue = MysqlDriver.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
                     );
-                    options.type = resp.DATA_TYPE as any;
-                    options.unsigned = resp.COLUMN_TYPE.endsWith(" unsigned");
+                    let columnType = resp.DATA_TYPE;
+                    if (resp.IS_NULLABLE === "YES") options.nullable = true;
+                    if (resp.COLUMN_KEY === "UNI") options.unique = true;
+                    if (resp.COLUMN_TYPE.endsWith(" unsigned"))
+                        options.unsigned = true;
                     switch (resp.DATA_TYPE) {
                         case "int":
                             tscType = "number";
                             break;
                         case "bit":
                             if (resp.COLUMN_TYPE === "bit(1)") {
-                                options.width = 1;
                                 tscType = "boolean";
                             } else {
                                 tscType = "number";
@@ -177,7 +177,9 @@ export default class MysqlDriver extends AbstractDriver {
                             options.enum = resp.COLUMN_TYPE.substring(
                                 5,
                                 resp.COLUMN_TYPE.length - 1
-                            ).replace(/'/gi, '"');
+                            )
+                                .replace(/'/gi, "")
+                                .split(",");
                             break;
                         case "json":
                             tscType = "object";
@@ -211,7 +213,7 @@ export default class MysqlDriver extends AbstractDriver {
                             break;
                         case "geometrycollection":
                         case "geomcollection":
-                            options.type = "geometrycollection";
+                            columnType = "geometrycollection";
                             tscType = "string";
                             break;
                         default:
@@ -222,14 +224,18 @@ export default class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === options.type
+                            v => v === columnType
                         )
                     ) {
-                        options.precision = resp.NUMERIC_PRECISION;
-                        options.scale = resp.NUMERIC_SCALE;
+                        if (resp.NUMERIC_PRECISION !== null) {
+                            options.precision = resp.NUMERIC_PRECISION;
+                        }
+                        if (resp.NUMERIC_SCALE !== null) {
+                            options.scale = resp.NUMERIC_SCALE;
+                        }
                     }
                     if (
-                        this.ColumnTypesWithLength.some(v => v === options.type)
+                        this.ColumnTypesWithLength.some(v => v === columnType)
                     ) {
                         options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
@@ -238,7 +244,7 @@ export default class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v === options.type && tscType !== "boolean"
+                            v => v === columnType && tscType !== "boolean"
                         )
                     ) {
                         options.width =
@@ -247,10 +253,12 @@ export default class MysqlDriver extends AbstractDriver {
                                 : undefined;
                     }
 
-                    if (options.type) {
+                    if (columnType) {
                         ent.columns.push({
                             generated,
-                            options: { type: "integer", name: "", ...options }, // TODO: Change
+                            type: columnType,
+                            default: defaultValue,
+                            options: { name: "", ...options }, // TODO: Change
                             tscName,
                             tscType
                         });

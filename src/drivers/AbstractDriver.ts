@@ -188,7 +188,7 @@ export default abstract class AbstractDriver {
         );
         await this.DisconnectFromServer();
         // dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
-        // AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
+        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
     }
 
@@ -388,28 +388,27 @@ export default abstract class AbstractDriver {
         dbNames: string
     ): Promise<Entity[]>;
 
-    public static FindPrimaryColumnsFromIndexes(dbModel: EntityInfo[]) {
+    public static FindPrimaryColumnsFromIndexes(dbModel: Entity[]) {
         dbModel.forEach(entity => {
-            const primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            entity.Columns.filter(
-                col =>
-                    primaryIndex &&
-                    primaryIndex.columns.some(
-                        cIndex => cIndex.name === col.tsName
-                    )
-            ).forEach(col => {
-                // eslint-disable-next-line no-param-reassign
-                col.options.primary = true;
-            });
+            const primaryIndex = entity.indices.find(v => v.primary);
+            entity.columns
+                .filter(
+                    col =>
+                        primaryIndex &&
+                        primaryIndex.columns.some(
+                            cIndex => cIndex === col.tscName
+                        )
+                )
+                .forEach(col => {
+                    // eslint-disable-next-line no-param-reassign
+                    col.primary = true;
+                });
             if (
-                !entity.Columns.some(v => {
-                    return !!v.options.primary;
+                !entity.columns.some(v => {
+                    return !!v.primary;
                 })
             ) {
-                TomgUtils.LogError(
-                    `Table ${entity.tsEntityName} has no PK.`,
-                    false
-                );
+                TomgUtils.LogError(`Table ${entity.tscName} has no PK.`, false);
             }
         });
     }

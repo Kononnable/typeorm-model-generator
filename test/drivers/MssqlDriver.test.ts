@@ -26,7 +26,8 @@ class FakeRecordset extends Array<any> implements MSSQL.IRecordSet<any> {
     }
 }
 
-describe("MssqlDriver", function() {
+// TODO: Remove
+describe.skip("MssqlDriver", function() {
     let driver: MssqlDriver;
     const sandbox = Sinon.sandbox.create();
 

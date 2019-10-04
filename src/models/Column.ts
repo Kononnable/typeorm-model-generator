@@ -3,21 +3,21 @@ import { ColumnType } from "typeorm";
 export type Column = {
     tscType: any;
     tscName: string;
+    type: ColumnType | string; // todo: remove ?
 
     primary?: boolean;
     generated?: true | "increment" | "uuid";
+    default?: string; // ?
     options: {
-        type: ColumnType | string; // todo: remove ?
         name: string;
         length?: number;
         width?: number;
         nullable?: boolean;
         unique?: boolean; // ?
-        default?: string; // ?
         precision?: number;
         scale?: number;
         unsigned?: boolean;
-        enum?: string; // string[];
+        enum?: string[];
         array?: boolean; // ?
     };
 };

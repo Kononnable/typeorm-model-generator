@@ -1,4 +1,5 @@
 import * as Handlebars from "handlebars";
+import * as Prettier from "prettier";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "./Utils";
 import AbstractDriver from "./drivers/AbstractDriver";
@@ -13,11 +14,11 @@ import OracleDriver from "./drivers/OracleDriver";
 import SqliteDriver from "./drivers/SqliteDriver";
 import NamingStrategy from "./NamingStrategy";
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
+import { Entity } from "./models/Entity";
 
 import changeCase = require("change-case");
 import fs = require("fs");
 import path = require("path");
-import { Entity } from "./models/Entity";
 
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
@@ -274,7 +275,8 @@ export function modelGenerationPhase(
         }
         const resultFilePath = path.resolve(entitesPath, `${casedFileName}.ts`);
         const rendered = compliedTemplate(element);
-        fs.writeFileSync(resultFilePath, rendered, {
+        const formatted = Prettier.format(rendered, { parser: "typescript" });
+        fs.writeFileSync(resultFilePath, formatted, {
             encoding: "UTF-8",
             flag: "w"
         });
