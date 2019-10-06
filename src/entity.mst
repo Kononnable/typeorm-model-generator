@@ -1,20 +1,25 @@
 {{#*inline "Index"}}
 @Index("{{name}}",[{{#columns}}"{{.}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
+{{#*inline "Import"}}
+import { {{toEntityName .}} } from './{{toFileName .}}'
+{{/inline}}
 {{#*inline "Column"}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
-{{tscName}}:{{tscType}};
+{{toPropertyName tscName}}:{{tscType}};
 
 {{/inline}}
 {{#*inline "Relation"}}
-@{{relationType}}(()=>{{relatedTable}},{{relatedTable}}=>{{relatedTable}}.{{relatedField}},{ {{json relationOptions}} })
-{{fieldName}}:{{relatedTable}};
+@{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if (or joinColumnOptions joinTableOptions)}},{ {{json relationOptions}} }{{/if}})
+{{#if joinColumnOptions}}@JoinColumn({{json joinColumnOptions}}){{/if}}
+{{#if joinTableOptions}}@JoinTable{{json joinTableOptions}}){{/if}}
+{{toPropertyName fieldName}}:{{toEntityName relatedTable}};
 
 {{/inline}}
 {{#*inline "Entity"}}
 {{#indices}}{{> Index}}{{/indices~}}
 @Entity("{{sqlName}}",{schema:"{{schema}}",database:"{{database}}"})
-export class {{tscName}} {
+export class {{toEntityName tscName}} {
 
 {{#columns}}{{> Column}}{{/columns~}}
 {{#relations}}{{> Relation}}{{/relations~}}
@@ -22,6 +27,7 @@ export class {{tscName}} {
 {{/inline}}
 
 import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
+{{#fileImports}}{{> Import}}{{/fileImports~}}
 
 {{~> Entity}}
 

@@ -380,6 +380,7 @@ export default class MysqlDriver extends AbstractDriver {
                 internal.ownerColumns.push(row.ForeignKeyColumn);
                 internal.relatedColumns.push(row.ForeignKeyColumnReferenced);
             });
+            relationsTemp.push(internal);
         });
 
         const retVal = MysqlDriver.GetRelationsFromRelationTempInfo(

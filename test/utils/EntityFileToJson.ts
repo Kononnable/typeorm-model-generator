@@ -173,7 +173,7 @@ export default class EntityFileToJson {
                     decoratorParameters.indexOf('"') + 1,
                     decoratorParameters
                         .substr(decoratorParameters.indexOf('"') + 1)
-                        .indexOf('"')
+                        .indexOf('"') + 1
                 );
             }
             if (containsTables) {

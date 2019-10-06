@@ -106,12 +106,11 @@ function runTestForMultipleDrivers(
                     );
                     break;
             }
-            // TODO: Remove
-            // dbModel = modelCustomizationPhase(
-            //     dbModel,
-            //     generationOptions,
-            //     driver.defaultValues
-            // );
+            dbModel = modelCustomizationPhase(
+                dbModel,
+                generationOptions,
+                driver.defaultValues
+            );
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
             const filesGenPath = path.resolve(resultsPath, "entities");
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);
@@ -163,12 +162,11 @@ async function runTest(
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
             let dbModel = await dataCollectionPhase(driver, connectionOptions);
-            // TODO: Remove
-            // dbModel = modelCustomizationPhase(
-            //     dbModel,
-            //     generationOptions,
-            //     driver.defaultValues
-            // );
+            dbModel = modelCustomizationPhase(
+                dbModel,
+                generationOptions,
+                driver.defaultValues
+            );
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
             const filesGenPath = path.resolve(resultsPath, "entities");
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);

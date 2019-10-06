@@ -45,7 +45,8 @@ export default class SqliteDriver extends AbstractDriver {
                 indices: [],
                 relations: [],
                 sqlName: val.tbl_name,
-                tscName: val.tbl_name
+                tscName: val.tbl_name,
+                fileImports: []
             });
         });
         return ret;

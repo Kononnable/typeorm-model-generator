@@ -6,7 +6,7 @@ export type Relation = {
     relatedTable: string;
     relatedField: string;
     fieldName: string;
-    relationOptions: RelationOptions;
+    relationOptions?: RelationOptions;
     joinColumnOptions?: JoinColumnOptions[];
     joinTableOptions?: JoinTableMultipleColumnsOptions;
 };

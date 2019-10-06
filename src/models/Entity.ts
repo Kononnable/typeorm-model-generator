@@ -12,4 +12,5 @@ export type Entity = {
     columns: Column[];
     relations: Relation[];
     indices: Index[];
+    fileImports: string[];
 };

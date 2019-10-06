@@ -160,35 +160,49 @@ export default abstract class AbstractDriver {
     }
 
     public async GetDataFromServer(
-        connectionOptons: IConnectionOptions
+        connectionOptions: IConnectionOptions
     ): Promise<Entity[]> {
         let dbModel = [] as Entity[];
-        await this.ConnectToServer(connectionOptons);
+        await this.ConnectToServer(connectionOptions);
         const sqlEscapedSchema = AbstractDriver.escapeCommaSeparatedList(
-            connectionOptons.schemaName
+            connectionOptions.schemaName
         );
         dbModel = await this.GetAllTables(
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
         await this.GetCoulmnsFromEntity(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
         await this.GetIndexesFromEntity(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
+        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         dbModel = await this.GetRelations(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
         await this.DisconnectFromServer();
         // dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
-        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
+        dbModel = AbstractDriver.FindFileImports(dbModel);
+        return dbModel;
+    }
+
+    private static FindFileImports(dbModel: Entity[]) {
+        dbModel.forEach(entity => {
+            entity.relations.forEach(relation => {
+                if (
+                    !entity.fileImports.some(v => v === relation.relatedTable)
+                ) {
+                    entity.fileImports.push(relation.relatedTable);
+                }
+            });
+        });
         return dbModel;
     }
 
@@ -208,7 +222,8 @@ export default abstract class AbstractDriver {
                 sqlName: val.TABLE_NAME,
                 tscName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
-                schema: val.TABLE_SCHEMA
+                schema: val.TABLE_SCHEMA,
+                fileImports: []
             });
         });
         return ret;
@@ -304,11 +319,35 @@ export default abstract class AbstractDriver {
                 );
                 isOneToMany = !index;
 
-                const ownerRelation: Relation = {
-                    fieldName: AbstractDriver.findNameForNewField(
+                if (true) {
+                    // TODO: RelationId
+                    ownerEntity.columns = ownerEntity.columns.filter(
+                        v =>
+                            !relationTmp.ownerColumns.some(
+                                u => u === v.tscName
+                            ) || v.primary
+                    );
+                    relationTmp.relatedTable.columns = relationTmp.relatedTable.columns.filter(
+                        v =>
+                            !relationTmp.relatedColumns.some(
+                                u => u === v.tscName
+                            ) || v.primary
+                    );
+                }
+                let fieldName = "";
+                if (relationTmp.ownerColumns.length === 1) {
+                    fieldName = AbstractDriver.findNameForNewField(
+                        ownerColumn.tscName,
+                        ownerEntity
+                    );
+                } else {
+                    fieldName = AbstractDriver.findNameForNewField(
                         relationTmp.relatedTable.tscName,
                         ownerEntity
-                    ),
+                    );
+                }
+                const ownerRelation: Relation = {
+                    fieldName,
                     joinColumnOptions: relationTmp.ownerColumns.map(
                         (v, idx) => {
                             const retVal: JoinColumnOptions = {
@@ -334,7 +373,7 @@ export default abstract class AbstractDriver {
                     fieldName: ownerRelation.relatedField,
                     relatedField: ownerRelation.fieldName,
                     relatedTable: relationTmp.ownerTable.tscName,
-                    relationOptions: ownerRelation.relationOptions,
+                    // relationOptions: ownerRelation.relationOptions,
                     relationType: isOneToMany ? "ManyToOne" : "OneToOne"
                 };
 
@@ -350,7 +389,7 @@ export default abstract class AbstractDriver {
         const validNameCondition =
             entity.columns.every(v => v.tscName !== fieldName) &&
             entity.relations.every(v => v.fieldName !== fieldName);
-        if (validNameCondition) {
+        if (!validNameCondition) {
             fieldName += "_";
             for (
                 let i = 2;

@@ -15,9 +15,9 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     return {
         resultsPath,
         noConfigs: false,
-        convertCaseEntity: "none",
+        convertCaseEntity: "none", // TODO: Change to lib defaults
         convertCaseFile: "none",
-        convertCaseProperty: "none",
+        convertCaseProperty: "camel",
         propertyVisibility: "none",
         lazy: false,
         generateConstructor: false,

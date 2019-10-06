@@ -53,11 +53,11 @@ export async function createModelFromDatabase(
         );
         return;
     }
-    // dbModel = modelCustomizationPhase(
-    //     dbModel,
-    //     generationOptions,
-    //     driver.defaultValues
-    // );
+    dbModel = modelCustomizationPhase(
+        dbModel,
+        generationOptions,
+        driver.defaultValues
+    );
     // const dbModel: Entity = {
     //     sqlName: "sqlName",
     //     tscName: "typescriptName",
@@ -128,7 +128,7 @@ export async function dataCollectionPhase(
 }
 
 export function modelCustomizationPhase(
-    dbModel: EntityInfo[],
+    dbModel: Entity[],
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ) {
@@ -144,9 +144,10 @@ export function modelCustomizationPhase(
         namingStrategy = new NamingStrategy();
     }
     let retVal = setRelationId(generationOptions, dbModel);
-    retVal = applyNamingStrategy(namingStrategy, retVal);
-    retVal = addImportsAndGenerationOptions(retVal, generationOptions);
-    retVal = removeColumnDefaultProperties(retVal, defaultValues);
+    // TODO:
+    // retVal = applyNamingStrategy(namingStrategy, retVal);
+    // retVal = addImportsAndGenerationOptions(retVal, generationOptions);
+    // retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
 }
 function removeColumnDefaultProperties(
@@ -216,19 +217,17 @@ function addImportsAndGenerationOptions(
     return dbModel;
 }
 
-function setRelationId(
-    generationOptions: IGenerationOptions,
-    model: EntityInfo[]
-) {
-    if (generationOptions.relationIds) {
-        model.forEach(ent => {
-            ent.Columns.forEach(col => {
-                col.relations.forEach(rel => {
-                    rel.relationIdField = rel.isOwner;
-                });
-            });
-        });
-    }
+function setRelationId(generationOptions: IGenerationOptions, model: Entity[]) {
+    // TODO:
+    // if (generationOptions.relationIds) {
+    //     model.forEach(ent => {
+    //         ent.columns.forEach(col => {
+    //             col.relations.forEach(rel => {
+    //                 rel.relationIdField = rel.isOwner;
+    //             });
+    //         });
+    //     });
+    // }
     return model;
 }
 export function modelGenerationPhase(
@@ -309,6 +308,13 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     });
     Handlebars.registerHelper("concat", (stra, strb) => {
         return stra + strb;
+    });
+    Handlebars.registerHelper("toFileImports", (set: Set<any>) => {
+        return [...set].reduce(
+            (pv, cv) =>
+                `${pv}import { {{toEntityName ${cv}}} } from './{{toFileName ${cv}}};`,
+            ""
+        );
     });
     Handlebars.registerHelper("toFileName", str => {
         let retStr = "";
