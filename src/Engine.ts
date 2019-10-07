@@ -145,7 +145,7 @@ export function modelCustomizationPhase(
     }
     let retVal = setRelationId(generationOptions, dbModel);
     // TODO:
-    // retVal = applyNamingStrategy(namingStrategy, retVal);
+    retVal = applyNamingStrategy(namingStrategy, retVal);
     // retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     // retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
@@ -306,8 +306,17 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         }
         return retStr;
     });
-    Handlebars.registerHelper("concat", (stra, strb) => {
+    Handlebars.registerHelper("concat", (stra: string, strb: string) => {
         return stra + strb;
+    });
+    Handlebars.registerHelper("contains", function contains(
+        searchTerm: string,
+        target: string,
+        options
+    ) {
+        return target.indexOf(searchTerm) > -1
+            ? options.fn(this)
+            : options.inverse(this);
     });
     Handlebars.registerHelper("toFileImports", (set: Set<any>) => {
         return [...set].reduce(
@@ -448,124 +457,93 @@ function createTypeOrmConfig(
 }
 function applyNamingStrategy(
     namingStrategy: AbstractNamingStrategy,
-    dbModel: EntityInfo[]
+    dbModel: Entity[]
 ) {
     let retval = changeRelationNames(dbModel);
     retval = changeEntityNames(retval);
     retval = changeColumnNames(retval);
     return retval;
 
-    function changeRelationNames(model: EntityInfo[]) {
+    function changeRelationNames(model: Entity[]) {
         model.forEach(entity => {
-            entity.Columns.forEach(column => {
-                column.relations.forEach(relation => {
-                    const newName = namingStrategy.relationName(
-                        column.tsName,
-                        relation,
-                        model
-                    );
-                    model.forEach(entity2 => {
-                        entity2.Columns.forEach(column2 => {
-                            column2.relations.forEach(relation2 => {
-                                if (
-                                    relation2.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation2.ownerColumn === column.tsName
-                                ) {
-                                    relation2.ownerColumn = newName;
-                                }
-                                if (
-                                    relation2.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation2.relatedColumn === column.tsName
-                                ) {
-                                    relation2.relatedColumn = newName;
-                                }
-                                if (relation.isOwner) {
-                                    entity.Indexes.forEach(ind => {
-                                        ind.columns
-                                            .filter(
-                                                col =>
-                                                    col.name === column.tsName
-                                            )
-                                            .forEach(col => {
-                                                col.name = newName;
-                                            });
-                                    });
-                                }
-                            });
-                        });
+            entity.relations.forEach(relation => {
+                const oldName = relation.fieldName;
+                const newName = namingStrategy.relationName(relation, entity);
+
+                const relatedEntity = model.find(
+                    v => v.tscName === relation.relatedTable
+                )!;
+                const relation2 = relatedEntity.relations.find(
+                    v => v.fieldName === relation.relatedField
+                )!;
+
+                relation.fieldName = newName;
+                relation2.relatedField = newName;
+
+                if (relation.relationOptions) {
+                    entity.indices.forEach(ind => {
+                        ind.columns.map(column2 =>
+                            column2 === oldName ? newName : column2
+                        );
                     });
-                    column.tsName = newName;
-                });
+                }
             });
         });
         return dbModel;
     }
 
-    function changeColumnNames(model: EntityInfo[]) {
+    function changeColumnNames(model: Entity[]) {
         model.forEach(entity => {
-            entity.Columns.forEach(column => {
+            entity.columns.forEach(column => {
                 const newName = namingStrategy.columnName(
-                    column.tsName,
+                    column.tscName,
                     column
                 );
-                entity.Indexes.forEach(index => {
-                    index.columns
-                        .filter(column2 => column2.name === column.tsName)
-                        .forEach(column2 => {
-                            column2.name = newName;
-                        });
+                entity.indices.forEach(index => {
+                    index.columns.map(column2 =>
+                        column2 === column.tscName ? newName : column2
+                    );
                 });
-                model.forEach(entity2 => {
-                    entity2.Columns.forEach(column2 => {
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.relatedColumn === column.tsName
-                            )
-                            .forEach(v => {
-                                v.relatedColumn = newName;
-                            });
-                        column2.relations
-                            .filter(
-                                relation =>
-                                    relation.relatedTable ===
-                                        entity.tsEntityName &&
-                                    relation.ownerColumn === column.tsName
-                            )
-                            .forEach(v => {
-                                v.ownerColumn = newName;
-                            });
-                    });
-                });
+                // TODO: Should relational columns be changed by both changeRelationNames and changeColumnNames?
+                // model.forEach(entity2 => {
+                //     entity2.columns.forEach(column2 => {
+                //         column2.relations
+                //             .filter(
+                //                 relation =>
+                //                     relation.relatedTable === entity.tscName &&
+                //                     relation.relatedColumn === column.tscName
+                //             )
+                //             .forEach(v => {
+                //                 v.relatedColumn = newName;
+                //             });
+                //         column2.relations
+                //             .filter(
+                //                 relation =>
+                //                     relation.relatedTable === entity.tscName &&
+                //                     relation.ownerColumn === column.tscName
+                //             )
+                //             .forEach(v => {
+                //                 v.ownerColumn = newName;
+                //             });
+                //     });
+                // });
 
-                column.tsName = newName;
+                column.tscName = newName;
             });
         });
         return model;
     }
-    function changeEntityNames(entities: EntityInfo[]) {
+    function changeEntityNames(entities: Entity[]) {
         entities.forEach(entity => {
-            const newName = namingStrategy.entityName(
-                entity.tsEntityName,
-                entity
-            );
+            const newName = namingStrategy.entityName(entity.tscName, entity);
             entities.forEach(entity2 => {
-                entity2.Columns.forEach(column => {
-                    column.relations.forEach(relation => {
-                        if (relation.ownerTable === entity.tsEntityName) {
-                            relation.ownerTable = newName;
-                        }
-                        if (relation.relatedTable === entity.tsEntityName) {
-                            relation.relatedTable = newName;
-                        }
-                    });
+                entity2.relations.forEach(relation => {
+                    if (relation.relatedTable === entity.tscName) {
+                        relation.relatedTable = newName;
+                    }
                 });
             });
-            entity.tsEntityName = newName;
+            entity.tscName = newName;
         });
         return entities;
     }

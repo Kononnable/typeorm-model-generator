@@ -1,20 +1,16 @@
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
-import RelationInfo from "./oldModels/RelationInfo";
-import EntityInfo from "./oldModels/EntityInfo";
+import { Relation } from "./models/Relation";
+import { Entity } from "./models/Entity";
 
 import changeCase = require("change-case");
 
 /* eslint-disable class-methods-use-this */
 export default class NamingStrategy extends AbstractNamingStrategy {
-    public relationName(
-        columnOldName: string,
-        relation: RelationInfo,
-        dbModel: EntityInfo[]
-    ): string {
-        const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        const ownerEntity = dbModel.find(
-            v => v.tsEntityName === relation.ownerTable
-        )!;
+    public relationName(relation: Relation, owner: Entity): string {
+        const columnOldName = relation.fieldName;
+        const isRelationToMany =
+            relation.relationType === "OneToMany" ||
+            relation.relationType === "ManyToMany";
         let columnName = changeCase.camelCase(columnOldName);
 
         if (
@@ -38,18 +34,18 @@ export default class NamingStrategy extends AbstractNamingStrategy {
             relation.relationType !== "ManyToMany" &&
             columnOldName !== columnName
         ) {
-            if (ownerEntity.Columns.some(v => v.tsName === columnName)) {
+            if (owner.columns.some(v => v.tscName === columnName)) {
                 columnName += "_";
-                for (let i = 2; i <= ownerEntity.Columns.length; i++) {
+                for (let i = 2; i <= owner.columns.length; i++) {
                     columnName =
                         columnName.substring(
                             0,
                             columnName.length - i.toString().length
                         ) + i.toString();
                     if (
-                        ownerEntity.Columns.every(
+                        owner.columns.every(
                             v =>
-                                v.tsName !== columnName ||
+                                v.tscName !== columnName ||
                                 columnName === columnOldName
                         )
                     ) {

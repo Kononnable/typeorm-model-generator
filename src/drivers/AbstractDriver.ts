@@ -348,6 +348,14 @@ export default abstract class AbstractDriver {
                 }
                 const ownerRelation: Relation = {
                     fieldName,
+                    relatedField: AbstractDriver.findNameForNewField(
+                        relationTmp.ownerTable.tscName,
+                        relationTmp.relatedTable
+                    ),
+                    relationOptions: {
+                        onDelete: relationTmp.onDelete,
+                        onUpdate: relationTmp.onUpdate
+                    },
                     joinColumnOptions: relationTmp.ownerColumns.map(
                         (v, idx) => {
                             const retVal: JoinColumnOptions = {
@@ -358,23 +366,15 @@ export default abstract class AbstractDriver {
                             return retVal;
                         }
                     ),
-                    relatedField: AbstractDriver.findNameForNewField(
-                        relationTmp.ownerTable.tscName,
-                        relationTmp.relatedTable
-                    ),
                     relatedTable: relationTmp.relatedTable.tscName,
-                    relationOptions: {
-                        onDelete: relationTmp.onDelete,
-                        onUpdate: relationTmp.onUpdate
-                    },
-                    relationType: isOneToMany ? "OneToMany" : "OneToOne"
+                    relationType: isOneToMany ? "ManyToOne" : "OneToOne"
                 };
                 const relatedRelation: Relation = {
                     fieldName: ownerRelation.relatedField,
                     relatedField: ownerRelation.fieldName,
                     relatedTable: relationTmp.ownerTable.tscName,
                     // relationOptions: ownerRelation.relationOptions,
-                    relationType: isOneToMany ? "ManyToOne" : "OneToOne"
+                    relationType: isOneToMany ? "OneToMany" : "OneToOne"
                 };
 
                 ownerEntity.relations.push(ownerRelation);

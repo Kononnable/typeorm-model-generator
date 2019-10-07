@@ -13,7 +13,7 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 @{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if (or joinColumnOptions joinTableOptions)}},{ {{json relationOptions}} }{{/if}})
 {{#if joinColumnOptions}}@JoinColumn({{json joinColumnOptions}}){{/if}}
 {{#if joinTableOptions}}@JoinTable{{json joinTableOptions}}){{/if}}
-{{toPropertyName fieldName}}:{{toEntityName relatedTable}};
+{{toPropertyName fieldName}}:{{toEntityName relatedTable}}{{#contains "ToMany" relationType}}[]{{/contains}};
 
 {{/inline}}
 {{#*inline "Entity"}}

@@ -1,15 +1,11 @@
-import RelationInfo from "./oldModels/RelationInfo";
-import EntityInfo from "./oldModels/EntityInfo";
-import ColumnInfo from "./oldModels/ColumnInfo";
+import { Relation } from "./models/Relation";
+import { Entity } from "./models/Entity";
+import { Column } from "./models/Column";
 
 export default abstract class AbstractNamingStrategy {
-    public abstract relationName(
-        columnName: string,
-        relation: RelationInfo,
-        dbModel: EntityInfo[]
-    ): string;
+    public abstract relationName(relation: Relation, owner: Entity): string;
 
-    public abstract entityName(entityName: string, entity?: EntityInfo): string;
+    public abstract entityName(entityName: string, entity?: Entity): string;
 
-    public abstract columnName(columnName: string, column?: ColumnInfo): string;
+    public abstract columnName(columnName: string, column?: Column): string;
 }
