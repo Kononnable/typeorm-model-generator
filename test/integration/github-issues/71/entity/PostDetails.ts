@@ -17,11 +17,11 @@ import { Post } from "./Post";
 export class PostDetails {
     @Column("int", {
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @OneToOne(type => Post, Post => Post.Id, {
+    @OneToOne(type => Post, Post => Post.id, {
         onDelete: "SET NULL"
         // onUpdate: "SET NULL"
     })

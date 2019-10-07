@@ -17,13 +17,13 @@ import { PostReader } from "./PostReader";
 export class Post {
     @Column("int", {
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.Id)
+    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.id)
     postAuthor: PostAuthor;
 
-    @OneToMany(type => PostReader, PostReader => PostReader.Id)
+    @OneToMany(type => PostReader, PostReader => PostReader.id)
     postReaders: PostReader[];
 }

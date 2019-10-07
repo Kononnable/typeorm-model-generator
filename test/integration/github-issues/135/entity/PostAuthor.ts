@@ -17,10 +17,10 @@ import { Post } from "./Post";
 export class PostAuthor {
     @Column("int", {
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @OneToMany(type => Post, Post => Post.Id)
+    @OneToMany(type => Post, Post => Post.id)
     posts: Post[];
 }

@@ -17,11 +17,11 @@ import { Post } from "./Post";
 export class PostReader {
     @Column("int", {
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @ManyToOne(type => Post, Post => Post.Id)
+    @ManyToOne(type => Post, Post => Post.id)
     @JoinColumn()
     post: Post;
 

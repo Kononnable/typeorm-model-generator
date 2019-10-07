@@ -20,26 +20,26 @@ export class Post {
     @Column("int", {
         // nullable: false,
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.Id, {
+    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.id, {
         // onDelete: "CASCADE",
         // onUpdate: "CASCADE"
     })
     postAuthor: PostAuthor;
 
-    @OneToOne(type => PostReader, PostReader => PostReader.Id)
+    @OneToOne(type => PostReader, PostReader => PostReader.id)
     postReader: PostReader;
 
-    @OneToOne(type => PostCategory, PostCategory => PostCategory.Id, {
+    @OneToOne(type => PostCategory, PostCategory => PostCategory.id, {
         // onDelete: "RESTRICT",
         // onUpdate: "RESTRICT"
     })
     postCategory: PostCategory;
 
-    @OneToOne(type => PostDetails, PostDetails => PostDetails.Id, {
+    @OneToOne(type => PostDetails, PostDetails => PostDetails.id, {
         // onDelete: "SET NULL",
         // onUpdate: "SET NULL"
     })

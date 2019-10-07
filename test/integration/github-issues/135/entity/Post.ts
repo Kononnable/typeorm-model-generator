@@ -22,15 +22,15 @@ import { PostCategory } from "./PostCategory";
 export class Post {
     @Column("int", {
         primary: true,
-        name: "Id"
+        name: "id"
     })
-    Id: number;
+    id: number;
 
-    @ManyToOne(type => PostAuthor, PostAuthor => PostAuthor.Id)
+    @ManyToOne(type => PostAuthor, PostAuthor => PostAuthor.id)
     @JoinColumn()
     postAuthor: PostAuthor;
 
-    @ManyToOne(type => PostCategory, PostCategory => PostCategory.Id)
+    @ManyToOne(type => PostCategory, PostCategory => PostCategory.id)
     @JoinColumn()
     postCategory: PostCategory;
 }
