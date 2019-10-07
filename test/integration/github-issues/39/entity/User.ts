@@ -6,7 +6,6 @@ import {Post} from "./Post";
 export class User {
 
     @Column("integer",{
-        nullable:false,
         primary:true,
         name:"id"
         })

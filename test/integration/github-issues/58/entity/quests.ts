@@ -1,20 +1,25 @@
-import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable} from "typeorm";
-import {feedextrainfo} from "./feedextrainfo";
-
+import {
+    Index,
+    Entity,
+    PrimaryColumn,
+    Column,
+    OneToOne,
+    OneToMany,
+    ManyToOne,
+    ManyToMany,
+    JoinColumn,
+    JoinTable
+} from "typeorm";
+import { feedextrainfo } from "./feedextrainfo";
 
 @Entity("quests")
 export class quests {
+    @Column("int", {
+        primary: true,
+        name: "QuestId"
+    })
+    QuestId: number;
 
-    @Column("int",{
-        nullable:false,
-        primary:true,
-        name:"QuestId"
-        })
-    QuestId:number;
-
-
-
-    @OneToOne(type=>feedextrainfo, feedextrainfo=>feedextrainfo.questId)
-    feedextrainfo:feedextrainfo;
-
+    @OneToOne(type => feedextrainfo, feedextrainfo => feedextrainfo.questId)
+    feedextrainfo: feedextrainfo;
 }
