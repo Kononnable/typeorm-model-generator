@@ -9,7 +9,7 @@ import {
     modelGenerationPhase
 } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
-import EntityInfo from "../../src/oldModels/EntityInfo";
+import { Entity } from "../../src/models/Entity";
 import IConnectionOptions from "../../src/IConnectionOptions";
 
 import fs = require("fs-extra");
@@ -17,7 +17,6 @@ import path = require("path");
 import chaiSubset = require("chai-subset");
 import chai = require("chai");
 import yn = require("yn");
-import { Entity } from "../../src/models/Entity";
 
 require("dotenv").config();
 

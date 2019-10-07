@@ -145,22 +145,21 @@ export function modelCustomizationPhase(
         namingStrategy = new NamingStrategy();
     }
     let retVal = setRelationId(generationOptions, dbModel);
-    // TODO:
     retVal = applyNamingStrategy(namingStrategy, retVal);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
-    // retVal = removeColumnDefaultProperties(retVal, defaultValues);
+    retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
 }
 function removeColumnDefaultProperties(
-    dbModel: EntityInfo[],
+    dbModel: Entity[],
     defaultValues: DataTypeDefaults
 ) {
     if (!defaultValues) {
         return dbModel;
     }
     dbModel.forEach(entity => {
-        entity.Columns.forEach(column => {
-            const defVal = defaultValues[column.options.type as any];
+        entity.columns.forEach(column => {
+            const defVal = defaultValues[column.tscType as any];
             if (defVal) {
                 if (
                     column.options.length &&

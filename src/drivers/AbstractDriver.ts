@@ -83,14 +83,25 @@ export default abstract class AbstractDriver {
         let retVal = dbModel;
         const manyToManyEntities = retVal.filter(
             entity =>
-                entity.columns.length ===
-                    entity.columns.filter(c => c.primary).length &&
                 entity.relations.length === 2 &&
                 entity.relations.every(
-                    v => v.relationOptions && v.relationType !== "ManyToMany"
+                    v => v.joinColumnOptions && v.relationType !== "ManyToMany"
                 ) &&
                 entity.relations[0].relatedTable !==
-                    entity.relations[1].relatedTable
+                    entity.relations[1].relatedTable &&
+                entity.columns.length ===
+                    entity.columns.filter(c => c.primary).length &&
+                entity.columns
+                    .map(v => v.tscName)
+                    .filter(
+                        v =>
+                            !entity.relations[0]
+                                .joinColumnOptions!.map(x => x.name)
+                                .some(jc => jc === v) &&
+                            !entity.relations[1]
+                                .joinColumnOptions!.map(x => x.name)
+                                .some(jc => jc === v)
+                    ).length === 0
         );
         manyToManyEntities.forEach(junctionEntity => {
             const firstEntity = dbModel.find(
