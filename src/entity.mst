@@ -10,10 +10,10 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 
 {{/inline}}
 {{#*inline "Relation"}}
-@{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if joinColumnOptions}},{ {{json relationOptions}} }{{/if}})
+@{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
 {{#if joinColumnOptions}}@JoinColumn({{json joinColumnOptions}}){{/if}}
 {{#if joinTableOptions}}@JoinTable({ {{json joinTableOptions}} }){{/if}}
-{{toPropertyName fieldName}}:{{toEntityName relatedTable}}{{#contains "ToMany" relationType}}[]{{/contains}};
+{{toPropertyName fieldName}}:{{toRelation (toEntityName relatedTable) relationType}};
 
 {{/inline}}
 {{#*inline "Entity"}}

@@ -1,9 +1,14 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn, OneToMany } from "typeorm"
-import {Post} from "./Post";
+import {
+    Column,
+    Entity,
+    Index,
+    PrimaryGeneratedColumn,
+    OneToMany
+} from "typeorm";
+import { Post } from "./Post";
 
 @Entity("Author")
 export class Author {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -12,6 +17,7 @@ export class Author {
 
     @OneToMany(type => Post, post => post.author, {
         // cascade: true
+        lazy: true
     })
     posts: Promise<Post[]>;
 
@@ -21,5 +27,4 @@ export class Author {
     // asPromise() {
     //     return Promise.resolve(this);
     // }
-
 }

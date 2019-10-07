@@ -356,6 +356,7 @@ export default class EntityFileToJson {
                     retVal.columns.push(column);
                     column.relationType = "ManyToOne";
                     column.isOwnerOfRelation = true;
+                    EntityFileToJson.getRelationOptions(trimmedLine, column);
                 }
                 return;
             }
@@ -368,6 +369,7 @@ export default class EntityFileToJson {
                     const column = new EntityColumn();
                     retVal.columns.push(column);
                     column.relationType = "OneToMany";
+                    EntityFileToJson.getRelationOptions(trimmedLine, column);
                 }
                 return;
             }
@@ -380,6 +382,7 @@ export default class EntityFileToJson {
                     const column = new EntityColumn();
                     retVal.columns.push(column);
                     column.relationType = "ManyToMany";
+                    EntityFileToJson.getRelationOptions(trimmedLine, column);
                 }
                 return;
             }
@@ -452,7 +455,7 @@ export default class EntityFileToJson {
                     colTypes = colTypes.substring(8, colTypes.length - 1);
                     retVal.columns[
                         retVal.columns.length - 1
-                    ].columnOptions.isLazy = true;
+                    ].columnOptions.isTypeLazy = true;
                 }
                 retVal.columns[
                     retVal.columns.length - 1

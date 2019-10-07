@@ -15,6 +15,7 @@ import SqliteDriver from "./drivers/SqliteDriver";
 import NamingStrategy from "./NamingStrategy";
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import { Entity } from "./models/Entity";
+import { Relation } from "./models/Relation";
 
 import changeCase = require("change-case");
 import fs = require("fs");
@@ -146,7 +147,7 @@ export function modelCustomizationPhase(
     let retVal = setRelationId(generationOptions, dbModel);
     // TODO:
     retVal = applyNamingStrategy(namingStrategy, retVal);
-    // retVal = addImportsAndGenerationOptions(retVal, generationOptions);
+    retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     // retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
 }
@@ -192,26 +193,21 @@ function removeColumnDefaultProperties(
     return dbModel;
 }
 function addImportsAndGenerationOptions(
-    dbModel: EntityInfo[],
+    dbModel: Entity[],
     generationOptions: IGenerationOptions
 ) {
-    dbModel.forEach(element => {
-        element.Imports = [];
-        element.Columns.forEach(column => {
-            column.relations.forEach(relation => {
-                if (element.tsEntityName !== relation.relatedTable) {
-                    element.Imports.push(relation.relatedTable);
+    dbModel.forEach(entity => {
+        entity.relations.forEach(relation => {
+            if (generationOptions.lazy) {
+                if (!relation.relationOptions) {
+                    relation.relationOptions = {};
                 }
-            });
-        });
-        element.GenerateConstructor = generationOptions.generateConstructor;
-        element.IsActiveRecord = generationOptions.activeRecord;
-        element.Imports.filter((elem, index, self) => {
-            return index === self.indexOf(elem);
+                relation.relationOptions.lazy = true;
+            }
         });
         if (generationOptions.skipSchema) {
-            element.Schema = undefined;
-            element.Database = undefined;
+            entity.schema = undefined;
+            entity.database = undefined;
         }
     });
     return dbModel;
@@ -368,6 +364,19 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         return retStr;
     });
     Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
+    Handlebars.registerHelper(
+        "toRelation",
+        (entityType: string, relationType: Relation["relationType"]) => {
+            let retVal = entityType;
+            if (relationType === "ManyToMany" || relationType === "OneToMany") {
+                retVal = `${retVal}[]`;
+            }
+            if (generationOptions.lazy) {
+                retVal = `Promise<${retVal}>`;
+            }
+            return retVal;
+        }
+    );
     Handlebars.registerHelper("tolowerCaseFirst", str =>
         changeCase.lowerCaseFirst(str)
     );
