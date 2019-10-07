@@ -414,9 +414,7 @@ export default class EntityFileToJson {
                     priorPartOfMultilineStatement = trimmedLine;
                 } else {
                     isMultilineStatement = false;
-                    retVal.columns[
-                        retVal.columns.length - 1
-                    ].isOwnerOfRelation = true;
+                    // it doesn't matter which side of ManyToMany relation is marked as owner
                 }
                 return;
             }

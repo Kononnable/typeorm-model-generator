@@ -79,84 +79,86 @@ export default abstract class AbstractDriver {
         }[]
     >;
 
-    public static FindManyToManyRelations(dbModel: EntityInfo[]) {
-        let retval = dbModel;
-        const manyToManyEntities = retval.filter(
+    public static FindManyToManyRelations(dbModel: Entity[]) {
+        let retVal = dbModel;
+        const manyToManyEntities = retVal.filter(
             entity =>
-                entity.Columns.filter(column => {
-                    return (
-                        column.relations.length === 1 &&
-                        !column.relations[0].isOneToMany &&
-                        column.relations[0].isOwner
-                    );
-                }).length === entity.Columns.length
+                entity.columns.length ===
+                    entity.columns.filter(c => c.primary).length &&
+                entity.relations.length === 2 &&
+                entity.relations.every(
+                    v => v.relationOptions && v.relationType !== "ManyToMany"
+                )
         );
-        manyToManyEntities.forEach(entity => {
-            let relations: RelationInfo[] = [];
-            relations = entity.Columns.reduce(
-                (prev: RelationInfo[], curr) => prev.concat(curr.relations),
-                relations
+        manyToManyEntities.forEach(junctionEntity => {
+            const firstEntity = dbModel.find(
+                v => v.tscName === junctionEntity.relations[0].relatedTable
+            )!;
+            const secondEntity = dbModel.find(
+                v => v.tscName === junctionEntity.relations[1].relatedTable
+            )!;
+
+            const firstRelation = firstEntity.relations.find(
+                v => v.relatedTable === junctionEntity.tscName
+            )!;
+            const secondRelation = secondEntity.relations.find(
+                v => v.relatedTable === junctionEntity.tscName
+            )!;
+
+            firstRelation.relationType = "ManyToMany";
+            secondRelation.relationType = "ManyToMany";
+            firstRelation.relatedTable = secondEntity.tscName;
+            secondRelation.relatedTable = firstEntity.tscName;
+
+            firstRelation.fieldName = this.findNameForNewField(
+                secondEntity.tscName,
+                firstEntity
             );
-            const namesOfRelatedTables = relations
-                .map(v => v.relatedTable)
-                .filter((v, i, s) => s.indexOf(v) === i);
-            const [
-                firstRelatedTable,
-                secondRelatedTable
-            ] = namesOfRelatedTables;
+            secondRelation.fieldName = this.findNameForNewField(
+                firstEntity.tscName,
+                secondEntity
+            );
+            firstRelation.relatedField = secondRelation.fieldName;
+            secondRelation.relatedField = firstRelation.fieldName;
 
-            if (namesOfRelatedTables.length === 2) {
-                const relatedTable1 = retval.find(
-                    v => v.tsEntityName === firstRelatedTable
-                )!;
-                relatedTable1.Columns = relatedTable1.Columns.filter(
-                    v =>
-                        !v.tsName
-                            .toLowerCase()
-                            .startsWith(entity.tsEntityName.toLowerCase())
-                );
-                const relatedTable2 = retval.find(
-                    v => v.tsEntityName === namesOfRelatedTables[1]
-                )!;
-                relatedTable2.Columns = relatedTable2.Columns.filter(
-                    v =>
-                        !v.tsName
-                            .toLowerCase()
-                            .startsWith(entity.tsEntityName.toLowerCase())
-                );
-                retval = retval.filter(ent => {
-                    return ent.tsEntityName !== entity.tsEntityName;
-                });
-
-                const column1 = new ColumnInfo();
-                column1.tsName = secondRelatedTable;
-                column1.options.name = entity.sqlEntityName;
-
-                const col1Rel = new RelationInfo();
-                col1Rel.relatedTable = secondRelatedTable;
-                col1Rel.relatedColumn = secondRelatedTable;
-
-                col1Rel.relationType = "ManyToMany";
-                col1Rel.isOwner = true;
-                col1Rel.ownerColumn = firstRelatedTable;
-
-                column1.relations.push(col1Rel);
-                relatedTable1.Columns.push(column1);
-
-                const column2 = new ColumnInfo();
-                column2.tsName = firstRelatedTable;
-
-                const col2Rel = new RelationInfo();
-                col2Rel.relatedTable = firstRelatedTable;
-                col2Rel.relatedColumn = secondRelatedTable;
-
-                col2Rel.relationType = "ManyToMany";
-                col2Rel.isOwner = false;
-                column2.relations.push(col2Rel);
-                relatedTable2.Columns.push(column2);
+            firstRelation.joinTableOptions = {
+                name: junctionEntity.sqlName,
+                joinColumns: junctionEntity.relations[0].joinColumnOptions!.map(
+                    (v, i) => {
+                        return {
+                            name: v.referencedColumnName,
+                            referencedColumnName: junctionEntity.relations[1]
+                                .joinColumnOptions![i].referencedColumnName
+                        };
+                    }
+                ),
+                inverseJoinColumns: junctionEntity.relations[1].joinColumnOptions!.map(
+                    (v, i) => {
+                        return {
+                            name: v.referencedColumnName,
+                            referencedColumnName: junctionEntity.relations[0]
+                                .joinColumnOptions![i].referencedColumnName
+                        };
+                    }
+                )
+            };
+            if (junctionEntity.database) {
+                firstRelation.joinTableOptions.database =
+                    junctionEntity.database;
             }
+            if (junctionEntity.schema) {
+                firstRelation.joinTableOptions.schema = junctionEntity.schema;
+            }
+
+            firstRelation.relationOptions = undefined;
+            secondRelation.relationOptions = undefined;
+            firstRelation.joinColumnOptions = undefined;
+            secondRelation.joinColumnOptions = undefined;
+            retVal = retVal.filter(ent => {
+                return ent.tscName !== junctionEntity.tscName;
+            });
         });
-        return retval;
+        return retVal;
     }
 
     public async GetDataFromServer(
@@ -188,7 +190,7 @@ export default abstract class AbstractDriver {
             connectionOptions.databaseName
         );
         await this.DisconnectFromServer();
-        // dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
+        dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
         dbModel = AbstractDriver.FindFileImports(dbModel);
         return dbModel;
     }
@@ -282,6 +284,9 @@ export default abstract class AbstractDriver {
                 );
                 return;
             }
+
+            let ownerRelation: Relation | undefined;
+            let relatedRelation: Relation | undefined;
             for (
                 let relationColumnIndex = 0;
                 relationColumnIndex < relationTmp.ownerColumns.length;
@@ -346,7 +351,7 @@ export default abstract class AbstractDriver {
                         ownerEntity
                     );
                 }
-                const ownerRelation: Relation = {
+                ownerRelation = {
                     fieldName,
                     relatedField: AbstractDriver.findNameForNewField(
                         relationTmp.ownerTable.tscName,
@@ -369,17 +374,17 @@ export default abstract class AbstractDriver {
                     relatedTable: relationTmp.relatedTable.tscName,
                     relationType: isOneToMany ? "ManyToOne" : "OneToOne"
                 };
-                const relatedRelation: Relation = {
+                relatedRelation = {
                     fieldName: ownerRelation.relatedField,
                     relatedField: ownerRelation.fieldName,
                     relatedTable: relationTmp.ownerTable.tscName,
                     // relationOptions: ownerRelation.relationOptions,
                     relationType: isOneToMany ? "OneToMany" : "OneToOne"
                 };
-
-                ownerEntity.relations.push(ownerRelation);
-                relationTmp.relatedTable.relations.push(relatedRelation);
             }
+            if (ownerRelation) ownerEntity.relations.push(ownerRelation);
+            if (relatedRelation)
+                relationTmp.relatedTable.relations.push(relatedRelation);
         });
         return entities;
     }
