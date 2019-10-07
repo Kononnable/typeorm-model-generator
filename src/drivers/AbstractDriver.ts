@@ -88,7 +88,9 @@ export default abstract class AbstractDriver {
                 entity.relations.length === 2 &&
                 entity.relations.every(
                     v => v.relationOptions && v.relationType !== "ManyToMany"
-                )
+                ) &&
+                entity.relations[0].relatedTable !==
+                    entity.relations[1].relatedTable
         );
         manyToManyEntities.forEach(junctionEntity => {
             const firstEntity = dbModel.find(
@@ -110,11 +112,11 @@ export default abstract class AbstractDriver {
             firstRelation.relatedTable = secondEntity.tscName;
             secondRelation.relatedTable = firstEntity.tscName;
 
-            firstRelation.fieldName = this.findNameForNewField(
+            firstRelation.fieldName = TomgUtils.findNameForNewField(
                 secondEntity.tscName,
                 firstEntity
             );
-            secondRelation.fieldName = this.findNameForNewField(
+            secondRelation.fieldName = TomgUtils.findNameForNewField(
                 firstEntity.tscName,
                 secondEntity
             );
@@ -341,19 +343,19 @@ export default abstract class AbstractDriver {
                 }
                 let fieldName = "";
                 if (relationTmp.ownerColumns.length === 1) {
-                    fieldName = AbstractDriver.findNameForNewField(
+                    fieldName = TomgUtils.findNameForNewField(
                         ownerColumn.tscName,
                         ownerEntity
                     );
                 } else {
-                    fieldName = AbstractDriver.findNameForNewField(
+                    fieldName = TomgUtils.findNameForNewField(
                         relationTmp.relatedTable.tscName,
                         ownerEntity
                     );
                 }
                 ownerRelation = {
                     fieldName,
-                    relatedField: AbstractDriver.findNameForNewField(
+                    relatedField: TomgUtils.findNameForNewField(
                         relationTmp.ownerTable.tscName,
                         relationTmp.relatedTable
                     ),
@@ -387,31 +389,6 @@ export default abstract class AbstractDriver {
                 relationTmp.relatedTable.relations.push(relatedRelation);
         });
         return entities;
-    }
-
-    private static findNameForNewField(_fieldName: string, entity: Entity) {
-        let fieldName = _fieldName;
-        const validNameCondition =
-            entity.columns.every(v => v.tscName !== fieldName) &&
-            entity.relations.every(v => v.fieldName !== fieldName);
-        if (!validNameCondition) {
-            fieldName += "_";
-            for (
-                let i = 2;
-                i <= entity.columns.length + entity.relations.length;
-                i++
-            ) {
-                fieldName =
-                    fieldName.substring(
-                        0,
-                        fieldName.length - i.toString().length
-                    ) + i.toString();
-                if (validNameCondition) {
-                    break;
-                }
-            }
-        }
-        return fieldName;
     }
 
     public abstract async GetCoulmnsFromEntity(

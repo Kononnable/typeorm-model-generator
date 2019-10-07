@@ -1,4 +1,5 @@
 import * as packagejson from "../package.json";
+import { Entity } from "./models/Entity";
 
 export function LogError(
     errText: string,
@@ -23,4 +24,31 @@ export function LogError(
 }
 export function packageVersion() {
     return `${(packagejson as any).name}@${(packagejson as any).version}`;
+}
+export function findNameForNewField(
+    _fieldName: string,
+    entity: Entity,
+    columnOldName = ""
+) {
+    let fieldName = _fieldName;
+    const validNameCondition = () =>
+        (entity.columns.every(v => v.tscName !== fieldName) &&
+            entity.relations.every(v => v.fieldName !== fieldName)) ||
+        (columnOldName && columnOldName === fieldName);
+    if (!validNameCondition()) {
+        fieldName += "_";
+        for (
+            let i = 2;
+            i <= entity.columns.length + entity.relations.length;
+            i++
+        ) {
+            fieldName =
+                fieldName.substring(0, fieldName.length - i.toString().length) +
+                i.toString();
+            if (validNameCondition()) {
+                break;
+            }
+        }
+    }
+    return fieldName;
 }

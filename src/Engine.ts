@@ -477,7 +477,12 @@ function applyNamingStrategy(
         model.forEach(entity => {
             entity.relations.forEach(relation => {
                 const oldName = relation.fieldName;
-                const newName = namingStrategy.relationName(relation, entity);
+                let newName = namingStrategy.relationName(relation, entity);
+                newName = TomgUtils.findNameForNewField(
+                    newName,
+                    entity,
+                    oldName
+                );
 
                 const relatedEntity = model.find(
                     v => v.tscName === relation.relatedTable
@@ -504,38 +509,18 @@ function applyNamingStrategy(
     function changeColumnNames(model: Entity[]) {
         model.forEach(entity => {
             entity.columns.forEach(column => {
-                const newName = namingStrategy.columnName(
-                    column.tscName,
-                    column
+                const oldName = column.tscName;
+                let newName = namingStrategy.columnName(column.tscName, column);
+                newName = TomgUtils.findNameForNewField(
+                    newName,
+                    entity,
+                    oldName
                 );
                 entity.indices.forEach(index => {
                     index.columns.map(column2 =>
                         column2 === column.tscName ? newName : column2
                     );
                 });
-                // TODO: Should relational columns be changed by both changeRelationNames and changeColumnNames?
-                // model.forEach(entity2 => {
-                //     entity2.columns.forEach(column2 => {
-                //         column2.relations
-                //             .filter(
-                //                 relation =>
-                //                     relation.relatedTable === entity.tscName &&
-                //                     relation.relatedColumn === column.tscName
-                //             )
-                //             .forEach(v => {
-                //                 v.relatedColumn = newName;
-                //             });
-                //         column2.relations
-                //             .filter(
-                //                 relation =>
-                //                     relation.relatedTable === entity.tscName &&
-                //                     relation.ownerColumn === column.tscName
-                //             )
-                //             .forEach(v => {
-                //                 v.ownerColumn = newName;
-                //             });
-                //     });
-                // });
 
                 column.tscName = newName;
             });
