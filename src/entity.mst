@@ -1,5 +1,5 @@
 {{#*inline "Index"}}
-@Index("{{name}}",[{{#columns}}"{{.}}",{{/columns~}}],{ {{json options}} })
+@Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
 {{#*inline "Import"}}
 import { {{toEntityName .}} } from './{{toFileName .}}'

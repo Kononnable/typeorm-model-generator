@@ -18,11 +18,11 @@ export class users {
         primary: true,
         name: "UserId"
     })
-    UserId: number;
+    userId: number;
 
-    @OneToOne(type => feedextrainfo, feedextrainfo => feedextrainfo.feedOwnerId)
+    @OneToOne(type => feedextrainfo, feedextrainfo => feedextrainfo.feedOwner)
     feedextrainfo: feedextrainfo;
 
-    @OneToOne(type => feedextrainfo, feedextrainfo2 => feedextrainfo2.readerId)
+    @OneToOne(type => feedextrainfo, feedextrainfo2 => feedextrainfo2.reader)
     feedextrainfo2: feedextrainfo;
 }

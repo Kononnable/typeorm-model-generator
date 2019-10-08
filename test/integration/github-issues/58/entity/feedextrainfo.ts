@@ -18,26 +18,29 @@ import { quests } from "./quests";
 @Index("feedExtraInfo_ReaderId_idx", ["readerId"], { unique: true })
 @Index("feedExtraInfo_QuestId_idx", ["questId"], { unique: true })
 export class feedextrainfo {
-    @OneToOne(type => users, FeedOwnerId => FeedOwnerId.feedextrainfo, {
-        primary: true
-    })
+    @PrimaryColumn({ name: "FeedOwnerId" })
+    feedOwnerId: number;
+
+    @PrimaryColumn({ name: "QuestId" })
+    questId: number;
+
+    @PrimaryColumn({ name: "ReaderId" })
+    readerId: number;
+
+    @OneToOne(type => users, FeedOwnerId => FeedOwnerId.feedextrainfo)
     @JoinColumn({ name: "FeedOwnerId" })
-    feedOwnerId: users;
+    feedOwner: users;
 
-    @OneToOne(type => quests, QuestId => QuestId.feedextrainfo, {
-        primary: true
-    })
+    @OneToOne(type => quests, QuestId => QuestId.feedextrainfo)
     @JoinColumn({ name: "QuestId" })
-    questId: quests;
+    quest: quests;
 
-    @OneToOne(type => users, ReaderId => ReaderId.feedextrainfo2, {
-        primary: true
-    })
+    @OneToOne(type => users, ReaderId => ReaderId.feedextrainfo2)
     @JoinColumn({ name: "ReaderId" })
-    readerId: users;
+    reader: users;
 
     @Column("int", {
         name: "MostUpdatedFeedEntryIdUserRead"
     })
-    MostUpdatedFeedEntryIdUserRead: number;
+    mostUpdatedFeedEntryIdUserRead: number;
 }

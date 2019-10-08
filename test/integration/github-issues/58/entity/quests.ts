@@ -18,8 +18,8 @@ export class quests {
         primary: true,
         name: "QuestId"
     })
-    QuestId: number;
+    questId: number;
 
-    @OneToOne(type => feedextrainfo, feedextrainfo => feedextrainfo.questId)
+    @OneToOne(type => feedextrainfo, feedextrainfo => feedextrainfo.quest)
     feedextrainfo: feedextrainfo;
 }

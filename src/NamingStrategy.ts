@@ -1,6 +1,7 @@
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import { Relation } from "./models/Relation";
 import { Entity } from "./models/Entity";
+import { findNameForNewField } from "./Utils";
 
 import changeCase = require("change-case");
 
@@ -8,10 +9,13 @@ import changeCase = require("change-case");
 export default class NamingStrategy extends AbstractNamingStrategy {
     public relationName(relation: Relation, owner: Entity): string {
         const columnOldName = relation.fieldName;
+
         const isRelationToMany =
             relation.relationType === "OneToMany" ||
             relation.relationType === "ManyToMany";
-        let columnName = changeCase.camelCase(columnOldName);
+        let columnName = changeCase.camelCase(
+            columnOldName.replace(/[0-9]$/, "")
+        );
 
         if (
             columnName.toLowerCase().endsWith("id") &&
@@ -34,25 +38,7 @@ export default class NamingStrategy extends AbstractNamingStrategy {
             relation.relationType !== "ManyToMany" &&
             columnOldName !== columnName
         ) {
-            if (owner.columns.some(v => v.tscName === columnName)) {
-                columnName += "_";
-                for (let i = 2; i <= owner.columns.length; i++) {
-                    columnName =
-                        columnName.substring(
-                            0,
-                            columnName.length - i.toString().length
-                        ) + i.toString();
-                    if (
-                        owner.columns.every(
-                            v =>
-                                v.tscName !== columnName ||
-                                columnName === columnOldName
-                        )
-                    ) {
-                        break;
-                    }
-                }
-            }
+            columnName = findNameForNewField(columnName, owner, columnOldName);
         }
 
         return columnName;

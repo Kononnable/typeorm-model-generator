@@ -516,8 +516,8 @@ function applyNamingStrategy(
                     oldName
                 );
                 entity.indices.forEach(index => {
-                    index.columns.map(column2 =>
-                        column2 === column.tscName ? newName : column2
+                    index.columns = index.columns.map(column2 =>
+                        column2 === oldName ? newName : column2
                     );
                 });
 
