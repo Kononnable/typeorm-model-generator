@@ -46,7 +46,11 @@ export async function createModelFromDatabase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
 ) {
-    let dbModel = await dataCollectionPhase(driver, connectionOptions);
+    let dbModel = await dataCollectionPhase(
+        driver,
+        connectionOptions,
+        generationOptions
+    );
     if (dbModel.length === 0) {
         TomgUtils.LogError(
             "Tables not found in selected database. Skipping creation of typeorm model.",
@@ -123,9 +127,10 @@ export async function createModelFromDatabase(
 }
 export async function dataCollectionPhase(
     driver: AbstractDriver,
-    connectionOptions: IConnectionOptions
+    connectionOptions: IConnectionOptions,
+    generationOptions: IGenerationOptions
 ) {
-    return driver.GetDataFromServer(connectionOptions);
+    return driver.GetDataFromServer(connectionOptions, generationOptions);
 }
 
 export function modelCustomizationPhase(

@@ -94,14 +94,16 @@ function runTestForMultipleDrivers(
                         driver,
                         Object.assign(connectionOptions, {
                             databaseName: "db1,db2"
-                        })
+                        }),
+                        generationOptions
                     );
                     break;
 
                 default:
                     dbModel = await dataCollectionPhase(
                         driver,
-                        connectionOptions
+                        connectionOptions,
+                        generationOptions
                     );
                     break;
             }
@@ -160,7 +162,11 @@ async function runTest(
                 resultsPath,
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
-            let dbModel = await dataCollectionPhase(driver, connectionOptions);
+            let dbModel = await dataCollectionPhase(
+                driver,
+                connectionOptions,
+                generationOptions
+            );
             dbModel = modelCustomizationPhase(
                 dbModel,
                 generationOptions,

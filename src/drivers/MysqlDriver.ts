@@ -14,6 +14,7 @@ import { Entity } from "../models/Entity";
 import { Column } from "../models/Column";
 import { Index } from "../models/Index";
 import { RelationInternal } from "../models/RelationInternal";
+import IGenerationOptions from "../IGenerationOptions";
 
 export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
@@ -316,7 +317,8 @@ export default class MysqlDriver extends AbstractDriver {
     public async GetRelations(
         entities: Entity[],
         schema: string,
-        dbNames: string
+        dbNames: string,
+        generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TableWithForeignKey: string;
@@ -385,7 +387,8 @@ export default class MysqlDriver extends AbstractDriver {
 
         const retVal = MysqlDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
-            entities
+            entities,
+            generationOptions
         );
         return retVal;
     }

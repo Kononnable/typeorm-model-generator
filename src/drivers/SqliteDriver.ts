@@ -44,6 +44,7 @@ export default class SqliteDriver extends AbstractDriver {
                 columns: [],
                 indices: [],
                 relations: [],
+                relationIds: [],
                 sqlName: val.tbl_name,
                 tscName: val.tbl_name,
                 fileImports: []

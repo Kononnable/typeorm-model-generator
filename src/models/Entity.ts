@@ -1,6 +1,7 @@
 import { Column } from "./Column";
 import { Relation } from "./Relation";
 import { Index } from "./Index";
+import { RelationId } from "./RelationId";
 
 export type Entity = {
     sqlName: string;
@@ -10,6 +11,7 @@ export type Entity = {
     schema?: string;
 
     columns: Column[];
+    relationIds: RelationId[];
     relations: Relation[];
     indices: Index[];
     fileImports: string[];

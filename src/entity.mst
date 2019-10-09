@@ -16,6 +16,11 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 {{toPropertyName fieldName}}:{{toRelation (toEntityName relatedTable) relationType}};
 
 {{/inline}}
+{{#*inline "RelationId"}}
+@RelationId(({{toPropertyName entityName}}:{{toEntityName entityName}})=>{{toPropertyName entityName}}.{{toPropertyName relationField}})
+{{toPropertyName fieldName}}:{{fieldType}};
+
+{{/inline}}
 {{#*inline "Entity"}}
 {{#indices}}{{> Index}}{{/indices~}}
 @Entity("{{sqlName}}",{schema:"{{schema}}",database:"{{database}}"})
@@ -23,6 +28,7 @@ export class {{toEntityName tscName}} {
 
 {{#columns}}{{> Column}}{{/columns~}}
 {{#relations}}{{> Relation}}{{/relations~}}
+{{#relationIds}}{{> RelationId entityName=../tscName}}{{/relationIds~}}
 }
 {{/inline}}
 

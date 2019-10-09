@@ -37,6 +37,9 @@ export function findNameForNewField(
         ) &&
             entity.relations.every(
                 v => v.fieldName.toLowerCase() !== fieldName.toLowerCase()
+            ) &&
+            entity.relationIds.every(
+                v => v.fieldName.toLowerCase() !== fieldName.toLowerCase()
             )) ||
         (columnOldName &&
             columnOldName.toLowerCase() === fieldName.toLowerCase());

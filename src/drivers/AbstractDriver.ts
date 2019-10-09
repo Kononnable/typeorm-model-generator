@@ -13,6 +13,8 @@ import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
 import { RelationInternal } from "../models/RelationInternal";
 import { Relation } from "../models/Relation";
+import IGenerationOptions from "../IGenerationOptions";
+import { Column } from "../models/Column";
 
 export default abstract class AbstractDriver {
     public abstract standardPort: number;
@@ -175,7 +177,8 @@ export default abstract class AbstractDriver {
     }
 
     public async GetDataFromServer(
-        connectionOptions: IConnectionOptions
+        connectionOptions: IConnectionOptions,
+        generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         let dbModel = [] as Entity[];
         await this.ConnectToServer(connectionOptions);
@@ -200,7 +203,8 @@ export default abstract class AbstractDriver {
         dbModel = await this.GetRelations(
             dbModel,
             sqlEscapedSchema,
-            connectionOptions.databaseName
+            connectionOptions.databaseName,
+            generationOptions
         );
         await this.DisconnectFromServer();
         dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
@@ -234,6 +238,7 @@ export default abstract class AbstractDriver {
                 columns: [],
                 indices: [],
                 relations: [],
+                relationIds: [],
                 sqlName: val.TABLE_NAME,
                 tscName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
@@ -246,7 +251,8 @@ export default abstract class AbstractDriver {
 
     public static GetRelationsFromRelationTempInfo(
         relationsTemp: RelationInternal[],
-        entities: Entity[]
+        entities: Entity[],
+        generationOptions: IGenerationOptions
     ) {
         relationsTemp.forEach(relationTmp => {
             if (relationTmp.ownerColumns.length > 1) {
@@ -298,8 +304,8 @@ export default abstract class AbstractDriver {
                 return;
             }
 
-            let ownerRelation: Relation | undefined;
-            let relatedRelation: Relation | undefined;
+            const ownerColumns: Column[] = [];
+            const relatedColumns: Column[] = [];
             for (
                 let relationColumnIndex = 0;
                 relationColumnIndex < relationTmp.ownerColumns.length;
@@ -327,77 +333,91 @@ export default abstract class AbstractDriver {
                     );
                     return;
                 }
-                let isOneToMany: boolean;
-                isOneToMany = false;
-                const index = ownerEntity.indices.find(
-                    ind =>
-                        ind.options.unique &&
-                        ind.columns.length === 1 &&
-                        ind.columns[0] === ownerColumn!.tscName
-                );
-                isOneToMany = !index;
-
-                if (true) {
-                    // TODO: RelationId
-                    ownerEntity.columns = ownerEntity.columns.filter(
-                        v =>
-                            !relationTmp.ownerColumns.some(
-                                u => u === v.tscName
-                            ) || v.primary
-                    );
-                    relationTmp.relatedTable.columns = relationTmp.relatedTable.columns.filter(
-                        v =>
-                            !relationTmp.relatedColumns.some(
-                                u => u === v.tscName
-                            ) || v.primary
-                    );
-                }
-                let fieldName = "";
-                if (relationTmp.ownerColumns.length === 1) {
-                    fieldName = TomgUtils.findNameForNewField(
-                        ownerColumn.tscName,
-                        ownerEntity
-                    );
-                } else {
-                    fieldName = TomgUtils.findNameForNewField(
-                        relationTmp.relatedTable.tscName,
-                        ownerEntity
-                    );
-                }
-                ownerRelation = {
-                    fieldName,
-                    relatedField: TomgUtils.findNameForNewField(
-                        relationTmp.ownerTable.tscName,
-                        relationTmp.relatedTable
-                    ),
-                    relationOptions: {
-                        onDelete: relationTmp.onDelete,
-                        onUpdate: relationTmp.onUpdate
-                    },
-                    joinColumnOptions: relationTmp.ownerColumns.map(
-                        (v, idx) => {
-                            const retVal: JoinColumnOptions = {
-                                name: v,
-                                referencedColumnName:
-                                    relationTmp.relatedColumns[idx]
-                            };
-                            return retVal;
-                        }
-                    ),
-                    relatedTable: relationTmp.relatedTable.tscName,
-                    relationType: isOneToMany ? "ManyToOne" : "OneToOne"
-                };
-                relatedRelation = {
-                    fieldName: ownerRelation.relatedField,
-                    relatedField: ownerRelation.fieldName,
-                    relatedTable: relationTmp.ownerTable.tscName,
-                    // relationOptions: ownerRelation.relationOptions,
-                    relationType: isOneToMany ? "OneToMany" : "OneToOne"
-                };
+                ownerColumns.push(ownerColumn);
+                relatedColumns.push(relatedColumn);
             }
-            if (ownerRelation) ownerEntity.relations.push(ownerRelation);
-            if (relatedRelation)
-                relationTmp.relatedTable.relations.push(relatedRelation);
+            let isOneToMany: boolean;
+            isOneToMany = false;
+            const index = ownerEntity.indices.find(
+                ind =>
+                    ind.options.unique &&
+                    ind.columns.length === ownerColumns.length &&
+                    ownerColumns.every(ownerColumn =>
+                        ind.columns.some(col => col === ownerColumn.tscName)
+                    )
+            );
+            isOneToMany = !index;
+
+            // TODO: RelationId
+            ownerEntity.columns = ownerEntity.columns.filter(
+                v =>
+                    !relationTmp.ownerColumns.some(u => u === v.tscName) ||
+                    v.primary
+            );
+            relationTmp.relatedTable.columns = relationTmp.relatedTable.columns.filter(
+                v =>
+                    !relationTmp.relatedColumns.some(u => u === v.tscName) ||
+                    v.primary
+            );
+            let fieldName = "";
+            if (ownerColumns.length === 1) {
+                fieldName = TomgUtils.findNameForNewField(
+                    ownerColumns[0].tscName,
+                    ownerEntity
+                );
+            } else {
+                fieldName = TomgUtils.findNameForNewField(
+                    relationTmp.relatedTable.tscName,
+                    ownerEntity
+                );
+            }
+
+            const ownerRelation: Relation = {
+                fieldName,
+                relatedField: TomgUtils.findNameForNewField(
+                    relationTmp.ownerTable.tscName,
+                    relationTmp.relatedTable
+                ),
+                relationOptions: {
+                    onDelete: relationTmp.onDelete,
+                    onUpdate: relationTmp.onUpdate
+                },
+                joinColumnOptions: relationTmp.ownerColumns.map((v, idx) => {
+                    const retVal: JoinColumnOptions = {
+                        name: v,
+                        referencedColumnName: relationTmp.relatedColumns[idx]
+                    };
+                    return retVal;
+                }),
+                relatedTable: relationTmp.relatedTable.tscName,
+                relationType: isOneToMany ? "ManyToOne" : "OneToOne"
+            };
+            const relatedRelation: Relation = {
+                fieldName: ownerRelation.relatedField,
+                relatedField: ownerRelation.fieldName,
+                relatedTable: relationTmp.ownerTable.tscName,
+                // relationOptions: ownerRelation.relationOptions,
+                relationType: isOneToMany ? "OneToMany" : "OneToOne"
+            };
+
+            ownerEntity.relations.push(ownerRelation);
+            relationTmp.relatedTable.relations.push(relatedRelation);
+
+            if (generationOptions.relationIds && ownerColumns.length === 1) {
+                let relationIdFieldName = "";
+                relationIdFieldName = TomgUtils.findNameForNewField(
+                    ownerColumns[0].tscName,
+                    ownerEntity
+                );
+                ownerEntity.relationIds.push({
+                    fieldName: relationIdFieldName, // TODO: generate name without number(naming strategy)
+                    fieldType: isOneToMany
+                        ? `${ownerColumns[0].tscType}[]`
+                        : ownerColumns[0].tscType,
+                    relationField: ownerRelation.fieldName // TODO: naming strategy
+                });
+                // TODO: RelationId on ManyToMany
+            }
         });
         return entities;
     }
@@ -417,7 +437,8 @@ export default abstract class AbstractDriver {
     public abstract async GetRelations(
         entities: Entity[],
         schema: string,
-        dbNames: string
+        dbNames: string,
+        generationOptions: IGenerationOptions
     ): Promise<Entity[]>;
 
     public static FindPrimaryColumnsFromIndexes(dbModel: Entity[]) {
