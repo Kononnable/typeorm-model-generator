@@ -259,16 +259,16 @@ export default abstract class AbstractDriver {
                 const relatedTable = entities.find(
                     entity => entity.tscName === relationTmp.ownerTable.tscName
                 )!;
-                if (
-                    relatedTable.columns.length !==
-                    relationTmp.ownerColumns.length * 2
-                ) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
-                        false
-                    );
-                    return;
-                }
+                // if (
+                //     relatedTable.columns.length !==
+                //     relationTmp.ownerColumns.length * 2
+                // ) {
+                //     TomgUtils.LogError(
+                //         `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
+                //         false
+                //     );
+                //     return;
+                // }
 
                 const secondRelation = relationsTemp.find(
                     relation =>
@@ -276,13 +276,13 @@ export default abstract class AbstractDriver {
                         relation.relatedTable.tscName !==
                             relationTmp.relatedTable.tscName
                 )!;
-                if (!secondRelation) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
-                        false
-                    );
-                    return;
-                }
+                // if (!secondRelation) {
+                //     TomgUtils.LogError(
+                //         `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
+                //         false
+                //     );
+                //     return;
+                // }
             }
 
             const ownerEntity = entities.find(

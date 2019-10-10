@@ -405,6 +405,7 @@ export default class EntityFileToJson {
                     priorPartOfMultilineStatement = trimmedLine;
                 } else {
                     isMultilineStatement = false;
+                    // TODO: get joinColumnOptions options
                     retVal.columns[
                         retVal.columns.length - 1
                     ].isOwnerOfRelation = true;
@@ -417,6 +418,7 @@ export default class EntityFileToJson {
                     priorPartOfMultilineStatement = trimmedLine;
                 } else {
                     isMultilineStatement = false;
+                    // TODO: get joinTableOptions options - is it possible while JoinTable can be on either side of the relationship?
                     // it doesn't matter which side of ManyToMany relation is marked as owner
                 }
                 return;
