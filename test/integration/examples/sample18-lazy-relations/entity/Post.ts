@@ -24,8 +24,8 @@ export class Post {
     @ManyToOne(type => Author, author => author.posts, {
         lazy: true,
         // cascade: ["insert"],
-        onDelete: "SET NULL",
-        onUpdate: "CASCADE"
+        onDelete: "SET NULL"
+        // onUpdate: "CASCADE"  - onUpdate not supported on oracledb
     })
     author: Promise<Author | null>;
 
