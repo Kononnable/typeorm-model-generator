@@ -18,9 +18,9 @@ export class Post {
     })
     id: number;
 
-    @ManyToOne(type => User, userId => userId.posts)
+    @ManyToOne(type => User, user => user.posts)
     @JoinColumn({ name: "userId" })
-    userId: User;
+    user: User;
 
     @Column("text", {
         nullable: true,

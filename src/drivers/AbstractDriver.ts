@@ -3,7 +3,7 @@ import {
     WithPrecisionColumnType,
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
-import { JoinColumnOptions } from "typeorm";
+import { JoinColumnOptions, RelationOptions } from "typeorm";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
 import EntityInfo from "../oldModels/EntityInfo";
@@ -372,16 +372,17 @@ export default abstract class AbstractDriver {
                 );
             }
 
+            const relationOptions: RelationOptions = {
+                onDelete: relationTmp.onDelete,
+                onUpdate: relationTmp.onUpdate
+            };
+
             const ownerRelation: Relation = {
                 fieldName,
                 relatedField: TomgUtils.findNameForNewField(
                     relationTmp.ownerTable.tscName,
                     relationTmp.relatedTable
                 ),
-                relationOptions: {
-                    onDelete: relationTmp.onDelete,
-                    onUpdate: relationTmp.onUpdate
-                },
                 joinColumnOptions: relationTmp.ownerColumns.map((v, idx) => {
                     const retVal: JoinColumnOptions = {
                         name: v,
@@ -392,6 +393,9 @@ export default abstract class AbstractDriver {
                 relatedTable: relationTmp.relatedTable.tscName,
                 relationType: isOneToMany ? "ManyToOne" : "OneToOne"
             };
+            if (JSON.stringify(relationOptions) !== "{}") {
+                ownerRelation.relationOptions = relationOptions;
+            }
             const relatedRelation: Relation = {
                 fieldName: ownerRelation.relatedField,
                 relatedField: ownerRelation.fieldName,

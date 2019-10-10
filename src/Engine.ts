@@ -528,7 +528,9 @@ function applyNamingStrategy(
 
                 entity.relationIds
                     .filter(v => v.relationField === oldName)
-                    .forEach(v => (v.relationField = newName));
+                    .forEach(v => {
+                        v.relationField = newName;
+                    });
 
                 relation.fieldName = newName;
                 relation2.relatedField = newName;
