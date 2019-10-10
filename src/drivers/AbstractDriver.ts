@@ -410,11 +410,11 @@ export default abstract class AbstractDriver {
                     ownerEntity
                 );
                 ownerEntity.relationIds.push({
-                    fieldName: relationIdFieldName, // TODO: generate name without number(naming strategy)
+                    fieldName: relationIdFieldName,
                     fieldType: isOneToMany
                         ? `${ownerColumns[0].tscType}[]`
                         : ownerColumns[0].tscType,
-                    relationField: ownerRelation.fieldName // TODO: naming strategy
+                    relationField: ownerRelation.fieldName
                 });
                 // TODO: RelationId on ManyToMany
             }

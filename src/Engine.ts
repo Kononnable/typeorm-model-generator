@@ -473,9 +473,40 @@ function applyNamingStrategy(
     dbModel: Entity[]
 ) {
     let retval = changeRelationNames(dbModel);
+    retval = changeRelationIdNames(retval);
     retval = changeEntityNames(retval);
     retval = changeColumnNames(retval);
     return retval;
+
+    function changeRelationIdNames(model: Entity[]) {
+        // TODO:
+        model.forEach(entity => {
+            entity.relationIds.forEach(relationId => {
+                const oldName = relationId.fieldName;
+                const relation = entity.relations.find(
+                    v => v.fieldName === relationId.relationField
+                )!;
+                let newName = namingStrategy.relationIdName(
+                    relationId,
+                    relation,
+                    entity
+                );
+                newName = TomgUtils.findNameForNewField(
+                    newName,
+                    entity,
+                    oldName
+                );
+                entity.indices.forEach(index => {
+                    index.columns = index.columns.map(column2 =>
+                        column2 === oldName ? newName : column2
+                    );
+                });
+
+                relationId.fieldName = newName;
+            });
+        });
+        return dbModel;
+    }
 
     function changeRelationNames(model: Entity[]) {
         model.forEach(entity => {
@@ -494,6 +525,10 @@ function applyNamingStrategy(
                 const relation2 = relatedEntity.relations.find(
                     v => v.fieldName === relation.relatedField
                 )!;
+
+                entity.relationIds
+                    .filter(v => v.relationField === oldName)
+                    .forEach(v => (v.relationField = newName));
 
                 relation.fieldName = newName;
                 relation2.relatedField = newName;
