@@ -11,6 +11,10 @@ import IndexColumnInfo from "../oldModels/IndexColumnInfo";
 import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
+import { Column } from "../models/Column";
+import { Index } from "../models/Index";
+import IGenerationOptions from "../IGenerationOptions";
+import { RelationInternal } from "../models/RelationInternal";
 
 export default class SqliteDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqliteDriver({
@@ -54,277 +58,335 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
-        throw new Error();
-        // TODO: Remove
-        // await Promise.all(
-        //     entities.map(async ent => {
-        //         const response = await this.ExecQuery<{
-        //             cid: number;
-        //             name: string;
-        //             type: string;
-        //             notnull: number;
-        //             dflt_value: string;
-        //             pk: number;
-        //         }>(`PRAGMA table_info('${ent.tsEntityName}');`);
-        //         response.forEach(resp => {
-        //             const colInfo: ColumnInfo = new ColumnInfo();
-        //             colInfo.tsName = resp.name;
-        //             colInfo.options.name = resp.name;
-        //             colInfo.options.nullable = resp.notnull === 0;
-        //             colInfo.options.primary = resp.pk > 0;
-        //             colInfo.options.default = SqliteDriver.ReturnDefaultValueFunction(
-        //                 resp.dflt_value
-        //             );
-        //             colInfo.options.type = resp.type
-        //                 .replace(/\([0-9 ,]+\)/g, "")
-        //                 .toLowerCase()
-        //                 .trim() as any;
-        //             colInfo.options.generated =
-        //                 colInfo.options.primary &&
-        //                 this.tablesWithGeneratedPrimaryKey.includes(
-        //                     ent.tsEntityName
-        //                 );
-        //             switch (colInfo.options.type) {
-        //                 case "int":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "integer":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "int2":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "int8":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "tinyint":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "smallint":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "mediumint":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "bigint":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "unsigned big int":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "character":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "varchar":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "varying character":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "nchar":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "native character":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "nvarchar":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "text":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "blob":
-        //                     colInfo.tsType = "Buffer";
-        //                     break;
-        //                 case "clob":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "real":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "double":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "double precision":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "float":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "numeric":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "decimal":
-        //                     colInfo.tsType = "number";
-        //                     break;
-        //                 case "boolean":
-        //                     colInfo.tsType = "boolean";
-        //                     break;
-        //                 case "date":
-        //                     colInfo.tsType = "string";
-        //                     break;
-        //                 case "datetime":
-        //                     colInfo.tsType = "Date";
-        //                     break;
-        //                 default:
-        //                     TomgUtils.LogError(
-        //                         `Unknown column type: ${colInfo.options.type}  table name: ${ent.tsEntityName} column name: ${resp.name}`
-        //                     );
-        //                     break;
-        //             }
-        //             const options = resp.type.match(/\([0-9 ,]+\)/g);
-        //             if (
-        //                 this.ColumnTypesWithPrecision.some(
-        //                     v => v === colInfo.options.type
-        //                 ) &&
-        //                 options
-        //             ) {
-        //                 colInfo.options.precision = options[0]
-        //                     .substring(1, options[0].length - 1)
-        //                     .split(",")[0] as any;
-        //                 colInfo.options.scale = options[0]
-        //                     .substring(1, options[0].length - 1)
-        //                     .split(",")[1] as any;
-        //             }
-        //             if (
-        //                 this.ColumnTypesWithLength.some(
-        //                     v => v === colInfo.options.type
-        //                 ) &&
-        //                 options
-        //             ) {
-        //                 colInfo.options.length = options[0].substring(
-        //                     1,
-        //                     options[0].length - 1
-        //                 ) as any;
-        //             }
-        //             if (
-        //                 this.ColumnTypesWithWidth.some(
-        //                     v =>
-        //                         v === colInfo.options.type &&
-        //                         colInfo.tsType !== "boolean"
-        //                 ) &&
-        //                 options
-        //             ) {
-        //                 colInfo.options.width = options[0].substring(
-        //                     1,
-        //                     options[0].length - 1
-        //                 ) as any;
-        //             }
+        await Promise.all(
+            entities.map(async ent => {
+                const response = await this.ExecQuery<{
+                    cid: number;
+                    name: string;
+                    type: string;
+                    notnull: number;
+                    dflt_value: string;
+                    pk: number;
+                }>(`PRAGMA table_info('${ent.tscName}');`);
+                response.forEach(resp => {
+                    const tscName = resp.name;
+                    let tscType = "";
+                    const options: Partial<Column["options"]> = {};
+                    options.name = resp.name;
+                    if (resp.notnull === 0) options.nullable = true;
+                    const isPrimary = resp.pk > 0 ? true : undefined;
+                    const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
+                        resp.dflt_value
+                    );
+                    let columnType = resp.type
+                        .replace(/\([0-9 ,]+\)/g, "")
+                        .toLowerCase()
+                        .trim();
+                    const generated =
+                        isPrimary &&
+                        this.tablesWithGeneratedPrimaryKey.includes(ent.tscName)
+                            ? true
+                            : undefined;
+                    switch (columnType) {
+                        case "int":
+                            tscType = "number";
+                            break;
+                        case "integer":
+                            tscType = "number";
+                            break;
+                        case "int2":
+                            tscType = "number";
+                            break;
+                        case "int8":
+                            tscType = "number";
+                            break;
+                        case "tinyint":
+                            tscType = "number";
+                            break;
+                        case "smallint":
+                            tscType = "number";
+                            break;
+                        case "mediumint":
+                            tscType = "number";
+                            break;
+                        case "bigint":
+                            tscType = "string";
+                            break;
+                        case "unsigned big int":
+                            tscType = "string";
+                            break;
+                        case "character":
+                            tscType = "string";
+                            break;
+                        case "varchar":
+                            tscType = "string";
+                            break;
+                        case "varying character":
+                            tscType = "string";
+                            break;
+                        case "nchar":
+                            tscType = "string";
+                            break;
+                        case "native character":
+                            tscType = "string";
+                            break;
+                        case "nvarchar":
+                            tscType = "string";
+                            break;
+                        case "text":
+                            tscType = "string";
+                            break;
+                        case "blob":
+                            tscType = "Buffer";
+                            break;
+                        case "clob":
+                            tscType = "string";
+                            break;
+                        case "real":
+                            tscType = "number";
+                            break;
+                        case "double":
+                            tscType = "number";
+                            break;
+                        case "double precision":
+                            tscType = "number";
+                            break;
+                        case "float":
+                            tscType = "number";
+                            break;
+                        case "numeric":
+                            tscType = "number";
+                            break;
+                        case "decimal":
+                            tscType = "number";
+                            break;
+                        case "boolean":
+                            tscType = "boolean";
+                            break;
+                        case "date":
+                            tscType = "string";
+                            break;
+                        case "datetime":
+                            tscType = "Date";
+                            break;
+                        default:
+                            TomgUtils.LogError(
+                                `Unknown column type: ${columnType}  table name: ${ent.tscName} column name: ${resp.name}`
+                            );
+                            break;
+                    }
+                    const sqlOptions = resp.type.match(/\([0-9 ,]+\)/g);
+                    if (
+                        this.ColumnTypesWithPrecision.some(
+                            v => v === columnType
+                        ) &&
+                        sqlOptions
+                    ) {
+                        options.precision = sqlOptions[0]
+                            .substring(1, sqlOptions[0].length - 1)
+                            .split(",")[0] as any;
+                        options.scale = sqlOptions[0]
+                            .substring(1, sqlOptions[0].length - 1)
+                            .split(",")[1] as any;
+                    }
+                    if (
+                        this.ColumnTypesWithLength.some(
+                            v => v === columnType
+                        ) &&
+                        sqlOptions
+                    ) {
+                        options.length = Number.parseInt(
+                            sqlOptions[0].substring(
+                                1,
+                                sqlOptions[0].length - 1
+                            ),
+                            10
+                        );
+                    }
+                    if (
+                        this.ColumnTypesWithWidth.some(
+                            v => v === columnType && tscType !== "boolean"
+                        ) &&
+                        sqlOptions
+                    ) {
+                        options.width = sqlOptions[0].substring(
+                            1,
+                            sqlOptions[0].length - 1
+                        ) as any;
+                    }
 
-        //             if (colInfo.options.type) {
-        //                 ent.Columns.push(colInfo);
-        //             }
-        //         });
-        //     })
-        // );
+                    if (columnType) {
+                        ent.columns.push({
+                            generated,
+                            primary: isPrimary,
+                            type: columnType,
+                            default: defaultValue,
+                            options: { name: "", ...options }, // TODO: Change
+                            tscName,
+                            tscType
+                        });
+                    }
+                });
+            })
+        );
 
-        // return entities;
+        return entities;
     }
 
     public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
-        throw new Error();
-        // TODO: Remove
-        // await Promise.all(
-        //     entities.map(async ent => {
-        //         const response = await this.ExecQuery<{
-        //             seq: number;
-        //             name: string;
-        //             unique: number;
-        //             origin: string;
-        //             partial: number;
-        //         }>(`PRAGMA index_list('${ent.tsEntityName}');`);
-        //         await Promise.all(
-        //             response.map(async resp => {
-        //                 const indexColumnsResponse = await this.ExecQuery<{
-        //                     seqno: number;
-        //                     cid: number;
-        //                     name: string;
-        //                 }>(`PRAGMA index_info('${resp.name}');`);
-        //                 indexColumnsResponse.forEach(element => {
-        //                     let indexInfo: IndexInfo = {} as IndexInfo;
-        //                     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-        //                     if (
-        //                         ent.Indexes.filter(filterVal => {
-        //                             return filterVal.name === resp.name;
-        //                         }).length > 0
-        //                     ) {
-        //                         indexInfo = ent.Indexes.find(
-        //                             filterVal => filterVal.name === resp.name
-        //                         )!;
-        //                     } else {
-        //                         indexInfo.columns = [] as IndexColumnInfo[];
-        //                         indexInfo.name = resp.name;
-        //                         indexInfo.isUnique = resp.unique === 1;
-        //                         ent.Indexes.push(indexInfo);
-        //                     }
-        //                     indexColumnInfo.name = element.name;
-        //                     if (
-        //                         indexColumnsResponse.length === 1 &&
-        //                         indexInfo.isUnique
-        //                     ) {
-        //                         ent.Columns.filter(
-        //                             v => v.tsName === indexColumnInfo.name
-        //                         ).forEach(v => {
-        //                             // eslint-disable-next-line no-param-reassign
-        //                             v.options.unique = true;
-        //                         });
-        //                     }
-        //                     indexInfo.columns.push(indexColumnInfo);
-        //                 });
-        //             })
-        //         );
-        //     })
-        // );
+        await Promise.all(
+            entities.map(async ent => {
+                const response = await this.ExecQuery<{
+                    seq: number;
+                    name: string;
+                    unique: number;
+                    origin: string;
+                    partial: number;
+                }>(`PRAGMA index_list('${ent.tscName}');`);
+                await Promise.all(
+                    response.map(async resp => {
+                        const indexColumnsResponse = await this.ExecQuery<{
+                            seqno: number;
+                            cid: number;
+                            name: string;
+                        }>(`PRAGMA index_info('${resp.name}');`);
 
-        // return entities;
+                        const indexInfo: Index = {
+                            name: resp.name,
+                            columns: [],
+                            options: {}
+                        };
+                        if (resp.unique === 1) indexInfo.options.unique = true;
+
+                        indexColumnsResponse.forEach(record => {
+                            indexInfo.columns.push(record.name);
+                        });
+                        if (
+                            indexColumnsResponse.length === 1 &&
+                            indexInfo.options.unique
+                        ) {
+                            ent.columns
+                                .filter(v => v.tscName === indexInfo.columns[0])
+                                .forEach(v => {
+                                    // eslint-disable-next-line no-param-reassign
+                                    v.options.unique = true;
+                                });
+                        }
+                        ent.indices.push(indexInfo);
+
+                        // indexColumnsResponse.forEach(element => {
+                        //     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
+                        //     if (
+                        //         ent.indices.filter(filterVal => {
+                        //             return filterVal.name === resp.name;
+                        //         }).length > 0
+                        //     ) {
+                        //         indexInfo = ent.indices.find(
+                        //             filterVal => filterVal.name === resp.name
+                        //         )!;
+                        //     } else {
+                        //         indexInfo.columns = [] as IndexColumnInfo[];
+                        //         indexInfo.name = resp.name;
+                        //         indexInfo.isUnique = resp.unique === 1;
+                        //         ent.indices.push(indexInfo);
+                        //     }
+                        //     indexColumnInfo.name = element.name;
+                        //     if (
+                        //         indexColumnsResponse.length === 1 &&
+                        //         indexInfo.isUnique
+                        //     ) {
+                        //         ent.columns
+                        //             .filter(
+                        //                 v => v.tscName === indexColumnInfo.name
+                        //             )
+                        //             .forEach(v => {
+                        //                 // eslint-disable-next-line no-param-reassign
+                        //                 v.options.unique = true;
+                        //             });
+                        //     }
+                        //     indexInfo.columns.push(indexColumnInfo);
+                        // });
+                    })
+                );
+            })
+        );
+
+        return entities;
     }
 
-    public async GetRelations(entities: Entity[]): Promise<Entity[]> {
-        throw new Error();
-        // TODO: Remove
-        // let retVal = entities;
-        // await Promise.all(
-        //     retVal.map(async entity => {
-        //         const response = await this.ExecQuery<{
-        //             id: number;
-        //             seq: number;
-        //             table: string;
-        //             from: string;
-        //             to: string;
-        //             on_update:
-        //                 | "RESTRICT"
-        //                 | "CASCADE"
-        //                 | "SET NULL"
-        //                 | "NO ACTION";
-        //             on_delete:
-        //                 | "RESTRICT"
-        //                 | "CASCADE"
-        //                 | "SET NULL"
-        //                 | "NO ACTION";
-        //             match: string;
-        //         }>(`PRAGMA foreign_key_list('${entity.tsEntityName}');`);
-        //         const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        //         response.forEach(resp => {
-        //             const rels = {} as RelationTempInfo;
-        //             rels.ownerColumnsNames = [];
-        //             rels.referencedColumnsNames = [];
-        //             rels.actionOnDelete =
-        //                 resp.on_delete === "NO ACTION" ? null : resp.on_delete;
-        //             rels.actionOnUpdate =
-        //                 resp.on_update === "NO ACTION" ? null : resp.on_update;
-        //             rels.ownerTable = entity.tsEntityName;
-        //             rels.referencedTable = resp.table;
-        //             relationsTemp.push(rels);
-        //             rels.ownerColumnsNames.push(resp.from);
-        //             rels.referencedColumnsNames.push(resp.to);
-        //         });
-        //         retVal = SqliteDriver.GetRelationsFromRelationTempInfo(
-        //             relationsTemp,
-        //             retVal
-        //         );
-        //     })
-        // );
-        // return retVal;
+    public async GetRelations(
+        entities: Entity[],
+        schema: string,
+        dbNames: string,
+        generationOptions: IGenerationOptions
+    ): Promise<Entity[]> {
+        let retVal = entities;
+        await Promise.all(
+            retVal.map(async entity => {
+                const response = await this.ExecQuery<{
+                    id: number;
+                    seq: number;
+                    table: string;
+                    from: string;
+                    to: string;
+                    on_update:
+                        | "RESTRICT"
+                        | "CASCADE"
+                        | "SET NULL"
+                        | "NO ACTION";
+                    on_delete:
+                        | "RESTRICT"
+                        | "CASCADE"
+                        | "SET NULL"
+                        | "NO ACTION";
+                    match: string;
+                }>(`PRAGMA foreign_key_list('${entity.tscName}');`);
+
+                const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+                const relationKeys = new Set(response.map(v => v.id));
+
+                relationKeys.forEach(relationId => {
+                    const rows = response.filter(v => v.id === relationId);
+                    const ownerTable = entities.find(
+                        v => v.sqlName === entity.tscName
+                    );
+                    const relatedTable = entities.find(
+                        v => v.sqlName === rows[0].table
+                    );
+                    if (!ownerTable || !relatedTable) {
+                        TomgUtils.LogError(
+                            `Relation between tables ${entity.tscName} and ${rows[0].table} wasn't found in entity model.`,
+                            true
+                        );
+                        return;
+                    }
+                    const internal: RelationInternal = {
+                        ownerColumns: [],
+                        relatedColumns: [],
+                        ownerTable,
+                        relatedTable
+                    };
+                    if (rows[0].on_delete !== "NO ACTION") {
+                        internal.onDelete = rows[0].on_delete;
+                    }
+                    if (rows[0].on_update !== "NO ACTION") {
+                        internal.onUpdate = rows[0].on_update;
+                    }
+                    rows.forEach(row => {
+                        internal.ownerColumns.push(row.from);
+                        internal.relatedColumns.push(row.to);
+                    });
+                    relationsTemp.push(internal);
+                });
+
+                retVal = SqliteDriver.GetRelationsFromRelationTempInfo(
+                    relationsTemp,
+                    retVal,
+                    generationOptions
+                );
+            })
+        );
+        return retVal;
     }
 
     public async DisconnectFromServer() {
@@ -393,9 +455,9 @@ export default class SqliteDriver extends AbstractDriver {
 
     private static ReturnDefaultValueFunction(
         defVal: string | null
-    ): string | null {
+    ): string | undefined {
         if (!defVal) {
-            return null;
+            return undefined;
         }
         if (defVal.startsWith(`'`)) {
             return `() => "${defVal}"`;
