@@ -1,17 +1,12 @@
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import { Relation } from "./models/Relation";
-import { Entity } from "./models/Entity";
 import { RelationId } from "./models/RelationId";
 
 import changeCase = require("change-case");
 
 /* eslint-disable class-methods-use-this */
 export default class NamingStrategy extends AbstractNamingStrategy {
-    public relationIdName(
-        relationId: RelationId,
-        relation: Relation,
-        owner: Entity
-    ): string {
+    public relationIdName(relationId: RelationId, relation: Relation): string {
         const columnOldName = relationId.fieldName;
 
         const isRelationToMany =
@@ -32,7 +27,7 @@ export default class NamingStrategy extends AbstractNamingStrategy {
         return columnName;
     }
 
-    public relationName(relation: Relation, owner: Entity): string {
+    public relationName(relation: Relation): string {
         const columnOldName = relation.fieldName;
 
         const isRelationToMany =

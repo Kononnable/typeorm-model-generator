@@ -92,16 +92,9 @@ export default class EntityFileToJson {
                     /default: \(\) => (.*)/,
                     `default: $1`
                 );
-                try {
-                    col.columnOptions = JSON.parse(
-                        badJSON.replace(
-                            /(['"])?([a-z0-9A-Z_]+)(['"])?:/g,
-                            '"$2": '
-                        )
-                    );
-                } catch (error) {
-                    debugger;
-                }
+                col.columnOptions = JSON.parse(
+                    badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+                );
             } else if (
                 decoratorParameters[0] === '"' &&
                 decoratorParameters.endsWith('"')

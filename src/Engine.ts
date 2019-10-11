@@ -7,7 +7,6 @@ import MssqlDriver from "./drivers/MssqlDriver";
 import MariaDbDriver from "./drivers/MariaDbDriver";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions from "./IGenerationOptions";
-import EntityInfo from "./oldModels/EntityInfo";
 import PostgresDriver from "./drivers/PostgresDriver";
 import MysqlDriver from "./drivers/MysqlDriver";
 import OracleDriver from "./drivers/OracleDriver";

@@ -4,11 +4,6 @@ import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as sqliteLib from "sqlite3";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
-import EntityInfo from "../oldModels/EntityInfo";
-import ColumnInfo from "../oldModels/ColumnInfo";
-import IndexInfo from "../oldModels/IndexInfo";
-import IndexColumnInfo from "../oldModels/IndexColumnInfo";
-import RelationTempInfo from "../oldModels/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
 import { Column } from "../models/Column";
@@ -78,7 +73,7 @@ export default class SqliteDriver extends AbstractDriver {
                     const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
                         resp.dflt_value
                     );
-                    let columnType = resp.type
+                    const columnType = resp.type
                         .replace(/\([0-9 ,]+\)/g, "")
                         .toLowerCase()
                         .trim();

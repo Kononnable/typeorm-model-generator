@@ -6,9 +6,6 @@ import {
 import { JoinColumnOptions, RelationOptions } from "typeorm";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
-import EntityInfo from "../oldModels/EntityInfo";
-import RelationInfo from "../oldModels/RelationInfo";
-import ColumnInfo from "../oldModels/ColumnInfo";
 import IConnectionOptions from "../IConnectionOptions";
 import { Entity } from "../models/Entity";
 import { RelationInternal } from "../models/RelationInternal";
@@ -255,36 +252,6 @@ export default abstract class AbstractDriver {
         generationOptions: IGenerationOptions
     ) {
         relationsTemp.forEach(relationTmp => {
-            if (relationTmp.ownerColumns.length > 1) {
-                const relatedTable = entities.find(
-                    entity => entity.tscName === relationTmp.ownerTable.tscName
-                )!;
-                // if (
-                //     relatedTable.columns.length !==
-                //     relationTmp.ownerColumns.length * 2
-                // ) {
-                //     TomgUtils.LogError(
-                //         `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
-                //         false
-                //     );
-                //     return;
-                // }
-
-                const secondRelation = relationsTemp.find(
-                    relation =>
-                        relation.ownerTable.tscName === relatedTable.tscName &&
-                        relation.relatedTable.tscName !==
-                            relationTmp.relatedTable.tscName
-                )!;
-                // if (!secondRelation) {
-                //     TomgUtils.LogError(
-                //         `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} wasn't generated correctly - complex relationships aren't supported yet.`,
-                //         false
-                //     );
-                //     return;
-                // }
-            }
-
             const ownerEntity = entities.find(
                 entity => entity.tscName === relationTmp.ownerTable.tscName
             );
