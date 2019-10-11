@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("PostArrays")
 export class PostArrays {
-
     @PrimaryColumn()
     id: number;
 
@@ -82,7 +81,7 @@ export class PostArrays {
     varbit: string[];
 
     @Column("bit varying", { array: true })
-    bit_varying: string[];
+    bitVarying: string[];
 
     @Column("timetz", { array: true })
     timetz: string[];
@@ -97,7 +96,7 @@ export class PostArrays {
     // timestamp_without_time_zone: Date[];
 
     @Column("timestamp with time zone", { array: true })
-    timestamp_with_time_zone: Date[];
+    timestampWithTimeZone: Date[];
 
     @Column("date", { array: true })
     date: string[];
@@ -105,10 +104,10 @@ export class PostArrays {
     @Column("time", { array: true })
     time: string[];
     @Column("time without time zone", { array: true })
-    time_without_time_zone: string[];
+    timeWithoutTimeZone: string[];
 
     @Column("time with time zone", { array: true })
-    time_with_time_zone: string[];
+    timeWithTimeZone: string[];
 
     @Column("interval", { array: true })
     interval: any[];
@@ -187,5 +186,4 @@ export class PostArrays {
 
     @Column("daterange", { array: true })
     daterange: string[];
-
 }
