@@ -273,7 +273,6 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
         return withoutQuotes.slice(1, withoutQuotes.length - 1);
     });
-    Handlebars.registerHelper("curly", open => (open ? "{" : "}"));
     Handlebars.registerHelper("toEntityName", str => {
         let retStr = "";
         switch (generationOptions.convertCaseEntity) {
@@ -290,25 +289,6 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
                 throw new Error("Unknown case style");
         }
         return retStr;
-    });
-    Handlebars.registerHelper("concat", (stra: string, strb: string) => {
-        return stra + strb;
-    });
-    Handlebars.registerHelper("contains", function contains(
-        searchTerm: string,
-        target: string,
-        options
-    ) {
-        return target.indexOf(searchTerm) > -1
-            ? options.fn(this)
-            : options.inverse(this);
-    });
-    Handlebars.registerHelper("toFileImports", (set: Set<any>) => {
-        return [...set].reduce(
-            (pv, cv) =>
-                `${pv}import { {{toEntityName ${cv}}} } from './{{toFileName ${cv}}};`,
-            ""
-        );
     });
     Handlebars.registerHelper("toFileName", str => {
         let retStr = "";
@@ -331,6 +311,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         return retStr;
     });
     Handlebars.registerHelper("printPropertyVisibility", () =>
+        // TODO:
         generationOptions.propertyVisibility !== "none"
             ? `${generationOptions.propertyVisibility} `
             : ""
@@ -352,7 +333,6 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
         }
         return retStr;
     });
-    Handlebars.registerHelper("toLowerCase", str => str.toLowerCase());
     Handlebars.registerHelper(
         "toRelation",
         (entityType: string, relationType: Relation["relationType"]) => {
@@ -366,18 +346,10 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
             return retVal;
         }
     );
-    Handlebars.registerHelper("tolowerCaseFirst", str =>
-        changeCase.lowerCaseFirst(str)
-    );
     Handlebars.registerHelper("strictMode", () =>
+        // TODO:
         generationOptions.strictMode ? generationOptions.strictMode : ""
     );
-    Handlebars.registerHelper("toLazy", str => {
-        if (generationOptions.lazy) {
-            return `Promise<${str}>`;
-        }
-        return str;
-    });
     Handlebars.registerHelper({
         and: (v1, v2) => v1 && v2,
         eq: (v1, v2) => v1 === v2,

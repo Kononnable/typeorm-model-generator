@@ -80,8 +80,9 @@ export default class PostgresDriver extends AbstractDriver {
                 .filter(filterVal => filterVal.table_name === ent.tscName)
                 .forEach(resp => {
                     const tscName = resp.column_name;
-                    const options: Partial<Column["options"]> = {};
-                    options.name = resp.column_name;
+                    const options: Column["options"] = {
+                        name: resp.column_name
+                    };
                     if (resp.is_nullable === "YES") options.nullable = true;
                     if (resp.isunique === "1") options.unique = true;
 
@@ -156,7 +157,7 @@ export default class PostgresDriver extends AbstractDriver {
                             generated,
                             type: columnType,
                             default: defaultValue,
-                            options: { name: "", ...options }, // TODO: Change
+                            options,
                             tscName,
                             tscType
                         });

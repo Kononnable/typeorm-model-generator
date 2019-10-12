@@ -72,8 +72,9 @@ export default class OracleDriver extends AbstractDriver {
                 .filter(filterVal => filterVal.TABLE_NAME === ent.tscName)
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
-                    const options: Partial<Column["options"]> = {};
-                    options.name = resp.COLUMN_NAME;
+                    const options: Column["options"] = {
+                        name: resp.COLUMN_NAME
+                    };
                     if (resp.NULLABLE === "Y") options.nullable = true;
                     if (resp.IS_UNIQUE > 0) options.unique = true;
                     const generated =
@@ -205,7 +206,7 @@ export default class OracleDriver extends AbstractDriver {
                             generated,
                             type: columnType,
                             default: defaultValue,
-                            options: { name: "", ...options }, // TODO: Change
+                            options,
                             tscName,
                             tscType
                         });

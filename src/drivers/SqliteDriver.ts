@@ -66,8 +66,7 @@ export default class SqliteDriver extends AbstractDriver {
                 response.forEach(resp => {
                     const tscName = resp.name;
                     let tscType = "";
-                    const options: Partial<Column["options"]> = {};
-                    options.name = resp.name;
+                    const options: Column["options"] = { name: resp.name };
                     if (resp.notnull === 0) options.nullable = true;
                     const isPrimary = resp.pk > 0 ? true : undefined;
                     const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
@@ -216,7 +215,7 @@ export default class SqliteDriver extends AbstractDriver {
                             primary: isPrimary,
                             type: columnType,
                             default: defaultValue,
-                            options: { name: "", ...options }, // TODO: Change
+                            options,
                             tscName,
                             tscType
                         });

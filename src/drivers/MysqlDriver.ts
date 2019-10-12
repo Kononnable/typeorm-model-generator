@@ -70,8 +70,9 @@ export default class MysqlDriver extends AbstractDriver {
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
                     let tscType = "";
-                    const options: Partial<Column["options"]> = {};
-                    options.name = resp.COLUMN_NAME;
+                    const options: Column["options"] = {
+                        name: resp.COLUMN_NAME
+                    };
                     const generated = resp.IsIdentity === 1 ? true : undefined;
                     const defaultValue = MysqlDriver.ReturnDefaultValueFunction(
                         resp.COLUMN_DEFAULT
@@ -254,7 +255,7 @@ export default class MysqlDriver extends AbstractDriver {
                             generated,
                             type: columnType,
                             default: defaultValue,
-                            options: { name: "", ...options }, // TODO: Change
+                            options,
                             tscName,
                             tscType
                         });

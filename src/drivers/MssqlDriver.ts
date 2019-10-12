@@ -80,8 +80,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 })
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
-                    const options: Partial<Column["options"]> = {};
-                    options.name = resp.COLUMN_NAME;
+                    const options: Column["options"] = {
+                        name: resp.COLUMN_NAME
+                    };
                     if (resp.IS_NULLABLE === "YES") options.nullable = true;
                     if (resp.IsUnique === 1) options.unique = true;
                     const generated = resp.IsIdentity === 1 ? true : undefined;
@@ -223,7 +224,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             generated,
                             type: columnType,
                             default: defaultValue,
-                            options: { name: "", ...options }, // TODO: Change
+                            options,
                             tscName,
                             tscType
                         });
