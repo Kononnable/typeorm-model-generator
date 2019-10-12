@@ -1,3 +1,4 @@
+import { plural } from "pluralize";
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import { Relation } from "./models/Relation";
 import { RelationId } from "./models/RelationId";
@@ -22,7 +23,9 @@ export default class NamingStrategy extends AbstractNamingStrategy {
         if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
-        columnName += isRelationToMany ? "s" : "";
+        if (isRelationToMany) {
+            columnName = plural(columnName);
+        }
 
         return columnName;
     }
@@ -52,8 +55,9 @@ export default class NamingStrategy extends AbstractNamingStrategy {
         if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
             columnName = columnName.substring(0, columnName.length - 1);
         }
-        columnName += isRelationToMany ? "s" : "";
-
+        if (isRelationToMany) {
+            columnName = plural(columnName);
+        }
         return columnName;
     }
 

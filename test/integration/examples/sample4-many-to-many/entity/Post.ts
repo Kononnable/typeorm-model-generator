@@ -32,7 +32,7 @@ export class Post {
         // cascade: true
     })
     @JoinTable()
-    postCategorys: PostCategory[];
+    postCategories: PostCategory[];
 
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
     // relation it will be inserted automatically to the db when you save this Post entity
@@ -54,7 +54,7 @@ export class Post {
     // it will be inserted automatically to the db when you save this Post entity
     @ManyToMany(type => PostMetadata, metadata => metadata.posts)
     @JoinTable()
-    postMetadatas: PostMetadata[];
+    postMetadata: PostMetadata[];
 
     // post has relation with details. full cascades here
     @ManyToMany(type => PostInformation, information => information.posts, {

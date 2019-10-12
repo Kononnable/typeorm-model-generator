@@ -16,7 +16,7 @@ export class Category {
     @Column()
     name: string;
 
-    @ManyToMany(type => Post, post => post.categorys, {
+    @ManyToMany(type => Post, post => post.categories, {
         lazy: true
     })
     posts: Promise<Post[]>;

@@ -34,5 +34,5 @@ export class Post {
         // cascade: true
     })
     @JoinTable()
-    categorys: Promise<Category[]>;
+    categories: Promise<Category[]>;
 }
