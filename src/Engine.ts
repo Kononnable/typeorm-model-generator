@@ -1,6 +1,9 @@
 import * as Handlebars from "handlebars";
 import * as Prettier from "prettier";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+import * as changeCase from "change-case";
+import * as fs from "fs";
+import * as path from "path";
 import * as TomgUtils from "./Utils";
 import AbstractDriver from "./drivers/AbstractDriver";
 import MssqlDriver from "./drivers/MssqlDriver";
@@ -15,10 +18,6 @@ import NamingStrategy from "./NamingStrategy";
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
-
-import changeCase = require("change-case");
-import fs = require("fs");
-import path = require("path");
 
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
@@ -62,66 +61,6 @@ export async function createModelFromDatabase(
         generationOptions,
         driver.defaultValues
     );
-    // const dbModel: Entity = {
-    //     sqlName: "sqlName",
-    //     tscName: "typescriptName",
-    //     schema: "schema",
-    //     database: "database",
-    //     columns: [
-    //         {
-    //             tscType: "typescriptType",
-    //             tscName: "tscName",
-    //             options: {
-    //                 name: "sqlName",
-    //                 type: "integer",
-    //                 length: 2,
-    //                 scale: 2
-    //             }
-    //         },
-    //         {
-    //             tscType: "typescriptType",
-    //             tscName: "tscName",
-    //             options: {
-    //                 name: "sqlName",
-    //                 type: "integer",
-    //                 length: 2,
-    //                 scale: 2
-    //             }
-    //         }
-    //     ],
-    //     indices: [
-    //         {
-    //             columns: ["columns"],
-    //             name: "name"
-    //         },
-    //         {
-    //             columns: ["columns"],
-    //             name: "name"
-    //         }
-    //     ],
-    //     relations: [
-    //         {
-    //             relationType: "OneToMany",
-    //             relatedField: "relatedField",
-    //             fieldName: "relation",
-    //             relatedTable: "any",
-    //             relationOptions: {
-    //                 onUpdate: "CASCADE",
-    //                 onDelete: "NO ACTION"
-    //             }
-    //         },
-    //         {
-    //             relationType: "OneToOne",
-    //             relatedField: "relatedField",
-    //             fieldName: "relation",
-    //             relatedTable: "any",
-    //             relationOptions: {
-    //                 onUpdate: "CASCADE",
-    //                 onDelete: "NO ACTION"
-    //             }
-    //         }
-    //     ]
-    // };
     modelGenerationPhase(connectionOptions, generationOptions, dbModel);
 }
 export async function dataCollectionPhase(
@@ -221,19 +160,19 @@ export function modelGenerationPhase(
     databaseModel: Entity[]
 ) {
     createHandlebarsHelpers(generationOptions);
-    const templatePath = path.resolve(__dirname, "entity.mst");
+    const templatePath = path.resolve(__dirname, "templates", "entity.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const resultPath = generationOptions.resultsPath;
     if (!fs.existsSync(resultPath)) {
         fs.mkdirSync(resultPath);
     }
-    let entitesPath = resultPath;
+    let entitiesPath = resultPath;
     if (!generationOptions.noConfigs) {
         createTsConfigFile(resultPath);
         createTypeOrmConfig(resultPath, connectionOptions);
-        entitesPath = path.resolve(resultPath, "./entities");
-        if (!fs.existsSync(entitesPath)) {
-            fs.mkdirSync(entitesPath);
+        entitiesPath = path.resolve(resultPath, "./entities");
+        if (!fs.existsSync(entitiesPath)) {
+            fs.mkdirSync(entitiesPath);
         }
     }
     const compliedTemplate = Handlebars.compile(template, {
@@ -257,7 +196,10 @@ export function modelGenerationPhase(
             default:
                 throw new Error("Unknown case style");
         }
-        const resultFilePath = path.resolve(entitesPath, `${casedFileName}.ts`);
+        const resultFilePath = path.resolve(
+            entitiesPath,
+            `${casedFileName}.ts`
+        );
         const rendered = compliedTemplate(element);
         const formatted = Prettier.format(rendered, { parser: "typescript" });
         fs.writeFileSync(resultFilePath, formatted, {
@@ -362,78 +304,46 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     });
 }
 
-// TODO:Move to mustache template file
-function createTsConfigFile(resultPath) {
-    fs.writeFileSync(
-        path.resolve(resultPath, "tsconfig.json"),
-        `{"compilerOptions": {
-        "lib": ["es5", "es6"],
-        "target": "es6",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "sourceMap": true
-    }}`,
-        { encoding: "UTF-8", flag: "w" }
-    );
+function createTsConfigFile(outputPath: string) {
+    const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
+    const template = fs.readFileSync(templatePath, "UTF-8");
+    const compliedTemplate = Handlebars.compile(template, {
+        noEscape: true
+    });
+    const rendered = compliedTemplate({});
+    const formatted = Prettier.format(rendered, { parser: "json" });
+    const resultFilePath = path.resolve(outputPath, "tsconfig.json");
+    fs.writeFileSync(resultFilePath, formatted, {
+        encoding: "UTF-8",
+        flag: "w"
+    });
 }
 function createTypeOrmConfig(
-    resultPath: string,
+    outputPath: string,
     connectionOptions: IConnectionOptions
 ) {
-    if (connectionOptions.schemaName === "") {
-        fs.writeFileSync(
-            path.resolve(resultPath, "ormconfig.json"),
-            `[
-  {
-    "name": "default",
-    "type": "${connectionOptions.databaseType}",
-    "host": "${connectionOptions.host}",
-    "port": ${connectionOptions.port},
-    "username": "${connectionOptions.user}",
-    "password": "${connectionOptions.password}",
-    "database": "${connectionOptions.databaseName}",
-    "synchronize": false,
-    "entities": [
-      "entities/*.js"
-    ]
-  }
-]`,
-            { encoding: "UTF-8", flag: "w" }
-        );
-    } else {
-        fs.writeFileSync(
-            path.resolve(resultPath, "ormconfig.json"),
-            `[
-  {
-    "name": "default",
-    "type": "${connectionOptions.databaseType}",
-    "host": "${connectionOptions.host}",
-    "port": ${connectionOptions.port},
-    "username": "${connectionOptions.user}",
-    "password": "${connectionOptions.password}",
-    "database": "${connectionOptions.databaseName}",
-    "schema": "${connectionOptions.schemaName}",
-    "synchronize": false,
-    "entities": [
-      "entities/*.js"
-    ]
-  }
-]`,
-            { encoding: "UTF-8", flag: "w" }
-        );
-    }
+    const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
+    const template = fs.readFileSync(templatePath, "UTF-8");
+    const compliedTemplate = Handlebars.compile(template, {
+        noEscape: true
+    });
+    const rendered = compliedTemplate(connectionOptions);
+    const formatted = Prettier.format(rendered, { parser: "json" });
+    const resultFilePath = path.resolve(outputPath, "ormconfig.json");
+    fs.writeFileSync(resultFilePath, formatted, {
+        encoding: "UTF-8",
+        flag: "w"
+    });
 }
 function applyNamingStrategy(
     namingStrategy: AbstractNamingStrategy,
     dbModel: Entity[]
 ) {
-    let retval = changeRelationNames(dbModel);
-    retval = changeRelationIdNames(retval);
-    retval = changeEntityNames(retval);
-    retval = changeColumnNames(retval);
-    return retval;
+    let retVal = changeRelationNames(dbModel);
+    retVal = changeRelationIdNames(retVal);
+    retVal = changeEntityNames(retVal);
+    retVal = changeColumnNames(retVal);
+    return retVal;
 
     function changeRelationIdNames(model: Entity[]) {
         model.forEach(entity => {
