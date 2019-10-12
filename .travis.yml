@@ -42,8 +42,7 @@ before_script:
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 script:
 - docker ps
-- docker logs typeorm-mariadb
-- travis_retry sh -c 'sleep 60 && docker ps && npm t -- --colors'
+- travis_retry sh -c 'sleep 60 && docker ps && docker logs typeorm-mg-mariadb && docker logs typeorm-mg-mysql && npm t -- --colors'
 after_success:
 - codecov
 dd:
