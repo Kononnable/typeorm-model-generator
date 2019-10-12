@@ -24,7 +24,7 @@ export default class SqliteDriver extends AbstractDriver {
 
     public sqlite = sqliteLib.verbose();
 
-    public db: any;
+    public db: sqliteLib.Database;
 
     public tablesWithGeneratedPrimaryKey: string[] = new Array<string>();
 
@@ -176,12 +176,18 @@ export default class SqliteDriver extends AbstractDriver {
                         ) &&
                         sqlOptions
                     ) {
-                        options.precision = sqlOptions[0]
-                            .substring(1, sqlOptions[0].length - 1)
-                            .split(",")[0] as any;
-                        options.scale = sqlOptions[0]
-                            .substring(1, sqlOptions[0].length - 1)
-                            .split(",")[1] as any;
+                        options.precision = Number.parseInt(
+                            sqlOptions[0]
+                                .substring(1, sqlOptions[0].length - 1)
+                                .split(",")[0],
+                            10
+                        );
+                        options.scale = Number.parseInt(
+                            sqlOptions[0]
+                                .substring(1, sqlOptions[0].length - 1)
+                                .split(",")[1],
+                            10
+                        );
                     }
                     if (
                         this.ColumnTypesWithLength.some(
@@ -203,10 +209,13 @@ export default class SqliteDriver extends AbstractDriver {
                         ) &&
                         sqlOptions
                     ) {
-                        options.width = sqlOptions[0].substring(
-                            1,
-                            sqlOptions[0].length - 1
-                        ) as any;
+                        options.width = Number.parseInt(
+                            sqlOptions[0].substring(
+                                1,
+                                sqlOptions[0].length - 1
+                            ),
+                            10
+                        );
                     }
 
                     if (columnType) {
@@ -267,39 +276,6 @@ export default class SqliteDriver extends AbstractDriver {
                                 });
                         }
                         ent.indices.push(indexInfo);
-
-                        // indexColumnsResponse.forEach(element => {
-                        //     const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                        //     if (
-                        //         ent.indices.filter(filterVal => {
-                        //             return filterVal.name === resp.name;
-                        //         }).length > 0
-                        //     ) {
-                        //         indexInfo = ent.indices.find(
-                        //             filterVal => filterVal.name === resp.name
-                        //         )!;
-                        //     } else {
-                        //         indexInfo.columns = [] as IndexColumnInfo[];
-                        //         indexInfo.name = resp.name;
-                        //         indexInfo.isUnique = resp.unique === 1;
-                        //         ent.indices.push(indexInfo);
-                        //     }
-                        //     indexColumnInfo.name = element.name;
-                        //     if (
-                        //         indexColumnsResponse.length === 1 &&
-                        //         indexInfo.isUnique
-                        //     ) {
-                        //         ent.columns
-                        //             .filter(
-                        //                 v => v.tscName === indexColumnInfo.name
-                        //             )
-                        //             .forEach(v => {
-                        //                 // eslint-disable-next-line no-param-reassign
-                        //                 v.options.unique = true;
-                        //             });
-                        //     }
-                        //     indexInfo.columns.push(indexColumnInfo);
-                        // });
                     })
                 );
             })
@@ -425,7 +401,7 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async ExecQuery<T>(sql: string): Promise<T[]> {
-        let ret: any;
+        let ret: T[] = [];
         const promise = new Promise<boolean>((resolve, reject) => {
             this.db.serialize(() => {
                 this.db.all(sql, [], (err, row) => {

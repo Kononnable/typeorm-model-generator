@@ -216,7 +216,7 @@ async function GetUtilParametersByInquirer() {
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
     const generationOptions: IGenerationOptions = new IGenerationOptions();
 
-    connectionOptions.databaseType = ((await inquirer.prompt([
+    connectionOptions.databaseType = (await inquirer.prompt([
         {
             choices: [
                 "mssql",
@@ -230,10 +230,10 @@ async function GetUtilParametersByInquirer() {
             name: "engine",
             type: "list"
         }
-    ])) as any).engine;
+    ])).engine;
     const driver = createDriver(connectionOptions.databaseType);
     if (connectionOptions.databaseType !== "sqlite") {
-        const answ: any = await inquirer.prompt([
+        const answ = await inquirer.prompt([
             {
                 default: "localhost",
                 message: "Database address:",
@@ -283,7 +283,7 @@ async function GetUtilParametersByInquirer() {
             connectionOptions.databaseType === "mssql" ||
             connectionOptions.databaseType === "postgres"
         ) {
-            connectionOptions.schemaName = ((await inquirer.prompt([
+            connectionOptions.schemaName = (await inquirer.prompt([
                 {
                     default: driver.standardSchema,
                     message:
@@ -291,7 +291,7 @@ async function GetUtilParametersByInquirer() {
                     name: "schema",
                     type: "input"
                 }
-            ])) as any).schema;
+            ])).schema;
         }
         connectionOptions.port = answ.port;
         connectionOptions.host = answ.host;
@@ -300,38 +300,38 @@ async function GetUtilParametersByInquirer() {
         connectionOptions.databaseName = answ.dbName;
         connectionOptions.ssl = answ.ssl;
     } else {
-        connectionOptions.databaseName = ((await inquirer.prompt([
+        connectionOptions.databaseName = (await inquirer.prompt([
             {
                 default: "",
                 message: "Path to database file:",
                 name: "dbName",
                 type: "input"
             }
-        ])) as any).dbName;
+        ])).dbName;
     }
-    generationOptions.resultsPath = ((await inquirer.prompt([
+    generationOptions.resultsPath = (await inquirer.prompt([
         {
             default: path.resolve(process.cwd(), "output"),
             message: "Path where generated models should be stored:",
             name: "output",
             type: "input"
         }
-    ])) as any).output;
+    ])).output;
 
     if (
         connectionOptions.databaseType === "mssql" ||
         connectionOptions.databaseType === "postgres"
     ) {
-        const { changeRequestTimeout } = (await inquirer.prompt([
+        const { changeRequestTimeout } = await inquirer.prompt([
             {
                 default: false,
                 message: "Do you want to change default sql query timeout?",
                 name: "changeRequestTimeout",
                 type: "confirm"
             }
-        ])) as any;
+        ]);
         if (changeRequestTimeout) {
-            const { timeout } = (await inquirer.prompt({
+            const { timeout } = await inquirer.prompt({
                 message: "Query timeout(ms):",
                 name: "timeout",
                 type: "input",
@@ -339,20 +339,20 @@ async function GetUtilParametersByInquirer() {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid number";
                 }
-            })) as any;
+            });
             connectionOptions.timeout = timeout;
         }
     }
-    const { customizeGeneration } = (await inquirer.prompt([
+    const { customizeGeneration } = await inquirer.prompt([
         {
             default: false,
             message: "Do you want to customize generated model?",
             name: "customizeGeneration",
             type: "confirm"
         }
-    ])) as any;
+    ]);
     if (customizeGeneration) {
-        const customizations: string[] = ((await inquirer.prompt([
+        const customizations: string[] = (await inquirer.prompt([
             {
                 choices: [
                     {
@@ -394,9 +394,9 @@ async function GetUtilParametersByInquirer() {
                 name: "selected",
                 type: "checkbox"
             }
-        ])) as any).selected;
+        ])).selected;
 
-        generationOptions.propertyVisibility = ((await inquirer.prompt([
+        generationOptions.propertyVisibility = (await inquirer.prompt([
             {
                 choices: ["public", "protected", "private", "none"],
                 message:
@@ -405,9 +405,9 @@ async function GetUtilParametersByInquirer() {
                 default: "none",
                 type: "list"
             }
-        ])) as any).propertyVisibility;
+        ])).propertyVisibility;
 
-        const { strictModeRaw } = (await inquirer.prompt([
+        const { strictModeRaw } = await inquirer.prompt([
             {
                 choices: ["none", "?", "!"],
                 message: "Mark fields as optional(?) or non-null(!)",
@@ -415,7 +415,7 @@ async function GetUtilParametersByInquirer() {
                 default: "none",
                 type: "list"
             }
-        ])) as any;
+        ]);
 
         generationOptions.strictMode =
             strictModeRaw === "none" ? false : strictModeRaw;
@@ -431,7 +431,7 @@ async function GetUtilParametersByInquirer() {
         );
 
         if (customizations.includes("namingStrategy")) {
-            const namingStrategyPath = ((await inquirer.prompt([
+            const namingStrategyPath = (await inquirer.prompt([
                 {
                     default: path.resolve(process.cwd()),
                     message: "Path to custom naming strategy file:",
@@ -445,7 +445,7 @@ async function GetUtilParametersByInquirer() {
                         );
                     }
                 }
-            ])) as any).namingStrategy;
+            ])).namingStrategy;
 
             if (namingStrategyPath && namingStrategyPath !== "") {
                 generationOptions.customNamingStrategyPath = namingStrategyPath;
@@ -454,7 +454,7 @@ async function GetUtilParametersByInquirer() {
             }
         }
         if (customizations.includes("namingConvention")) {
-            const namingConventions = (await inquirer.prompt([
+            const namingConventions = await inquirer.prompt([
                 {
                     choices: ["pascal", "param", "camel", "none"],
                     default: "pascal",
@@ -476,21 +476,21 @@ async function GetUtilParametersByInquirer() {
                     name: "propertyCase",
                     type: "list"
                 }
-            ])) as any;
+            ]);
             generationOptions.convertCaseFile = namingConventions.fileCase;
             generationOptions.convertCaseProperty =
                 namingConventions.propertyCase;
             generationOptions.convertCaseEntity = namingConventions.entityCase;
         }
     }
-    const { saveConfig } = (await inquirer.prompt([
+    const { saveConfig } = await inquirer.prompt([
         {
             default: false,
             message: "Save configuration to config file?",
             name: "saveConfig",
             type: "confirm"
         }
-    ])) as any;
+    ]);
     if (saveConfig) {
         await fs.writeJson(
             path.resolve(process.cwd(), ".tomg-config"),

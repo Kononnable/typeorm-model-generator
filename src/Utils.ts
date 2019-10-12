@@ -4,16 +4,14 @@ import { Entity } from "./models/Entity";
 export function LogError(
     errText: string,
     isABug: boolean = true,
-    passedError?: any
+    passedError?: string | ErrorConstructor
 ) {
     let errObject = passedError;
     console.error(errText);
     console.error(`Error occured in typeorm-model-generator.`);
     console.error(`${packageVersion()}  node@${process.version}`);
     console.error(
-        `If you think this is a bug please open an issue including this log on ${
-            (packagejson as any).bugs.url
-        }`
+        `If you think this is a bug please open an issue including this log on ${packagejson.bugs.url}`
     );
     if (isABug && !passedError) {
         errObject = new Error().stack;
@@ -23,7 +21,7 @@ export function LogError(
     }
 }
 export function packageVersion() {
-    return `${(packagejson as any).name}@${(packagejson as any).version}`;
+    return `${packagejson.name}@${packagejson.version}`;
 }
 export function findNameForNewField(
     _fieldName: string,

@@ -1,7 +1,7 @@
 import { ColumnType } from "typeorm";
 
 export type Column = {
-    tscType: any;
+    tscType: string;
     tscName: string;
     type: ColumnType | string; // todo: remove ?
 

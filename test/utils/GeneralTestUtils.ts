@@ -301,7 +301,7 @@ export function compileTsFiles(
 ): boolean {
     const program = ts.createProgram(fileNames, options);
     const emitResult = program.emit();
-    let compileErrors = false;
+    let compiledWithoutErrors = true;
     const preDiagnostics = ts.getPreEmitDiagnostics(program);
 
     const allDiagnostics = [...preDiagnostics, ...emitResult.diagnostics];
@@ -318,10 +318,10 @@ export function compileTsFiles(
             `${diagnostic.file!.fileName} (${lineAndCharacter.line +
                 1},${lineAndCharacter.character + 1}): ${message}`
         );
-        compileErrors = true;
+        compiledWithoutErrors = false;
     });
 
-    return compileErrors;
+    return compiledWithoutErrors;
 }
 
 export function getEnabledDbDrivers() {

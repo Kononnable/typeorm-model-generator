@@ -456,21 +456,19 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     public async CreateDB(dbName: string) {
-        await this.ExecQuery<any>(`CREATE DATABASE ${dbName}; `);
+        await this.ExecQuery(`CREATE DATABASE ${dbName}; `);
     }
 
     public async UseDB(dbName: string) {
-        await this.ExecQuery<any>(`USE ${dbName}; `);
+        await this.ExecQuery(`USE ${dbName}; `);
     }
 
     public async DropDB(dbName: string) {
-        await this.ExecQuery<any>(`DROP DATABASE ${dbName}; `);
+        await this.ExecQuery(`DROP DATABASE ${dbName}; `);
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
-        const resp = await this.ExecQuery<any>(
-            `SHOW DATABASES LIKE '${dbName}' `
-        );
+        const resp = await this.ExecQuery(`SHOW DATABASES LIKE '${dbName}' `);
         return resp.length > 0;
     }
 
@@ -480,7 +478,7 @@ export default class MysqlDriver extends AbstractDriver {
         const stream = query.stream({});
         const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", chunk => {
-                ret.push((chunk as any) as T);
+                ret.push((chunk as unknown) as T);
             });
             stream.on("error", err => reject(err));
             stream.on("end", () => resolve(true));

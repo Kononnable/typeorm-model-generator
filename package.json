@@ -8,7 +8,7 @@
     "build": "npm run clean && tsc && ncp src/entity.mst dist/src/entity.mst",
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
-    "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- -R spec --bail",
+    "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- --bail",
     "posttest": "eslint ./**/*.ts ./src/**/*.ts  ./test/**/*.ts",
     "clean": "rimraf coverage output dist",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"

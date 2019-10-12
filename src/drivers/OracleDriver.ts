@@ -86,7 +86,7 @@ export default class OracleDriver extends AbstractDriver {
                                   resp.DATA_DEFAULT
                               );
                     const DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
-                    const columnType = DATA_TYPE.toLowerCase() as any;
+                    const columnType = DATA_TYPE.toLowerCase();
                     let tscType = "";
                     switch (DATA_TYPE.toLowerCase()) {
                         case "char":
@@ -332,22 +332,22 @@ export default class OracleDriver extends AbstractDriver {
         }
     }
 
-    public async ConnectToServer(connectionOptons: IConnectionOptions) {
+    public async ConnectToServer(connectionOptions: IConnectionOptions) {
         let config: any;
-        if (connectionOptons.user === String(process.env.ORACLE_UsernameSys)) {
+        if (connectionOptions.user === String(process.env.ORACLE_UsernameSys)) {
             config /* Oracle.IConnectionAttributes */ = {
-                connectString: `${connectionOptons.host}:${connectionOptons.port}/${connectionOptons.databaseName}`,
-                externalAuth: connectionOptons.ssl,
-                password: connectionOptons.password,
+                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseName}`,
+                externalAuth: connectionOptions.ssl,
+                password: connectionOptions.password,
                 privilege: this.Oracle.SYSDBA,
-                user: connectionOptons.user
+                user: connectionOptions.user
             };
         } else {
             config /* Oracle.IConnectionAttributes */ = {
-                connectString: `${connectionOptons.host}:${connectionOptons.port}/${connectionOptons.databaseName}`,
-                externalAuth: connectionOptons.ssl,
-                password: connectionOptons.password,
-                user: connectionOptons.user
+                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseName}`,
+                externalAuth: connectionOptions.ssl,
+                password: connectionOptions.password,
+                user: connectionOptions.user
             };
         }
         const that = this;

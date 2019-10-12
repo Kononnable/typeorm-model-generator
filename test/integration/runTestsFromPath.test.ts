@@ -22,27 +22,19 @@ require("dotenv").config();
 
 chai.use(chaiSubset);
 
-it("Column default values", async function() {
+it("Column default values", async () => {
     const testPartialPath = "test/integration/defaultValues";
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
     await runTestsFromPath(testPartialPath, true);
-});
-it("Platform specyfic types", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+}).timeout();
+it("Platform specyfic types", async () => {
     const testPartialPath = "test/integration/entityTypes";
     await runTestsFromPath(testPartialPath, true);
 });
-describe("GitHub issues", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+describe("GitHub issues", async () => {
     const testPartialPath = "test/integration/github-issues";
     await runTestsFromPath(testPartialPath, false);
 });
-describe("TypeOrm examples", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+describe("TypeOrm examples", async () => {
     const testPartialPath = "test/integration/examples";
     await runTestsFromPath(testPartialPath, false);
 });
@@ -77,7 +69,7 @@ function runTestForMultipleDrivers(
     dbDrivers: string[],
     testPartialPath: string
 ) {
-    it(testName, async function() {
+    it(testName, async () => {
         const driversToRun = selectDriversForSpecyficTest();
         const modelGenerationPromises = driversToRun.map(async dbDriver => {
             const {
@@ -228,7 +220,7 @@ function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
             );
         }
     });
-    const compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
+    const compiledWithoutErrors = GTU.compileTsFiles(currentDirectoryFiles, {
         experimentalDecorators: true,
         sourceMap: false,
         emitDecoratorMetadata: true,
@@ -236,8 +228,10 @@ function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
         moduleResolution: ts.ModuleResolutionKind.NodeJs,
         module: ts.ModuleKind.CommonJS
     });
-    expect(compileErrors, "Errors detected while compiling generated model").to
-        .be.false;
+    expect(
+        compiledWithoutErrors,
+        "Errors detected while compiling generated model"
+    ).to.equal(true);
 }
 
 async function prepareTestRuns(

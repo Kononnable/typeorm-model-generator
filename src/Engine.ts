@@ -162,7 +162,7 @@ function removeColumnDefaultProperties(
     }
     dbModel.forEach(entity => {
         entity.columns.forEach(column => {
-            const defVal = defaultValues[column.tscType as any];
+            const defVal = defaultValues[column.tscType];
             if (defVal) {
                 if (
                     column.options.length &&

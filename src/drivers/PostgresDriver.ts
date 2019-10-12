@@ -114,7 +114,7 @@ export default class PostgresDriver extends AbstractDriver {
                         }
                         return;
                     }
-                    const columnType = columnTypes.sqlType as any;
+                    const columnType = columnTypes.sqlType;
                     let tscType = columnTypes.tsType;
                     if (columnTypes.isArray) options.array = true;
                     if (columnTypes.enumValues.length > 0)
@@ -123,7 +123,7 @@ export default class PostgresDriver extends AbstractDriver {
                         tscType = tscType
                             .split("|")
                             .map(x => `${x.replace("|", "").trim()}[]`)
-                            .join(" | ") as any;
+                            .join(" | ");
                     }
 
                     if (

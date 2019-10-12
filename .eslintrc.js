@@ -40,14 +40,5 @@ module.exports = {
         extensions: [".js", ".jsx", ".ts", ".tsx"]
       }
     }
-  },
-  overrides: [
-    {
-      files: ["**/*.test.ts"],
-      rules: {
-        "no-unused-expressions": "off",
-        "func-names": "off"
-      }
-    }
-  ]
+  }
 };

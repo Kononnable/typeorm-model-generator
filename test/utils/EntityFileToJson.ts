@@ -6,7 +6,7 @@ class EntityJson {
 
     public columns: EntityColumn[] = [] as EntityColumn[];
 
-    public indicies: EntityIndex[] = [] as EntityIndex[];
+    public indices: EntityIndex[] = [] as EntityIndex[];
 }
 class EntityColumn {
     public columnName: string;
@@ -15,12 +15,7 @@ class EntityColumn {
 
     public columnOptions: any = {};
 
-    public relationType:
-        | "OneToOne"
-        | "OneToMany"
-        | "ManyToOne"
-        | "ManyToMany"
-        | "None" = "None";
+    public relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
 
     public isOwnerOfRelation: boolean = false;
 }
@@ -283,7 +278,7 @@ export default class EntityFileToJson {
                         isMultilineStatement = false;
                         const ind = new EntityIndex();
                         EntityFileToJson.getIndexOptions(trimmedLine, ind);
-                        retVal.indicies.push(ind);
+                        retVal.indices.push(ind);
                     }
                     return;
                 }
@@ -424,7 +419,7 @@ export default class EntityFileToJson {
                     isMultilineStatement = false;
                     const ind = new EntityIndex();
                     EntityFileToJson.getIndexOptions(trimmedLine, ind);
-                    retVal.indicies.push(ind);
+                    retVal.indices.push(ind);
                 }
                 return;
             }
@@ -472,13 +467,11 @@ export default class EntityFileToJson {
                     );
                 }
                 if (
-                    retVal.indicies.length > 0 &&
-                    retVal.indicies[retVal.indicies.length - 1].columnNames
+                    retVal.indices.length > 0 &&
+                    retVal.indices[retVal.indices.length - 1].columnNames
                         .length === 0
                 ) {
-                    retVal.indicies[
-                        retVal.indicies.length - 1
-                    ].columnNames.push(
+                    retVal.indices[retVal.indices.length - 1].columnNames.push(
                         retVal.columns[retVal.columns.length - 1].columnName
                     );
                 }
@@ -494,7 +487,7 @@ export default class EntityFileToJson {
             console.log(`${trimmedLine}`);
         });
 
-        retVal.indicies = retVal.indicies.map(ind => {
+        retVal.indices = retVal.indices.map(ind => {
             ind.columnNames = ind.columnNames.map(colName => {
                 if (colName.endsWith("Id")) {
                     colName = colName.substr(0, colName.length - 2);
