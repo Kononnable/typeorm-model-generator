@@ -148,8 +148,7 @@ export function modelCustomizationPhase(
     } else {
         namingStrategy = new NamingStrategy();
     }
-    let retVal = setRelationId(generationOptions, dbModel);
-    retVal = applyNamingStrategy(namingStrategy, retVal);
+    let retVal = applyNamingStrategy(namingStrategy, dbModel);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
@@ -216,19 +215,6 @@ function addImportsAndGenerationOptions(
     return dbModel;
 }
 
-function setRelationId(generationOptions: IGenerationOptions, model: Entity[]) {
-    // TODO:
-    // if (generationOptions.relationIds) {
-    //     model.forEach(ent => {
-    //         ent.columns.forEach(col => {
-    //             col.relations.forEach(rel => {
-    //                 rel.relationIdField = rel.isOwner;
-    //             });
-    //         });
-    //     });
-    // }
-    return model;
-}
 export function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
@@ -478,7 +464,6 @@ function applyNamingStrategy(
     return retval;
 
     function changeRelationIdNames(model: Entity[]) {
-        // TODO:
         model.forEach(entity => {
             entity.relationIds.forEach(relationId => {
                 const oldName = relationId.fieldName;

@@ -2,10 +2,7 @@ import { expect } from "chai";
 import * as MSSQL from "mssql";
 import * as Sinon from "sinon";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
-import EntityInfo from "../../src/oldModels/EntityInfo";
-import ColumnInfo from "../../src/oldModels/ColumnInfo";
-import IndexInfo from "../../src/oldModels/IndexInfo";
-import RelationInfo from "../../src/oldModels/RelationInfo";
+import { Entity } from "../../src/models/Entity";
 
 interface FakeResponse extends MSSQL.IResult<any> {
     recordsets: MSSQL.IRecordSet<any>[];
@@ -26,8 +23,7 @@ class FakeRecordset extends Array<any> implements MSSQL.IRecordSet<any> {
     }
 }
 
-// TODO: Remove
-describe.skip("MssqlDriver", function() {
+describe("MssqlDriver", function() {
     let driver: MssqlDriver;
     const sandbox = Sinon.sandbox.create();
 
@@ -52,14 +48,18 @@ describe.skip("MssqlDriver", function() {
             }
         });
         const result = await driver.GetAllTables("schema", "db");
-        const expectedResult = [] as EntityInfo[];
-        const y = new EntityInfo();
-        y.tsEntityName = "name";
-        y.sqlEntityName = "name";
-        y.Schema = "schema";
-        y.Columns = [] as ColumnInfo[];
-        y.Indexes = [] as IndexInfo[];
-        y.Database = "";
+        const expectedResult = [] as Entity[];
+        const y: Entity = {
+            columns: [],
+            indices: [],
+            relationIds: [],
+            relations: [],
+            sqlName: "name",
+            tscName: "name",
+            schema: "schema",
+            database: "",
+            fileImports: []
+        };
         expectedResult.push(y);
         expect(result).to.be.deep.equal(expectedResult);
     });
@@ -83,36 +83,38 @@ describe.skip("MssqlDriver", function() {
             }
         });
 
-        const entities = [] as EntityInfo[];
-        const y = new EntityInfo();
-        y.tsEntityName = "name";
-        y.Columns = [] as ColumnInfo[];
-        y.Indexes = [] as IndexInfo[];
-        y.Database = "";
+        const entities = [] as Entity[];
+        const y: Entity = {
+            columns: [],
+            indices: [],
+            relationIds: [],
+            relations: [],
+            sqlName: "name",
+            tscName: "name",
+            schema: "schema",
+            database: "",
+            fileImports: []
+        };
         entities.push(y);
-        const expected: EntityInfo[] = JSON.parse(JSON.stringify(entities));
-        expected[0].Columns.push({
+        const expected: Entity[] = JSON.parse(JSON.stringify(entities));
+        expected[0].columns.push({
             options: {
-                default: `() => "'a'"`,
                 nullable: true,
-                generated: true,
-                name: "name",
-                unique: false,
-                type: "int"
+                name: "name"
             },
-            tsName: "name",
-            tsType: "number",
-            relations: [] as RelationInfo[]
+            type: "int",
+            generated: true,
+            default: `() => "'a'"`,
+            tscName: "name",
+            tscType: "number"
         });
 
-        throw new Error();
-        // TODO: Remove
-        // const result = await driver.GetCoulmnsFromEntity(
-        //     entities,
-        //     "schema",
-        //     "db"
-        // );
-        // expect(result).to.be.deep.equal(expected);
+        const result = await driver.GetCoulmnsFromEntity(
+            entities,
+            "schema",
+            "db"
+        );
+        expect(result).to.be.deep.equal(expected);
     });
     it("should find primary indexes");
     it("should get indexes info");

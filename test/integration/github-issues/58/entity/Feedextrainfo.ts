@@ -10,14 +10,14 @@ import {
     JoinColumn,
     JoinTable
 } from "typeorm";
-import { users } from "./users";
-import { quests } from "./quests";
+import { Users } from "./Users";
+import { Quests } from "./Quests";
 
 @Entity("feedextrainfo")
 @Index("feedExtraInfo_FeedOwnerId_idx", ["feedOwnerId"], { unique: true })
 @Index("feedExtraInfo_ReaderId_idx", ["readerId"], { unique: true })
 @Index("feedExtraInfo_QuestId_idx", ["questId"], { unique: true })
-export class feedextrainfo {
+export class Feedextrainfo {
     @PrimaryColumn({ name: "FeedOwnerId" })
     feedOwnerId: number;
 
@@ -27,17 +27,17 @@ export class feedextrainfo {
     @PrimaryColumn({ name: "ReaderId" })
     readerId: number;
 
-    @OneToOne(type => users, FeedOwnerId => FeedOwnerId.feedextrainfo)
+    @OneToOne(type => Users, FeedOwnerId => FeedOwnerId.feedextrainfo)
     @JoinColumn({ name: "FeedOwnerId" })
-    feedOwner: users;
+    feedOwner: Users;
 
-    @OneToOne(type => quests, QuestId => QuestId.feedextrainfo)
+    @OneToOne(type => Quests, QuestId => QuestId.feedextrainfo)
     @JoinColumn({ name: "QuestId" })
-    quest: quests;
+    quest: Quests;
 
-    @OneToOne(type => users, ReaderId => ReaderId.feedextrainfo2)
+    @OneToOne(type => Users, ReaderId => ReaderId.feedextrainfo2)
     @JoinColumn({ name: "ReaderId" })
-    reader: users;
+    reader: Users;
 
     @Column("int", {
         name: "MostUpdatedFeedEntryIdUserRead"

@@ -315,7 +315,6 @@ export default abstract class AbstractDriver {
             );
             isOneToMany = !index;
 
-            // TODO: RelationId
             ownerEntity.columns = ownerEntity.columns.filter(
                 v =>
                     !relationTmp.ownerColumns.some(u => u === v.tscName) ||
@@ -367,7 +366,6 @@ export default abstract class AbstractDriver {
                 fieldName: ownerRelation.relatedField,
                 relatedField: ownerRelation.fieldName,
                 relatedTable: relationTmp.ownerTable.tscName,
-                // relationOptions: ownerRelation.relationOptions,
                 relationType: isOneToMany ? "OneToMany" : "OneToOne"
             };
 
