@@ -10,6 +10,7 @@ import OracleDriver from "./drivers/OracleDriver";
 import SqliteDriver from "./drivers/SqliteDriver";
 import modelCustomizationPhase from "./ModelCustomization";
 import modelGenerationPhase from "./ModelGeneration";
+import { Entity } from "./models/Entity";
 
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
@@ -35,7 +36,7 @@ export async function createModelFromDatabase(
     driver: AbstractDriver,
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
-) {
+): Promise<void> {
     let dbModel = await dataCollectionPhase(
         driver,
         connectionOptions,
@@ -59,6 +60,6 @@ export async function dataCollectionPhase(
     driver: AbstractDriver,
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions
-) {
+): Promise<Entity[]> {
     return driver.GetDataFromServer(connectionOptions, generationOptions);
 }

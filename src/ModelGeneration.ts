@@ -12,7 +12,7 @@ export default function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
     databaseModel: Entity[]
-) {
+): void {
     createHandlebarsHelpers(generationOptions);
     const templatePath = path.resolve(__dirname, "templates", "entity.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
@@ -63,7 +63,7 @@ export default function modelGenerationPhase(
     });
 }
 
-function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
+function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
     Handlebars.registerHelper("json", context => {
         const json = JSON.stringify(context);
         const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
@@ -158,7 +158,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions) {
     });
 }
 
-function createTsConfigFile(outputPath: string) {
+function createTsConfigFile(outputPath: string): void {
     const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const compliedTemplate = Handlebars.compile(template, {
@@ -175,7 +175,7 @@ function createTsConfigFile(outputPath: string) {
 function createTypeOrmConfig(
     outputPath: string,
     connectionOptions: IConnectionOptions
-) {
+): void {
     const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const compliedTemplate = Handlebars.compile(template, {

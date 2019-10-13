@@ -9,7 +9,7 @@ export default function modelCustomizationPhase(
     dbModel: Entity[],
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
-) {
+): Entity[] {
     let namingStrategy: AbstractNamingStrategy;
     if (
         generationOptions.customNamingStrategyPath &&
@@ -29,7 +29,7 @@ export default function modelCustomizationPhase(
 function removeColumnDefaultProperties(
     dbModel: Entity[],
     defaultValues: DataTypeDefaults
-) {
+): Entity[] {
     if (!defaultValues) {
         return dbModel;
     }
@@ -70,7 +70,7 @@ function removeColumnDefaultProperties(
 function addImportsAndGenerationOptions(
     dbModel: Entity[],
     generationOptions: IGenerationOptions
-) {
+): Entity[] {
     dbModel.forEach(entity => {
         entity.relations.forEach(relation => {
             if (generationOptions.lazy) {
@@ -91,14 +91,14 @@ function addImportsAndGenerationOptions(
 function applyNamingStrategy(
     namingStrategy: AbstractNamingStrategy,
     dbModel: Entity[]
-) {
+): Entity[] {
     let retVal = changeRelationNames(dbModel);
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
     return retVal;
 
-    function changeRelationIdNames(model: Entity[]) {
+    function changeRelationIdNames(model: Entity[]): Entity[] {
         model.forEach(entity => {
             entity.relationIds.forEach(relationId => {
                 const oldName = relationId.fieldName;
@@ -127,7 +127,7 @@ function applyNamingStrategy(
         return dbModel;
     }
 
-    function changeRelationNames(model: Entity[]) {
+    function changeRelationNames(model: Entity[]): Entity[] {
         model.forEach(entity => {
             entity.relations.forEach(relation => {
                 const oldName = relation.fieldName;
@@ -166,7 +166,7 @@ function applyNamingStrategy(
         return dbModel;
     }
 
-    function changeColumnNames(model: Entity[]) {
+    function changeColumnNames(model: Entity[]): Entity[] {
         model.forEach(entity => {
             entity.columns.forEach(column => {
                 const oldName = column.tscName;
@@ -187,7 +187,7 @@ function applyNamingStrategy(
         });
         return model;
     }
-    function changeEntityNames(entities: Entity[]) {
+    function changeEntityNames(entities: Entity[]): Entity[] {
         entities.forEach(entity => {
             const newName = namingStrategy.entityName(entity.tscName, entity);
             entities.forEach(entity2 => {

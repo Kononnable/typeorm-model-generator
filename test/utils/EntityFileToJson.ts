@@ -2,7 +2,7 @@
 class EntityJson {
     public entityName: string;
 
-    public entityOptions: any = {};
+    public entityOptions: { [key: string]: string | boolean } = {};
 
     public columns: EntityColumn[] = [] as EntityColumn[];
 
@@ -13,7 +13,7 @@ class EntityColumn {
 
     public columnTypes: string[] = [];
 
-    public columnOptions: any = {};
+    public columnOptions: { [key: string]: string | boolean } = {};
 
     public relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
 
@@ -28,7 +28,7 @@ class EntityIndex {
 }
 
 export default class EntityFileToJson {
-    public static getEntityOptions(trimmedLine: string, ent: EntityJson) {
+    public static getEntityOptions(trimmedLine: string, ent: EntityJson): void {
         const decoratorParameters = trimmedLine.slice(
             trimmedLine.indexOf("(") + 1,
             trimmedLine.lastIndexOf(")")
@@ -57,7 +57,7 @@ export default class EntityFileToJson {
     public static getColumnOptionsAndType(
         trimmedLine: string,
         col: EntityColumn
-    ) {
+    ): void {
         const decoratorParameters = trimmedLine.slice(
             trimmedLine.indexOf("(") + 1,
             trimmedLine.lastIndexOf(")")
@@ -100,8 +100,8 @@ export default class EntityFileToJson {
             } else {
                 let badJSON = !primaryGeneratedColumn
                     ? decoratorParameters.substring(
-                          decoratorParameters.indexOf(",") + 1
-                      )
+                        decoratorParameters.indexOf(",") + 1
+                    )
                     : decoratorParameters;
                 badJSON = badJSON.trim();
                 if (badJSON.lastIndexOf(",") === badJSON.length - 3) {
@@ -117,7 +117,10 @@ export default class EntityFileToJson {
         }
     }
 
-    public static getRelationOptions(trimmedLine: string, col: EntityColumn) {
+    public static getRelationOptions(
+        trimmedLine: string,
+        col: EntityColumn
+    ): void {
         const decoratorParameters = trimmedLine.slice(
             trimmedLine.indexOf("(") + 1,
             trimmedLine.lastIndexOf(")")
@@ -146,7 +149,7 @@ export default class EntityFileToJson {
         }
     }
 
-    public static getIndexOptions(trimmedLine: string, ind: EntityIndex) {
+    public static getIndexOptions(trimmedLine: string, ind: EntityIndex): void {
         const decoratorParameters = trimmedLine.slice(
             trimmedLine.indexOf("(") + 1,
             trimmedLine.lastIndexOf(")")
@@ -499,7 +502,7 @@ export default class EntityFileToJson {
         return retVal;
     }
 
-    public static isPartOfMultilineStatement(statement: string) {
+    public static isPartOfMultilineStatement(statement: string): boolean {
         const matchStarting =
             statement.split("(").length + statement.split("{").length;
         const matchEnding =

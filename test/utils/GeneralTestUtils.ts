@@ -324,7 +324,7 @@ export function compileTsFiles(
     return compiledWithoutErrors;
 }
 
-export function getEnabledDbDrivers() {
+export function getEnabledDbDrivers():string[] {
     const dbDrivers: string[] = [];
     if (process.env.SQLITE_Skip === "0") {
         dbDrivers.push("sqlite");

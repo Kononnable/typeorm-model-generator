@@ -5,10 +5,10 @@ export function LogError(
     errText: string,
     isABug = true,
     passedError?: string | ErrorConstructor
-) {
+): void {
     let errObject = passedError;
     console.error(errText);
-    console.error(`Error occured in typeorm-model-generator.`);
+    console.error(`Error occurred in typeorm-model-generator.`);
     console.error(`${packageVersion()}  node@${process.version}`);
     console.error(
         `If you think this is a bug please open an issue including this log on ${packagejson.bugs.url}`
@@ -20,14 +20,14 @@ export function LogError(
         console.error(errObject);
     }
 }
-export function packageVersion() {
+export function packageVersion(): string {
     return `${packagejson.name}@${packagejson.version}`;
 }
 export function findNameForNewField(
     _fieldName: string,
     entity: Entity,
     columnOldName = ""
-) {
+): string {
     let fieldName = _fieldName;
     const validNameCondition = () =>
         (entity.columns.every(
