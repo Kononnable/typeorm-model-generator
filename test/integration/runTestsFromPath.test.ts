@@ -1,32 +1,28 @@
 import "reflect-metadata";
-import { expect } from "chai";
+import * as chai from "chai";
 import * as ts from "typescript";
+import * as fs from "fs-extra";
+import * as path from "path";
+import * as chaiSubset from "chai-subset";
+import yn from "yn";
 import EntityFileToJson from "../utils/EntityFileToJson";
-import {
-    createDriver,
-    dataCollectionPhase,
-    modelCustomizationPhase,
-    modelGenerationPhase
-} from "../../src/Engine";
+import { createDriver, dataCollectionPhase } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
 import { Entity } from "../../src/models/Entity";
 import IConnectionOptions from "../../src/IConnectionOptions";
-
-import fs = require("fs-extra");
-import path = require("path");
-import chaiSubset = require("chai-subset");
-import chai = require("chai");
-import yn = require("yn");
+import modelCustomizationPhase from "../../src/ModelCustomization";
+import modelGenerationPhase from "../../src/ModelGeneration";
 
 require("dotenv").config();
 
 chai.use(chaiSubset);
+const { expect } = chai;
 
 it("Column default values", async () => {
     const testPartialPath = "test/integration/defaultValues";
     await runTestsFromPath(testPartialPath, true);
 }).timeout();
-it("Platform specyfic types", async () => {
+it("Platform specific types", async () => {
     const testPartialPath = "test/integration/entityTypes";
     await runTestsFromPath(testPartialPath, true);
 });
@@ -70,7 +66,7 @@ function runTestForMultipleDrivers(
     testPartialPath: string
 ) {
     it(testName, async () => {
-        const driversToRun = selectDriversForSpecyficTest();
+        const driversToRun = selectDriversForSpecificTest();
         const modelGenerationPromises = driversToRun.map(async dbDriver => {
             const {
                 generationOptions,
@@ -120,7 +116,7 @@ function runTestForMultipleDrivers(
         compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
     });
 
-    function selectDriversForSpecyficTest() {
+    function selectDriversForSpecificTest() {
         switch (testName) {
             case "39":
                 return dbDrivers.filter(
@@ -187,7 +183,7 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     const filesGen = fs
         .readdirSync(filesGenPath)
         .filter(val => val.toString().endsWith(".ts"));
-    expect(filesOrg, "Errors detected in model comparision").to.be.deep.equal(
+    expect(filesOrg, "Errors detected in model comparison").to.be.deep.equal(
         filesGen
     );
     filesOrg.forEach(file => {
@@ -275,7 +271,7 @@ async function prepareTestRuns(
                         password: String(process.env.MYSQL_Password),
                         databaseType: "mysql",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MYSQL_SSL)
+                        ssl: yn(process.env.MYSQL_SSL, { default: false })
                     };
                     break;
                 case "mariadb":
@@ -287,7 +283,7 @@ async function prepareTestRuns(
                         password: String(process.env.MARIADB_Password),
                         databaseType: "mariadb",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MARIADB_SSL)
+                        ssl: yn(process.env.MARIADB_SSL, { default: false })
                     };
                     break;
 

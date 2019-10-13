@@ -350,11 +350,10 @@ export default class OracleDriver extends AbstractDriver {
                 user: connectionOptions.user
             };
         }
-        const that = this;
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Oracle.getConnection(config, (err, connection) => {
                 if (!err) {
-                    that.Connection = connection;
+                    this.Connection = connection;
                     resolve(true);
                 } else {
                     TomgUtils.LogError(

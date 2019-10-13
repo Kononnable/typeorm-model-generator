@@ -3,7 +3,7 @@ import { Entity } from "./models/Entity";
 
 export function LogError(
     errText: string,
-    isABug: boolean = true,
+    isABug = true,
     passedError?: string | ErrorConstructor
 ) {
     let errObject = passedError;

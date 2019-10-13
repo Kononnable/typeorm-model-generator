@@ -17,14 +17,14 @@ class EntityColumn {
 
     public relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
 
-    public isOwnerOfRelation: boolean = false;
+    public isOwnerOfRelation = false;
 }
 class EntityIndex {
     public indexName: string;
 
     public columnNames: string[] = [];
 
-    public isUnique: boolean = false;
+    public isUnique = false;
 }
 
 export default class EntityFileToJson {

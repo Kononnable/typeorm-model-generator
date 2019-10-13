@@ -51,33 +51,38 @@ async function CliLogic() {
 
 function GetUtilParametersByArgs() {
     const { argv } = Yargs.usage(
-        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specyfiying any parameters."
-    )
-        .option("h", {
+        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specifying any parameters."
+    ).options({
+        h: {
             alias: "host",
+            string: true,
             default: "127.0.0.1",
             describe: "IP address/Hostname for database server"
-        })
-        .option("d", {
+        },
+        d: {
             alias: "database",
+            string: true,
             demand: true,
             describe:
                 "Database name(or path for sqlite). You can pass multiple values separated by comma."
-        })
-        .option("u", {
+        },
+        u: {
             alias: "user",
+            string: true,
             describe: "Username for database server"
-        })
-        .option("x", {
+        },
+        x: {
             alias: "pass",
+            string: true,
             default: "",
             describe: "Password for database server"
-        })
-        .option("p", {
+        },
+        p: {
+            number: true,
             alias: "port",
             describe: "Port number for database server"
-        })
-        .option("e", {
+        },
+        e: {
             alias: "engine",
             choices: [
                 "mssql",
@@ -89,94 +94,95 @@ function GetUtilParametersByArgs() {
             ],
             default: "mssql",
             describe: "Database engine"
-        })
-        .option("o", {
+        },
+        o: {
             alias: "output",
             default: path.resolve(process.cwd(), "output"),
             describe: "Where to place generated models"
-        })
-        .option("s", {
+        },
+        s: {
             alias: "schema",
+            string: true,
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3"
-        })
-        .option("ssl", {
+        },
+        ssl: {
             boolean: true,
             default: false
-        })
-        .option("noConfig", {
+        },
+        noConfig: {
             boolean: true,
             default: false,
             describe: `Doesn't create tsconfig.json and ormconfig.json`
-        })
-        .option("cf", {
+        },
+        cf: {
             alias: "case-file",
             choices: ["pascal", "param", "camel", "none"],
             default: "pascal",
             describe: "Convert file names to specified case"
-        })
-        .option("ce", {
+        },
+        ce: {
             alias: "case-entity",
             choices: ["pascal", "camel", "none"],
             default: "pascal",
             describe: "Convert class names to specified case"
-        })
-        .option("cp", {
+        },
+        cp: {
             alias: "case-property",
             choices: ["pascal", "camel", "none"],
             default: "camel",
             describe: "Convert property names to specified case"
-        })
-        .option("pv", {
+        },
+        pv: {
             alias: "property-visibility",
             choices: ["public", "protected", "private", "none"],
             default: "none",
             describe:
                 "Defines which visibility should have the generated property"
-        })
-        .option("lazy", {
+        },
+        lazy: {
             boolean: true,
             default: false,
             describe: "Generate lazy relations"
-        })
-        .option("a", {
+        },
+        a: {
             alias: "active-record",
             boolean: true,
             default: false,
             describe: "Use ActiveRecord syntax for generated models"
-        })
-        .option("namingStrategy", {
-            describe: "Use custom naming strategy"
-        })
-        .option("relationIds", {
+        },
+        namingStrategy: {
+            describe: "Use custom naming strategy",
+            string: true
+        },
+        relationIds: {
             boolean: true,
             default: false,
             describe: "Generate RelationId fields"
-        })
-        .option("skipSchema", {
+        },
+        skipSchema: {
             boolean: true,
             default: false,
             describe: "Omits schema identifier in generated entities"
-        })
-        .option("generateConstructor", {
+        },
+        generateConstructor: {
             boolean: true,
             default: false,
             describe: "Generate constructor allowing partial initialization"
-        })
-        .option("strictMode", {
+        },
+        strictMode: {
             choices: ["none", "?", "!"],
             default: "none",
             describe: "Mark fields as optional(?) or non-null(!)"
-        })
-        .option("timeout", {
+        },
+        timeout: {
             describe: "SQL Query timeout(ms)",
             number: true
-        });
+        }
+    });
 
     const driver = createDriver(argv.e);
-    const { standardPort } = driver;
-    const { standardSchema } = driver;
-    const standardUser = driver.standardPort;
+    const { standardPort, standardSchema, standardUser } = driver;
     let namingStrategyPath: string;
     if (argv.namingStrategy && argv.namingStrategy !== "") {
         namingStrategyPath = argv.namingStrategy;
@@ -184,11 +190,11 @@ function GetUtilParametersByArgs() {
         namingStrategyPath = "";
     }
     const connectionOptions: IConnectionOptions = new IConnectionOptions();
-    connectionOptions.databaseName = argv.d ? argv.d.toString() : null;
+    connectionOptions.databaseName = argv.d;
     connectionOptions.databaseType = argv.e;
     connectionOptions.host = argv.h;
-    connectionOptions.password = argv.x ? argv.x.toString() : null;
-    connectionOptions.port = parseInt(argv.p, 10) || standardPort;
+    connectionOptions.password = argv.x;
+    connectionOptions.port = argv.p || standardPort;
     connectionOptions.schemaName = argv.s ? argv.s.toString() : standardSchema;
     connectionOptions.ssl = argv.ssl;
     connectionOptions.timeout = argv.timeout;
@@ -196,18 +202,20 @@ function GetUtilParametersByArgs() {
     const generationOptions: IGenerationOptions = new IGenerationOptions();
     generationOptions.activeRecord = argv.a;
     generationOptions.generateConstructor = argv.generateConstructor;
-    generationOptions.convertCaseEntity = argv.ce;
-    generationOptions.convertCaseFile = argv.cf;
-    generationOptions.convertCaseProperty = argv.cp;
+    generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
+    generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
+    generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
     generationOptions.lazy = argv.lazy;
     generationOptions.customNamingStrategyPath = namingStrategyPath;
     generationOptions.noConfigs = argv.noConfig;
-    generationOptions.propertyVisibility = argv.pv;
+    generationOptions.propertyVisibility = argv.pv as IGenerationOptions["propertyVisibility"];
     generationOptions.relationIds = argv.relationIds;
     generationOptions.skipSchema = argv.skipSchema;
-    generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
+    generationOptions.resultsPath = argv.o;
     generationOptions.strictMode =
-        argv.strictMode === "none" ? false : argv.strictMode;
+        argv.strictMode === "none"
+            ? false
+            : (argv.strictMode as IGenerationOptions["strictMode"]);
 
     return { driver, connectionOptions, generationOptions };
 }

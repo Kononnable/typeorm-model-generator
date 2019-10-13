@@ -1,7 +1,7 @@
 export default class IGenerationOptions {
-    public resultsPath: string = "";
+    public resultsPath = "";
 
-    public noConfigs: boolean = false;
+    public noConfigs = false;
 
     public convertCaseFile: "pascal" | "param" | "camel" | "none" = "none";
 
@@ -12,17 +12,17 @@ export default class IGenerationOptions {
     public propertyVisibility: "public" | "protected" | "private" | "none" =
         "none";
 
-    public lazy: boolean = false;
+    public lazy = false;
 
-    public activeRecord: boolean = false;
+    public activeRecord = false;
 
-    public generateConstructor: boolean = false;
+    public generateConstructor = false;
 
-    public customNamingStrategyPath: string = "";
+    public customNamingStrategyPath = "";
 
-    public relationIds: boolean = false;
+    public relationIds = false;
 
     public strictMode: false | "?" | "!" = false;
 
-    public skipSchema: boolean = false;
+    public skipSchema = false;
 }

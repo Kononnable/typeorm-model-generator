@@ -1,19 +1,19 @@
 export default class IConnectionOptions {
-    public host: string = "";
+    public host = "";
 
-    public port: number = 0;
+    public port = 0;
 
-    public databaseName: string = "";
+    public databaseName = "";
 
-    public user: string = "";
+    public user = "";
 
-    public password: string = "";
+    public password = "";
 
-    public databaseType: string = "";
+    public databaseType = "";
 
-    public schemaName: string = "";
+    public schemaName = "";
 
-    public ssl: boolean = false;
+    public ssl = false;
 
     public timeout?: number;
 }
