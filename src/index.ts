@@ -243,7 +243,7 @@ async function GetUtilParametersByInquirer() {
             {
                 message: "Database port:",
                 name: "port",
-                type: "input",
+                type: "number",
                 default() {
                     return driver.standardPort;
                 },
