@@ -334,7 +334,7 @@ async function GetUtilParametersByInquirer() {
             const { timeout } = (await inquirer.prompt({
                 message: "Query timeout(ms):",
                 name: "timeout",
-                type: "input",
+                type: "number",
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid number";
