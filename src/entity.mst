@@ -12,8 +12,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
         type:"{{type}}", {{/generated}}{{^generated}} @Column("{{type}}",{ {{#nullable}}
         nullable:true,{{/nullable}}{{^nullable}}
         nullable:false,{{/nullable}}{{#primary}}
-        primary:{{primary}},{{/primary}}{{/generated}}{{#unique}}
-        unique: true,{{/unique}}{{#length}}
+        primary:{{primary}},{{/primary}}{{#unique}}
+        unique: true,{{/unique}}{{/generated}}{{#length}}
         length:{{.}},{{/length}}{{#width}}
         width:{{.}},{{/width}}{{#unsigned}}
         unsigned: true,{{/unsigned}}{{#default}}
