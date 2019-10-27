@@ -199,7 +199,7 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     });
 }
 
-function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
+export function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
     const currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
         const entitiesPath = path.resolve(filesGenPath, driver, "entities");

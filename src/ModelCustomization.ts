@@ -84,6 +84,12 @@ function addImportsAndGenerationOptions(
             entity.schema = undefined;
             entity.database = undefined;
         }
+        if (generationOptions.activeRecord) {
+            entity.activeRecord = true;
+        }
+        if (generationOptions.generateConstructor) {
+            entity.generateConstructor = true;
+        }
     });
     return dbModel;
 }
