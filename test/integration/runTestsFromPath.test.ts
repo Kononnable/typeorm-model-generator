@@ -199,6 +199,8 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     });
 }
 
+// TODO: Move(?)
+// eslint-disable-next-line import/prefer-default-export
 export function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
     const currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
