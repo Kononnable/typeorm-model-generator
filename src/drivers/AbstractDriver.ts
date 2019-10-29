@@ -424,6 +424,12 @@ export default abstract class AbstractDriver {
                 .forEach(col => {
                     // eslint-disable-next-line no-param-reassign
                     col.primary = true;
+                    if (
+                        primaryIndex!.columns.length === 1 &&
+                        col.options.unique
+                    ) {
+                        delete col.options.unique;
+                    }
                 });
             if (
                 !entity.columns.some(v => {
