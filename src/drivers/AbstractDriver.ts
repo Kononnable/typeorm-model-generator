@@ -367,6 +367,20 @@ export default abstract class AbstractDriver {
                     referencedRelation.ownerColumn = relatedColumn.tsName;
                     referencedRelation.relationType = "OneToOne";
                     referencedEntity.Columns.push(col);
+
+                    const idCol = new ColumnInfo();
+                    idCol.options = ownerColumn.options;
+                    idCol.tsType = ownerColumn.tsType;
+                    idCol.tsName = ownerColumn.options.name!;
+                    ownerEntity.Columns.splice(
+                        1 +
+                            ownerEntity.Columns.findIndex(
+                                (candidate: ColumnInfo) =>
+                                    candidate === ownerColumn
+                            ),
+                        0,
+                        idCol
+                    );
                 }
             }
         });
