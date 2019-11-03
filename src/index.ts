@@ -340,7 +340,7 @@ async function GetUtilParametersByInquirer() {
                     return valid || "Please enter a valid number";
                 }
             })) as any;
-            connectionOptions.timeout = timeout;
+            connectionOptions.timeout = parseInt(timeout, 10);
         }
     }
     const { customizeGeneration } = (await inquirer.prompt([
