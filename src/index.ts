@@ -243,7 +243,7 @@ async function GetUtilParametersByInquirer() {
             {
                 message: "Database port:",
                 name: "port",
-                type: "number",
+                type: "input",
                 default() {
                     return driver.standardPort;
                 },
@@ -293,7 +293,7 @@ async function GetUtilParametersByInquirer() {
                 }
             ])) as any).schema;
         }
-        connectionOptions.port = answ.port;
+        connectionOptions.port = parseInt(answ.port, 10);
         connectionOptions.host = answ.host;
         connectionOptions.user = answ.login;
         connectionOptions.password = answ.password;
