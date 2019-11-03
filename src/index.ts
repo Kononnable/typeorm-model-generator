@@ -334,13 +334,13 @@ async function GetUtilParametersByInquirer() {
             const { timeout } = (await inquirer.prompt({
                 message: "Query timeout(ms):",
                 name: "timeout",
-                type: "number",
+                type: "input",
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid number";
                 }
             })) as any;
-            connectionOptions.timeout = timeout;
+            connectionOptions.timeout = parseInt(timeout, 10);
         }
     }
     const { customizeGeneration } = (await inquirer.prompt([
