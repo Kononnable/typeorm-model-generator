@@ -55,12 +55,29 @@ export default function modelGenerationPhase(
             `${casedFileName}.ts`
         );
         const rendered = compliedTemplate(element);
-        const formatted = Prettier.format(rendered, { parser: "typescript" });
+        const withImportStatements = removeUnusedImports(rendered);
+        const formatted = Prettier.format(withImportStatements, {
+            parser: "typescript"
+        });
         fs.writeFileSync(resultFilePath, formatted, {
             encoding: "UTF-8",
             flag: "w"
         });
     });
+}
+function removeUnusedImports(rendered: string) {
+    const openBracketIndex = rendered.indexOf("{") + 1;
+    const closeBracketIndex = rendered.indexOf("}");
+    const imports = rendered
+        .substring(openBracketIndex, closeBracketIndex)
+        .split(",");
+    const restOfEntityDefinition = rendered.substring(closeBracketIndex);
+    const distinctImports = imports.filter(
+        v => restOfEntityDefinition.indexOf(v) !== -1
+    );
+    return `${rendered.substring(0, openBracketIndex)}${distinctImports.join(
+        ","
+    )}${restOfEntityDefinition}`;
 }
 
 function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
