@@ -88,6 +88,8 @@ export default abstract class AbstractDriver {
                 ) &&
                 entity.relations[0].relatedTable !==
                     entity.relations[1].relatedTable &&
+                entity.relations[0].joinColumnOptions!.length ===
+                    entity.relations[1].joinColumnOptions!.length &&
                 entity.columns.length ===
                     entity.columns.filter(c => c.primary).length &&
                 entity.columns
@@ -315,16 +317,12 @@ export default abstract class AbstractDriver {
             );
             isOneToMany = !index;
 
-            ownerEntity.columns = ownerEntity.columns.filter(
-                v =>
-                    !relationTmp.ownerColumns.some(u => u === v.tscName) ||
-                    v.primary
-            );
-            relationTmp.relatedTable.columns = relationTmp.relatedTable.columns.filter(
-                v =>
-                    !relationTmp.relatedColumns.some(u => u === v.tscName) ||
-                    v.primary
-            );
+            ownerColumns.forEach(column => {
+                column.isUsedInRelation = true;
+            });
+            relatedColumns.forEach(column => {
+                column.isUsedInRelation = true;
+            });
             let fieldName = "";
             if (ownerColumns.length === 1) {
                 fieldName = TomgUtils.findNameForNewField(

@@ -3,7 +3,8 @@ import { ColumnType } from "typeorm";
 export type Column = {
     tscType: string;
     tscName: string;
-    type: ColumnType | string; // todo: remove ?
+    type: ColumnType | string; // TODO: remove ?
+    isUsedInRelation: boolean; // TODO: move to separate object/calulate when us
 
     primary?: boolean;
     generated?: true | "increment" | "uuid";

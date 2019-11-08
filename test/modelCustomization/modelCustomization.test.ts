@@ -21,13 +21,15 @@ describe("Model customization phase", async () => {
                     options: { name: "id" },
                     tscName: "id",
                     tscType: "number",
-                    primary: true
+                    primary: true,
+                    isUsedInRelation: false
                 },
                 {
                     type: "character varying",
                     options: { name: "name" },
                     tscName: "name",
-                    tscType: "string"
+                    tscType: "string",
+                    isUsedInRelation: false
                 }
             ],
             indices: [
@@ -61,19 +63,22 @@ describe("Model customization phase", async () => {
                     options: { name: "id" },
                     tscName: "id",
                     tscType: "number",
-                    primary: true
+                    primary: true,
+                    isUsedInRelation: false
                 },
                 {
                     type: "character varying",
                     options: { name: "title" },
                     tscName: "title",
-                    tscType: "string"
+                    tscType: "string",
+                    isUsedInRelation: false
                 },
                 {
                     type: "character varying",
                     options: { name: "text" },
                     tscName: "text",
-                    tscType: "string"
+                    tscType: "string",
+                    isUsedInRelation: false
                 }
             ],
             indices: [

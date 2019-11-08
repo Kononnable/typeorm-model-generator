@@ -106,7 +106,8 @@ describe("MssqlDriver", () => {
             generated: true,
             default: `() => "'a'"`,
             tscName: "name",
-            tscType: "number"
+            tscType: "number",
+            isUsedInRelation: false
         });
 
         const result = await driver.GetCoulmnsFromEntity(

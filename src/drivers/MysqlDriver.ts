@@ -257,7 +257,8 @@ export default class MysqlDriver extends AbstractDriver {
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType
+                            tscType,
+                            isUsedInRelation: false
                         });
                     }
                 });

@@ -226,7 +226,8 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType
+                            tscType,
+                            isUsedInRelation: false
                         });
                     }
                 });

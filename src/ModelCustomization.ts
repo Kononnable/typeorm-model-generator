@@ -21,10 +21,19 @@ export default function modelCustomizationPhase(
     } else {
         namingStrategy = new NamingStrategy();
     }
-    let retVal = applyNamingStrategy(namingStrategy, dbModel);
+    let retVal = removeColumnsInRelation(dbModel);
+    retVal = applyNamingStrategy(namingStrategy, dbModel);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
+}
+function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
+    dbModel.forEach(entity => {
+        entity.columns = entity.columns.filter(
+            col => !col.isUsedInRelation || col.primary
+        );
+    });
+    return dbModel;
 }
 function removeColumnDefaultProperties(
     dbModel: Entity[],

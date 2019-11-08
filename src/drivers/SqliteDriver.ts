@@ -226,7 +226,8 @@ export default class SqliteDriver extends AbstractDriver {
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType
+                            tscType,
+                            isUsedInRelation: false
                         });
                     }
                 });
