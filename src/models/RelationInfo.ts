@@ -11,6 +11,10 @@ export default class RelationInfo {
 
     public ownerColumn: string;
 
+    public joinColumn?: string;
+
+    public inverseJoinColumn?: string;
+
     public actionOnDelete:
         | "RESTRICT"
         | "CASCADE"
