@@ -124,7 +124,6 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         return retStr;
     });
     Handlebars.registerHelper("printPropertyVisibility", () =>
-        // TODO:
         generationOptions.propertyVisibility !== "none"
             ? `${generationOptions.propertyVisibility} `
             : ""
@@ -160,7 +159,6 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         }
     );
     Handlebars.registerHelper("strictMode", () =>
-        // TODO:
         generationOptions.strictMode ? generationOptions.strictMode : ""
     );
     Handlebars.registerHelper({
