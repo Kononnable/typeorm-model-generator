@@ -301,7 +301,7 @@ async function GetUtilParametersByInquirer() {
                 }
             ])).schema;
         }
-        connectionOptions.port = answ.port;
+        connectionOptions.port = parseInt(answ.port, 10);
         connectionOptions.host = answ.host;
         connectionOptions.user = answ.login;
         connectionOptions.password = answ.password;
@@ -348,7 +348,7 @@ async function GetUtilParametersByInquirer() {
                     return valid || "Please enter a valid number";
                 }
             });
-            connectionOptions.timeout = timeout;
+            connectionOptions.timeout = parseInt(timeout, 10);
         }
     }
     const { customizeGeneration } = await inquirer.prompt([
