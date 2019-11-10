@@ -73,7 +73,9 @@ function removeUnusedImports(rendered: string) {
         .split(",");
     const restOfEntityDefinition = rendered.substring(closeBracketIndex);
     const distinctImports = imports.filter(
-        v => restOfEntityDefinition.indexOf(`@${v}(`) !== -1
+        v =>
+            restOfEntityDefinition.indexOf(`@${v}(`) !== -1 ||
+            (v === "BaseEntity" && restOfEntityDefinition.indexOf(v) !== -1)
     );
     return `${rendered.substring(0, openBracketIndex)}${distinctImports.join(
         ","

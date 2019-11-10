@@ -35,20 +35,24 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
     dbModel.forEach(entity => {
         entity.indices = entity.indices.filter(
             v =>
-                !v.name.startsWith(`sqlite_autoindex_`) &&
-                (v.name !== "PRIMARY" && v.primary)
+                !(
+                    v.name.startsWith(`sqlite_autoindex_`) ||
+                    (v.primary && v.name === "PRIMARY")
+                )
         );
         const primaryColumns = entity.columns
             .filter(v => v.primary)
             .map(v => v.tscName);
         entity.indices = entity.indices.filter(
             v =>
-                v.primary &&
-                v.name !==
-                    namingStrategy.primaryKeyName(
-                        entity.tscName,
-                        primaryColumns
-                    )
+                !(
+                    v.primary &&
+                    v.name !==
+                        namingStrategy.primaryKeyName(
+                            entity.tscName,
+                            primaryColumns
+                        )
+                )
         );
         entity.relations
             .filter(v => v.joinColumnOptions)
