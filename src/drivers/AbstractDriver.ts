@@ -90,7 +90,7 @@ export default abstract class AbstractDriver {
                 }).length === entity.Columns.length
         );
         manyToManyEntities.forEach(entity => {
-            let relations: RelationInfo[] = [];
+            const relations: RelationInfo[] = [];
             const joinColumnMap = new Map<string, string>();
 
             entity.Columns.forEach(column => {
