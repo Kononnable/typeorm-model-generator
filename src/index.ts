@@ -92,7 +92,7 @@ function GetUtilParametersByArgs() {
                 "oracle",
                 "sqlite"
             ],
-            default: "mssql",
+            demand: true,
             describe: "Database engine"
         },
         o: {
