@@ -42,6 +42,6 @@ export class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/acti
 }
 {{/inline}}
 import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
-{{#fileImports}}{{> Import}}{{/fileImports~}}
+{{#fileImports}}{{> Import}}{{/fileImports}}
 
-{{~> Entity}}
+{{> Entity}}

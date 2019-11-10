@@ -31,11 +31,24 @@ export default function modelCustomizationPhase(
 }
 function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
     // TODO: Support typeorm CustomNamingStrategy
-    // TODO: PK index - ignores primaryKeyName(typeorm bug?) - to investigate
     const namingStrategy = new DefaultNamingStrategy();
     dbModel.forEach(entity => {
         entity.indices = entity.indices.filter(
-            v => !v.name.startsWith(`sqlite_autoindex_`)
+            v =>
+                !v.name.startsWith(`sqlite_autoindex_`) &&
+                (v.name !== "PRIMARY" && v.primary)
+        );
+        const primaryColumns = entity.columns
+            .filter(v => v.primary)
+            .map(v => v.tscName);
+        entity.indices = entity.indices.filter(
+            v =>
+                v.primary &&
+                v.name !==
+                    namingStrategy.primaryKeyName(
+                        entity.tscName,
+                        primaryColumns
+                    )
         );
         entity.relations
             .filter(v => v.joinColumnOptions)
