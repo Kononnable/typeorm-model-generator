@@ -140,18 +140,18 @@ export default abstract class AbstractDriver {
                 joinColumns: junctionEntity.relations[0].joinColumnOptions!.map(
                     (v, i) => {
                         return {
-                            name: v.referencedColumnName,
-                            referencedColumnName: junctionEntity.relations[1]
-                                .joinColumnOptions![i].referencedColumnName
+                            referencedColumnName: v.referencedColumnName,
+                            name: junctionEntity.relations[0]
+                                .joinColumnOptions![i].name
                         };
                     }
                 ),
                 inverseJoinColumns: junctionEntity.relations[1].joinColumnOptions!.map(
                     (v, i) => {
                         return {
-                            name: v.referencedColumnName,
-                            referencedColumnName: junctionEntity.relations[0]
-                                .joinColumnOptions![i].referencedColumnName
+                            referencedColumnName: v.referencedColumnName,
+                            name: junctionEntity.relations[1]
+                                .joinColumnOptions![i].name
                         };
                     }
                 )
