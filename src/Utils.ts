@@ -1,3 +1,4 @@
+import * as changeCase from "change-case";
 import * as packagejson from "../package.json";
 import { Entity } from "./models/Entity";
 
@@ -31,16 +32,23 @@ export function findNameForNewField(
     let fieldName = _fieldName;
     const validNameCondition = () =>
         (entity.columns.every(
-            v => v.tscName.toLowerCase() !== fieldName.toLowerCase()
+            v =>
+                changeCase.camelCase(v.tscName) !==
+                changeCase.camelCase(fieldName)
         ) &&
             entity.relations.every(
-                v => v.fieldName.toLowerCase() !== fieldName.toLowerCase()
+                v =>
+                    changeCase.camelCase(v.fieldName) !==
+                    changeCase.camelCase(fieldName)
             ) &&
             entity.relationIds.every(
-                v => v.fieldName.toLowerCase() !== fieldName.toLowerCase()
+                v =>
+                    changeCase.camelCase(v.fieldName) !==
+                    changeCase.camelCase(fieldName)
             )) ||
         (columnOldName &&
-            columnOldName.toLowerCase() === fieldName.toLowerCase());
+            changeCase.camelCase(columnOldName) ===
+                changeCase.camelCase(fieldName));
     if (!validNameCondition()) {
         fieldName += "_";
         for (
