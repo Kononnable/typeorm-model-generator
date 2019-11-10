@@ -348,7 +348,7 @@ export default abstract class AbstractDriver {
                     relationTmp.relatedTable
                 ),
                 joinColumnOptions: relationTmp.ownerColumns.map((v, idx) => {
-                    const retVal: JoinColumnOptions = {
+                    const retVal: Required<JoinColumnOptions> = {
                         name: v,
                         referencedColumnName: relationTmp.relatedColumns[idx]
                     };

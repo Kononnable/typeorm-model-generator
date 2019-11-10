@@ -1,4 +1,5 @@
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+import { DefaultNamingStrategy } from "typeorm/naming-strategy/DefaultNamingStrategy";
 import { Entity } from "./models/Entity";
 import IGenerationOptions from "./IGenerationOptions";
 import AbstractNamingStrategy from "./AbstractNamingStrategy";
@@ -21,11 +22,39 @@ export default function modelCustomizationPhase(
     } else {
         namingStrategy = new NamingStrategy();
     }
-    let retVal = removeColumnsInRelation(dbModel);
+    let retVal = removeIndicesGeneratedByTypeorm(dbModel);
+    retVal = removeColumnsInRelation(dbModel);
     retVal = applyNamingStrategy(namingStrategy, dbModel);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
     return retVal;
+}
+function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
+    // TODO: Support typeorm CustomNamingStrategy
+    // TODO: PK index - ignores primaryKeyName(typeorm bug?) - to investigate
+    const namingStrategy = new DefaultNamingStrategy();
+    dbModel.forEach(entity => {
+        entity.indices = entity.indices.filter(
+            v => !v.name.startsWith(`sqlite_autoindex_`)
+        );
+        entity.relations
+            .filter(v => v.joinColumnOptions)
+            .forEach(rel => {
+                const columnNames = rel.joinColumnOptions!.map(v => v.name);
+                const idxName = namingStrategy.relationConstraintName(
+                    entity.tscName,
+                    columnNames
+                );
+                const fkName = namingStrategy.foreignKeyName(
+                    entity.tscName,
+                    columnNames
+                );
+                entity.indices = entity.indices.filter(
+                    v => v.name !== idxName && v.name !== fkName
+                );
+            });
+    });
+    return dbModel;
 }
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
     dbModel.forEach(entity => {
@@ -33,6 +62,9 @@ function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
             col =>
                 !col.isUsedInRelationAsOwner ||
                 col.isUsedInRelationAsReferenced ||
+                entity.indices.some(idx =>
+                    idx.columns.some(v => v === col.tscName)
+                ) ||
                 col.primary
         );
     });
