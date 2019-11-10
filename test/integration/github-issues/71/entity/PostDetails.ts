@@ -22,7 +22,7 @@ export class PostDetails {
     id: number;
 
     @OneToOne(type => Post, Post => Post.id, {
-        onDelete: "SET NULL"
+        // onDelete: "SET NULL"
         // onUpdate: "SET NULL"
     })
     @JoinColumn()

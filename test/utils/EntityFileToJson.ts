@@ -15,6 +15,8 @@ class EntityColumn {
 
     public columnOptions: { [key: string]: string | boolean } = {};
 
+    public joinOptions: { [key: string]: string | boolean }[] = [];
+
     public relationType: "OneToOne" | "OneToMany" | "ManyToOne" | "ManyToMany";
 
     public isOwnerOfRelation = false;
@@ -100,8 +102,8 @@ export default class EntityFileToJson {
             } else {
                 let badJSON = !primaryGeneratedColumn
                     ? decoratorParameters.substring(
-                        decoratorParameters.indexOf(",") + 1
-                    )
+                          decoratorParameters.indexOf(",") + 1
+                      )
                     : decoratorParameters;
                 badJSON = badJSON.trim();
                 if (badJSON.lastIndexOf(",") === badJSON.length - 3) {
@@ -400,6 +402,23 @@ export default class EntityFileToJson {
                     retVal.columns[
                         retVal.columns.length - 1
                     ].isOwnerOfRelation = true;
+                    const decoratorParameters = trimmedLine
+                        .substring(
+                            trimmedLine.indexOf("(") + 1,
+                            trimmedLine.indexOf(")")
+                        )
+                        .trim()
+                        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
+                    if (decoratorParameters.length > 0) {
+                        const column =
+                            retVal.columns[retVal.columns.length - 1];
+                        const options = JSON.parse(decoratorParameters);
+                        if (Array.isArray(options)) {
+                            column.joinOptions = options as any;
+                        } else {
+                            column.joinOptions = [options] as any;
+                        }
+                    }
                 }
                 return;
             }

@@ -22,7 +22,7 @@ export class PostAuthor {
     id: number;
 
     @OneToOne(type => Post, Post => Post.id, {
-        onDelete: "CASCADE"
+        // onDelete: "CASCADE"
         // onUpdate: "CASCADE"
     })
     @JoinColumn()
