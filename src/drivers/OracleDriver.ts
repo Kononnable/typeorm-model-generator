@@ -208,8 +208,7 @@ export default class OracleDriver extends AbstractDriver {
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType,
-                            isUsedInRelation: false
+                            tscType
                         });
                     }
                 });

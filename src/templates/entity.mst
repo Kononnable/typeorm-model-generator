@@ -11,7 +11,7 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 {{/inline}}
 {{#*inline "Relation"}}
 @{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
-{{#if joinColumnOptions}}@JoinColumn([{{json joinColumnOptions}}]){{/if}}
+{{#if joinColumnOptions}}@JoinColumn([{{#joinColumnOptions}}{ name: "{{name}}", referencedColumnName: "{{toPropertyName referencedColumnName}}" },{{/joinColumnOptions}}]){{/if}}
 {{#if joinTableOptions}}@JoinTable({ {{json joinTableOptions}} }){{/if}}
 {{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType}};
 

@@ -159,8 +159,7 @@ export default class PostgresDriver extends AbstractDriver {
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType,
-                            isUsedInRelation: false
+                            tscType
                         });
                     }
                 });

@@ -57,22 +57,22 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             IsIdentity: number;
             IsUnique: number;
         }[] = (await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
-           DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-           COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
-           (SELECT count(*)
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                    on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-            where
-                tc.CONSTRAINT_TYPE = 'UNIQUE'
-                and tc.TABLE_NAME = c.TABLE_NAME
-                and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-           FROM INFORMATION_SCHEMA.COLUMNS c
-           where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
+        DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
+        COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
+        (SELECT count(*)
+         FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+             inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+                 on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+         where
+             tc.CONSTRAINT_TYPE = 'UNIQUE'
+             and tc.TABLE_NAME = c.TABLE_NAME
+             and cu.COLUMN_NAME = c.COLUMN_NAME
+             and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
+        FROM INFORMATION_SCHEMA.COLUMNS c
+        where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
             dbNames
         )})
-                order by ordinal_position`)).recordset;
+             order by ordinal_position`)).recordset;
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
@@ -226,8 +226,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             default: defaultValue,
                             options,
                             tscName,
-                            tscType,
-                            isUsedInRelation: false
+                            tscType
                         });
                     }
                 });

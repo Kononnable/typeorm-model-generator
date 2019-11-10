@@ -318,10 +318,10 @@ export default abstract class AbstractDriver {
             isOneToMany = !index;
 
             ownerColumns.forEach(column => {
-                column.isUsedInRelation = true;
+                column.isUsedInRelationAsOwner = true;
             });
             relatedColumns.forEach(column => {
-                column.isUsedInRelation = true;
+                column.isUsedInRelationAsReferenced = true;
             });
             let fieldName = "";
             if (ownerColumns.length === 1) {

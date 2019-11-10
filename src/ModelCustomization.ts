@@ -30,7 +30,10 @@ export default function modelCustomizationPhase(
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
     dbModel.forEach(entity => {
         entity.columns = entity.columns.filter(
-            col => !col.isUsedInRelation || col.primary
+            col =>
+                !col.isUsedInRelationAsOwner ||
+                col.isUsedInRelationAsReferenced ||
+                col.primary
         );
     });
     return dbModel;
