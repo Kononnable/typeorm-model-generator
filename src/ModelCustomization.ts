@@ -47,7 +47,7 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
             v =>
                 !(
                     v.primary &&
-                    v.name !==
+                    v.name ===
                         namingStrategy.primaryKeyName(
                             entity.tscName,
                             primaryColumns

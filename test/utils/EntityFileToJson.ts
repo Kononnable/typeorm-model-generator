@@ -398,7 +398,6 @@ export default class EntityFileToJson {
                     priorPartOfMultilineStatement = trimmedLine;
                 } else {
                     isMultilineStatement = false;
-                    // TODO: get joinColumnOptions options
                     retVal.columns[
                         retVal.columns.length - 1
                     ].isOwnerOfRelation = true;
@@ -428,8 +427,35 @@ export default class EntityFileToJson {
                     priorPartOfMultilineStatement = trimmedLine;
                 } else {
                     isMultilineStatement = false;
-                    // TODO: get joinTableOptions options - is it possible while JoinTable can be on either side of the relationship?
-                    // it doesn't matter which side of ManyToMany relation is marked as owner
+                    const decoratorParameters = trimmedLine
+                        .substring(
+                            trimmedLine.indexOf("(") + 1,
+                            trimmedLine.indexOf(")")
+                        )
+                        .trim()
+                        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
+                    if (decoratorParameters.length > 0) {
+                        const column =
+                            retVal.columns[retVal.columns.length - 1];
+                        const options = JSON.parse(decoratorParameters);
+                        if (
+                            options.inverseJoinColumn &&
+                            !Array.isArray(options.inverseJoinColumn)
+                        ) {
+                            options.inverseJoinColumns = [
+                                options.inverseJoinColumn
+                            ];
+                            delete options.inverseJoinColumn;
+                        }
+                        if (
+                            options.joinColumn &&
+                            !Array.isArray(options.joinColumn)
+                        ) {
+                            options.joinColumns = [options.joinColumn];
+                            delete options.joinColumn;
+                        }
+                        column.joinOptions = [options];
+                    }
                 }
                 return;
             }

@@ -4,6 +4,7 @@ import * as ts from "typescript";
 import * as fs from "fs-extra";
 import * as path from "path";
 import * as chaiSubset from "chai-subset";
+import * as flatMap from "array.prototype.flatmap";
 import yn from "yn";
 import EntityFileToJson from "../utils/EntityFileToJson";
 import { createDriver, dataCollectionPhase } from "../../src/Engine";
@@ -15,6 +16,7 @@ import modelGenerationPhase from "../../src/ModelGeneration";
 
 require("dotenv").config();
 
+flatMap.shim();
 chai.use(chaiSubset);
 const { expect } = chai;
 
@@ -186,17 +188,62 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     expect(filesOrg, "Errors detected in model comparison").to.be.deep.equal(
         filesGen
     );
-    filesOrg.forEach(file => {
-        const jsonEntityGen = EntityFileToJson.convert(
+    const generatedEntities = filesOrg.map(file =>
+        EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesGenPath, file))
-        );
-        const jsonEntityOrg = EntityFileToJson.convert(
+        )
+    );
+    const originalEntities = filesGen.map(file =>
+        EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesOrgPathTS, file))
-        );
-        expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(
-            jsonEntityOrg
-        );
-    });
+        )
+    );
+    generatedEntities
+        .flatMap(entity =>
+            entity.columns
+                .filter(
+                    column =>
+                        column.relationType === "ManyToMany" &&
+                        column.joinOptions.length > 0
+                )
+                .map(v => {
+                    return {
+                        ownerColumn: v,
+                        ownerEntity: entity
+                    };
+                })
+        )
+
+        .forEach(({ ownerColumn, ownerEntity }) => {
+            const childColumn = generatedEntities
+                .find(
+                    childEntity =>
+                        childEntity.entityName.toLowerCase() ===
+                        ownerColumn.columnTypes[0]
+                            .substring(0, ownerColumn.columnTypes[0].length - 2)
+                            .toLowerCase()
+                )!
+                .columns.find(
+                    column =>
+                        column.columnTypes[0].toLowerCase() ===
+                        `${ownerEntity.entityName}[]`.toLowerCase()
+                )!;
+            childColumn.joinOptions = ownerColumn.joinOptions.map(options => {
+                return {
+                    ...options,
+                    joinColumns: options.inverseJoinColumns,
+                    inverseJoinColumns: options.joinColumns
+                };
+            });
+        });
+    // TODO: set relation options on ManyToMany to both side of relation
+    generatedEntities
+        .map((ent, i) => [ent, originalEntities[i], filesOrg[i]])
+        .forEach(([generated, original, file]) => {
+            expect(generated, `Error in file ${file}`).to.containSubset(
+                original
+            );
+        });
 }
 
 // TODO: Move(?)
