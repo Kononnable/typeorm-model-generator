@@ -90,11 +90,16 @@ export default abstract class AbstractDriver {
                 }).length === entity.Columns.length
         );
         manyToManyEntities.forEach(entity => {
-            let relations: RelationInfo[] = [];
-            relations = entity.Columns.reduce(
-                (prev: RelationInfo[], curr) => prev.concat(curr.relations),
-                relations
-            );
+            const relations: RelationInfo[] = [];
+            const joinColumnMap = new Map<string, string>();
+
+            entity.Columns.forEach(column => {
+                column.relations.forEach(relation => {
+                    joinColumnMap.set(relation.relatedTable, column.tsName);
+                    relations.push(relation);
+                });
+            });
+
             const namesOfRelatedTables = relations
                 .map(v => v.relatedTable)
                 .filter((v, i, s) => s.indexOf(v) === i);
@@ -138,6 +143,11 @@ export default abstract class AbstractDriver {
                 col1Rel.isOwner = true;
                 col1Rel.ownerColumn = firstRelatedTable;
 
+                col1Rel.joinColumn = joinColumnMap.get(namesOfRelatedTables[0]);
+                col1Rel.inverseJoinColumn = joinColumnMap.get(
+                    namesOfRelatedTables[1]
+                );
+
                 column1.relations.push(col1Rel);
                 relatedTable1.Columns.push(column1);
 
@@ -147,6 +157,11 @@ export default abstract class AbstractDriver {
                 const col2Rel = new RelationInfo();
                 col2Rel.relatedTable = firstRelatedTable;
                 col2Rel.relatedColumn = secondRelatedTable;
+
+                col2Rel.joinColumn = joinColumnMap.get(namesOfRelatedTables[1]);
+                col2Rel.inverseJoinColumn = joinColumnMap.get(
+                    namesOfRelatedTables[0]
+                );
 
                 col2Rel.relationType = "ManyToMany";
                 col2Rel.isOwner = false;
