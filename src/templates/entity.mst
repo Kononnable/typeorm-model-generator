@@ -13,17 +13,20 @@ import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 { name: "{{name}}", referencedColumnName: "{{toPropertyName referencedColumnName}}" },
 {{/inline}}
 {{#*inline "Relation"}}
-@{{relationType}}(()=>{{toEntityName relatedTable}},{{toPropertyName relatedTable}}=>{{toPropertyName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
+@{{relationType}}(() =>{{toEntityName relatedTable}},{{#if relatedFieldOptions.lazy}}async {{/if}}({{toPropertyName relatedTable}}: {{toEntityName relatedTable}}) =>{{toPropertyName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
 {{#if joinColumnOptions}}@JoinColumn([{{#joinColumnOptions}}{{> JoinColumnOptions}}{{/joinColumnOptions}}]){{/if}}
 {{#joinTableOptions}}@JoinTable({ name:"{{name}}", joinColumns:[{{#joinColumns}}{{> JoinColumnOptions}}{{/joinColumns}}],inverseJoinColumns:[{{#inverseJoinColumns}}{{> JoinColumnOptions}}{{/inverseJoinColumns}}],{{#database}}database:"{{.}}",{{/database}}{{#schema}}schema:"{{.}}"{{/schema}} }){{/joinTableOptions}}
-{{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType}};
+{{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType relationOptions}};
 
 {{/inline}}
-{{#*inline "RelationId"}}
-@RelationId(({{toPropertyName entityName}}:{{toEntityName entityName}})=>{{toPropertyName entityName}}.{{toPropertyName relationField}})
+{{#*inline "RelationId"}}{{#unless relationOptions.lazy}}{{!
+  TypeORM doesn't support relationId from lazy relations right now.
+  However, once it does, the above check and this comment can simply be removed to add support in the generator.
+}}
+@RelationId({{#if relationOptions.lazy}}async {{/if}}({{toPropertyName entityName}}:{{toEntityName entityName}})=>{{toPropertyName entityName}}.{{toPropertyName relationField}})
 {{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{fieldType}};
 
-{{/inline}}
+{{/unless}}{{/inline}}
 {{#*inline "Constructor"}}
 {{printPropertyVisibility}}constructor(init?: Partial<{{toEntityName entityName}}>) {
     {{#activeRecord}}super();

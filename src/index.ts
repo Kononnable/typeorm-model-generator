@@ -50,10 +50,9 @@ function validateConfig(options: options): options {
         options.generationOptions.relationIds
     ) {
         TomgUtils.LogError(
-            "Typeorm doesn't support RelationId fields for lazy relations.",
+            "Typeorm doesn't support RelationId fields for lazy relations. RelationId will not be generated",
             false
         );
-        options.generationOptions.relationIds = false;
     }
     return options;
 }

@@ -165,8 +165,10 @@ export default abstract class AbstractDriver {
                 firstRelation.joinTableOptions.schema = junctionEntity.schema;
             }
 
-            firstRelation.relationOptions = undefined;
-            secondRelation.relationOptions = undefined;
+            firstRelation.relationOptions = {};
+            secondRelation.relationOptions = {};
+            firstRelation.relatedFieldOptions = secondRelation.relationOptions;
+            secondRelation.relatedFieldOptions = firstRelation.relationOptions;
             firstRelation.joinColumnOptions = undefined;
             secondRelation.joinColumnOptions = undefined;
             retVal = retVal.filter(ent => {
@@ -350,15 +352,17 @@ export default abstract class AbstractDriver {
                 relatedTable: relationTmp.relatedTable.tscName,
                 relationType: isOneToMany ? "ManyToOne" : "OneToOne"
             };
-            if (JSON.stringify(relationOptions) !== "{}") {
-                ownerRelation.relationOptions = relationOptions;
-            }
+            ownerRelation.relationOptions =
+                JSON.stringify(relationOptions) !== "{}" ? relationOptions : {};
             const relatedRelation: Relation = {
                 fieldName: ownerRelation.relatedField,
+                relationOptions: {},
+                relatedFieldOptions: ownerRelation.relationOptions,
                 relatedField: ownerRelation.fieldName,
                 relatedTable: relationTmp.ownerTable.tscName,
                 relationType: isOneToMany ? "OneToMany" : "OneToOne"
             };
+            ownerRelation.relatedFieldOptions = relatedRelation.relationOptions;
 
             ownerEntity.relations.push(ownerRelation);
             relationTmp.relatedTable.relations.push(relatedRelation);
@@ -383,6 +387,7 @@ export default abstract class AbstractDriver {
                 ownerEntity.relationIds.push({
                     fieldName: relationIdFieldName,
                     fieldType,
+                    relationOptions: ownerRelation.relationOptions,
                     relationField: ownerRelation.fieldName
                 });
                 // TODO: RelationId on ManyToMany
