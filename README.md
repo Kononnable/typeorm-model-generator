@@ -50,7 +50,7 @@ Options:
                             [default: "./output"]
   -s, --schema           Schema name to create model from. Only for mssql
                          and postgres. You can pass multiple values
-                         separted by comma eg. -s scheme1,scheme2,scheme3
+                         separated by comma eg. -s scheme1,scheme2,scheme3
   --ssl                                               [boolean] [default: false]
 ```
 ### Examples
