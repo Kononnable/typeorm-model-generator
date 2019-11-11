@@ -17,6 +17,9 @@
         "lib": [
             "es2019","es2019.array"
         ],
+        "typeRoots": [
+          "./node_modules/@types"
+        ],
         "resolveJsonModule": true,
     },
     "include": [
