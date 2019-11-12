@@ -132,7 +132,10 @@ function removeColumnDefaultProperties(
 function findFileImports(dbModel: Entity[]) {
     dbModel.forEach(entity => {
         entity.relations.forEach(relation => {
-            if (!entity.fileImports.some(v => v === relation.relatedTable)) {
+            if (
+                relation.relatedTable !== entity.tscName &&
+                !entity.fileImports.some(v => v === relation.relatedTable)
+            ) {
                 entity.fileImports.push(relation.relatedTable);
             }
         });
