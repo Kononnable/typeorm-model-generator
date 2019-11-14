@@ -90,7 +90,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                         resp.COLUMN_DEFAULT
                     );
                     const columnType = resp.DATA_TYPE;
-                    let tscType = "";
+                    let tscType = "NonNullable<unknown>";
                     switch (resp.DATA_TYPE) {
                         case "bigint":
                             tscType = "string";

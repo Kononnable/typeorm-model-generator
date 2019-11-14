@@ -87,7 +87,7 @@ export default class OracleDriver extends AbstractDriver {
                               );
                     const DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
                     const columnType = DATA_TYPE.toLowerCase();
-                    let tscType = "";
+                    let tscType = "NonNullable<unknown>";
                     switch (DATA_TYPE.toLowerCase()) {
                         case "char":
                             tscType = "string";

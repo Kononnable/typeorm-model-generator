@@ -65,7 +65,7 @@ export default class SqliteDriver extends AbstractDriver {
                 }>(`PRAGMA table_info('${ent.tscName}');`);
                 response.forEach(resp => {
                     const tscName = resp.name;
-                    let tscType = "";
+                    let tscType = "NonNullable<unknown>";
                     const options: Column["options"] = { name: resp.name };
                     if (resp.notnull === 0) options.nullable = true;
                     const isPrimary = resp.pk > 0 ? true : undefined;

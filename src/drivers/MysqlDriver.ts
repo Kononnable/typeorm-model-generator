@@ -69,7 +69,7 @@ export default class MysqlDriver extends AbstractDriver {
                 .filter(filterVal => filterVal.TABLE_NAME === ent.tscName)
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
-                    let tscType = "";
+                    let tscType = "NonNullable<unknown>";
                     const options: Column["options"] = {
                         name: resp.COLUMN_NAME
                     };
