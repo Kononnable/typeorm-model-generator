@@ -36,13 +36,13 @@ before_install:
 - if [ -z "$DOCKER_USERNAME" ]; then export ORACLE_Skip=1; else images=(${images[@]} oracle oracle_client); fi
 - if [ -n "$DOCKER_USERNAME" ]; then docker-compose up -d ${images[@]}; fi
 - echo ${images[@]}
-- docker-compose pull --parallel --ignore-pull-failures ${images[@]}
+- docker-compose pull --ignore-pull-failures ${images[@]}
 - docker-compose up -d ${images[@]}
 before_script:
 - if [ -n "$DOCKER_USERNAME" ]; then mkdir /opt/oracle; npm i oracledb --no-save; docker cp typeorm-mg-oracle-client:/usr/lib/oracle/12.2/client64/lib /opt/oracle/instantclient_12_2; fi
 - export LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 script:
-- travis_retry sh -c 'sleep 60 && npm t -- --colors'
+- travis_retry sh -c 'sleep 90 && npm t -- --colors'
 after_success:
 - codecov
 after_failure:
