@@ -18,7 +18,8 @@ export default function modelCustomizationPhase(
     ) {
         // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
         const req = require(generationOptions.customNamingStrategyPath);
-        namingStrategy = new req.NamingStrategy();
+        // eslint-disable-next-line new-cap
+        namingStrategy = new req.default();
     } else {
         namingStrategy = new NamingStrategy();
     }

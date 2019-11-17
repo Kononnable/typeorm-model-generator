@@ -51,7 +51,7 @@ describe("Model customization phase", async () => {
             tscName: "PostAuthor",
             database: "",
             schema: "public",
-            fileImports: ["Post"]
+            fileImports: []
         },
         {
             columns: [
@@ -105,7 +105,7 @@ describe("Model customization phase", async () => {
             tscName: "Post",
             database: "",
             schema: "public",
-            fileImports: ["PostAuthor"]
+            fileImports: []
         }
     ];
 
@@ -563,5 +563,47 @@ describe("Model customization phase", async () => {
 
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         });
+    });
+    it("naming strategy", async () => {
+        const data = generateSampleData();
+        const generationOptions = generateGenerationOptions();
+        clearGenerationDir();
+
+        generationOptions.customNamingStrategyPath =
+            "../test/modelCustomization/testNamingStrategy.ts";
+        // TODO: relationId
+
+        const customizedModel = modelCustomizationPhase(
+            data,
+            generationOptions,
+            {}
+        );
+        modelGenerationPhase(
+            new IConnectionOptions(),
+            generationOptions,
+            customizedModel
+        );
+        const filesGenPath = path.resolve(resultsPath, "entities");
+        const postContent = fs
+            .readFileSync(path.resolve(filesGenPath, "Post_B.ts"))
+            .toString();
+        const postAuthorContent = fs
+            .readFileSync(path.resolve(filesGenPath, "PostAuthor_B.ts"))
+            .toString();
+        expect(postContent).to.have.string(`@Entity("Post"`);
+        expect(postContent).to.have.string(`class Post_B {`);
+        expect(postContent).to.have.string(`id_C: number;`);
+        expect(postContent).to.have.string(`author_A: PostAuthor_B`);
+        expect(postContent).to.have.string(
+            `import { PostAuthor_B } from "./PostAuthor_B";`
+        );
+        expect(postAuthorContent).to.have.string(`@Entity("PostAuthor"`);
+        expect(postAuthorContent).to.have.string(`class PostAuthor_B`);
+        expect(postAuthorContent).to.have.string(`id_C: number;`);
+        expect(postAuthorContent).to.have.string(
+            `import { Post_B } from "./Post_B";`
+        );
+
+        compileGeneratedModel(generationOptions.resultsPath, [""]);
     });
 });

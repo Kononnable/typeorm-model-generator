@@ -5,6 +5,10 @@ import { RelationId } from "./models/RelationId";
 
 import changeCase = require("change-case");
 
+// TODO: Use function instead of class
+// TODO: Allow users to change only specific functions instead of all of them(with logging if used standard or user function)
+// TODO: Fix naming strategy relative path
+
 /* eslint-disable class-methods-use-this */
 export default class NamingStrategy extends AbstractNamingStrategy {
     public relationIdName(relationId: RelationId, relation: Relation): string {
