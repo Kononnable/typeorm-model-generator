@@ -2,26 +2,83 @@ import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { DefaultNamingStrategy } from "typeorm/naming-strategy/DefaultNamingStrategy";
 import { Entity } from "./models/Entity";
 import IGenerationOptions from "./IGenerationOptions";
-import AbstractNamingStrategy from "./AbstractNamingStrategy";
-import NamingStrategy from "./NamingStrategy";
+import * as NamingStrategy from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
+import { Relation } from "./models/Relation";
+import { RelationId } from "./models/RelationId";
+import { Column } from "./models/Column";
+
+type NamingStrategy = {
+    relationIdName: (
+        relationId: RelationId,
+        relation: Relation,
+        owner: Entity
+    ) => string;
+    relationName: (relation: Relation, owner: Entity) => string;
+    columnName: (columnName: string, column?: Column) => string;
+    entityName: (entityName: string, entity?: Entity) => string;
+};
 
 export default function modelCustomizationPhase(
     dbModel: Entity[],
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ): Entity[] {
-    let namingStrategy: AbstractNamingStrategy;
+    const namingStrategy: NamingStrategy = {
+        columnName: NamingStrategy.columnName,
+        entityName: NamingStrategy.entityName,
+        relationIdName: NamingStrategy.relationIdName,
+        relationName: NamingStrategy.relationName
+    };
     if (
         generationOptions.customNamingStrategyPath &&
         generationOptions.customNamingStrategyPath !== ""
     ) {
+        // TODO: change form of logging
         // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
-        const req = require(generationOptions.customNamingStrategyPath);
-        // eslint-disable-next-line new-cap
-        namingStrategy = new req.default();
-    } else {
-        namingStrategy = new NamingStrategy();
+        const req = require(generationOptions.customNamingStrategyPath) as Partial<
+            NamingStrategy
+        >;
+        if (req.columnName) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom naming strategy for column names.`
+            );
+            namingStrategy.columnName = req.columnName;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using standard naming strategy for column names.`
+            );
+        }
+        if (req.entityName) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom naming strategy for entity names.`
+            );
+            namingStrategy.entityName = req.entityName;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using standard naming strategy for entity names.`
+            );
+        }
+        if (req.relationIdName) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom naming strategy for relationId field names.`
+            );
+            namingStrategy.relationIdName = req.relationIdName;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using standard naming strategy for relationId field names.`
+            );
+        }
+        if (req.relationName) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom naming strategy for relation field names.`
+            );
+            namingStrategy.relationName = req.relationName;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using standard naming strategy for relation field names.`
+            );
+        }
     }
     let retVal = removeIndicesGeneratedByTypeorm(dbModel);
     retVal = removeColumnsInRelation(dbModel);
@@ -173,7 +230,7 @@ function addImportsAndGenerationOptions(
 }
 
 function applyNamingStrategy(
-    namingStrategy: AbstractNamingStrategy,
+    namingStrategy: NamingStrategy,
     dbModel: Entity[]
 ): Entity[] {
     let retVal = changeRelationNames(dbModel);
