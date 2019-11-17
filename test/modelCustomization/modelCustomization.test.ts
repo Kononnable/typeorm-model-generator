@@ -570,7 +570,7 @@ describe("Model customization phase", async () => {
         clearGenerationDir();
 
         generationOptions.customNamingStrategyPath =
-            "../test/modelCustomization/testNamingStrategy.ts";
+            "test/modelCustomization/testNamingStrategy.ts";
         // TODO: relationId
 
         const customizedModel = modelCustomizationPhase(

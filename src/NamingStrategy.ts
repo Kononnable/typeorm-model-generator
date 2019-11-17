@@ -1,10 +1,7 @@
 import { plural } from "pluralize";
+import * as changeCase from "change-case";
 import { Relation } from "./models/Relation";
 import { RelationId } from "./models/RelationId";
-
-import changeCase = require("change-case");
-
-// TODO: Fix naming strategy relative path
 
 export function relationIdName(
     relationId: RelationId,

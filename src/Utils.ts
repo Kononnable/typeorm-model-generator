@@ -1,4 +1,5 @@
 import * as changeCase from "change-case";
+import * as path from "path";
 import * as packagejson from "../package.json";
 import { Entity } from "./models/Entity";
 
@@ -65,4 +66,17 @@ export function findNameForNewField(
         }
     }
     return fieldName;
+}
+
+export function requireLocalFile(fileName: string): any {
+    try {
+        // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
+        return require(fileName);
+    } catch (err) {
+        if (!path.isAbsolute(fileName)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
+            return require(path.resolve(process.cwd(), fileName));
+        }
+        throw err;
+    }
 }

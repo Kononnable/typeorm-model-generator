@@ -35,10 +35,9 @@ export default function modelCustomizationPhase(
         generationOptions.customNamingStrategyPath !== ""
     ) {
         // TODO: change form of logging
-        // eslint-disable-next-line global-require, import/no-dynamic-require, @typescript-eslint/no-var-requires
-        const req = require(generationOptions.customNamingStrategyPath) as Partial<
-            NamingStrategy
-        >;
+        const req = TomgUtils.requireLocalFile(
+            generationOptions.customNamingStrategyPath
+        ) as Partial<NamingStrategy>;
         if (req.columnName) {
             console.log(
                 `[${new Date().toLocaleTimeString()}] Using custom naming strategy for column names.`
