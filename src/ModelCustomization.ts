@@ -128,10 +128,26 @@ function removeColumnDefaultProperties(
     });
     return dbModel;
 }
+
+function findFileImports(dbModel: Entity[]) {
+    dbModel.forEach(entity => {
+        entity.relations.forEach(relation => {
+            if (
+                relation.relatedTable !== entity.tscName &&
+                !entity.fileImports.some(v => v === relation.relatedTable)
+            ) {
+                entity.fileImports.push(relation.relatedTable);
+            }
+        });
+    });
+    return dbModel;
+}
+
 function addImportsAndGenerationOptions(
     dbModel: Entity[],
     generationOptions: IGenerationOptions
 ): Entity[] {
+    dbModel = findFileImports(dbModel);
     dbModel.forEach(entity => {
         entity.relations.forEach(relation => {
             if (generationOptions.lazy) {

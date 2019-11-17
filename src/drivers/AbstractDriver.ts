@@ -207,20 +207,6 @@ export default abstract class AbstractDriver {
         );
         await this.DisconnectFromServer();
         dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
-        dbModel = AbstractDriver.FindFileImports(dbModel);
-        return dbModel;
-    }
-
-    private static FindFileImports(dbModel: Entity[]) {
-        dbModel.forEach(entity => {
-            entity.relations.forEach(relation => {
-                if (
-                    !entity.fileImports.some(v => v === relation.relatedTable)
-                ) {
-                    entity.fileImports.push(relation.relatedTable);
-                }
-            });
-        });
         return dbModel;
     }
 
