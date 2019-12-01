@@ -29,9 +29,11 @@ export default class PostgresDriver extends AbstractDriver {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }[] = (await this.Connection.query(
-            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
-        )).rows;
+        }[] = (
+            await this.Connection.query(
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
+            )
+        ).rows;
         return response;
     };
 
@@ -52,8 +54,9 @@ export default class PostgresDriver extends AbstractDriver {
             isidentity: string;
             isunique: string;
             enumvalues: string | null;
-        }[] = (await this.Connection
-            .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
+        }[] = (
+            await this.Connection
+                .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
             data_type,character_maximum_length,numeric_precision,numeric_scale,
             case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
 			(SELECT count(*)
@@ -74,7 +77,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
         ) enumValues
             FROM INFORMATION_SCHEMA.COLUMNS c
             where table_schema in (${schema})
-			order by ordinal_position`)).rows;
+			order by ordinal_position`)
+        ).rows;
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.table_name === ent.tsEntityName)
@@ -370,6 +374,7 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 switch (udtName) {
                     case "citext":
                     case "hstore":
+                    case "geography":
                     case "geometry":
                         ret.sqlType = udtName;
                         break;
@@ -407,7 +412,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
             columnname: string;
             is_unique: number;
             is_primary_key: number;
-        }[] = (await this.Connection.query(`SELECT
+        }[] = (
+            await this.Connection.query(`SELECT
         c.relname AS tablename,
         i.relname as indexname,
         f.attname AS columnname,
@@ -430,7 +436,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
         AND n.nspname in (${schema})
         AND f.attnum > 0
         AND i.oid<>0
-        ORDER BY c.relname,f.attname;`)).rows;
+        ORDER BY c.relname,f.attname;`)
+        ).rows;
         entities.forEach(ent => {
             response
                 .filter(filterVal => filterVal.tablename === ent.tsEntityName)
@@ -477,7 +484,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             object_id: string;
             // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
-        }[] = (await this.Connection.query(`SELECT DISTINCT
+        }[] = (
+            await this.Connection.query(`SELECT DISTINCT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -516,7 +524,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 AND att2.attrelid = con.conrelid
                 AND att2.attnum = con.parent
                 AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
-                `)).rows;
+                `)
+        ).rows;
         const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
         response.forEach(resp => {
             let rels = relationsTemp.find(
