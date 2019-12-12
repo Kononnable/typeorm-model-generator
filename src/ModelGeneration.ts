@@ -161,7 +161,9 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         }
     );
     Handlebars.registerHelper("strictMode", () =>
-        generationOptions.strictMode ? generationOptions.strictMode : ""
+        generationOptions.strictMode !== "none"
+            ? generationOptions.strictMode
+            : ""
     );
     Handlebars.registerHelper({
         and: (v1, v2) => v1 && v2,

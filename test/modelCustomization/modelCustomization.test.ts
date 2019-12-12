@@ -4,9 +4,13 @@ import * as chai from "chai";
 import * as chaiSubset from "chai-subset";
 import { Entity } from "../../src/models/Entity";
 import modelCustomizationPhase from "../../src/ModelCustomization";
-import IGenerationOptions from "../../src/IGenerationOptions";
+import {
+    getDefaultGenerationOptions
+} from "../../src/IGenerationOptions";
 import modelGenerationPhase from "../../src/ModelGeneration";
-import IConnectionOptions from "../../src/IConnectionOptions";
+import {
+    getDefaultConnectionOptions
+} from "../../src/IConnectionOptions";
 import { compileGeneratedModel } from "../integration/runTestsFromPath.test";
 
 chai.use(chaiSubset);
@@ -111,7 +115,7 @@ describe("Model customization phase", async () => {
 
     const resultsPath = path.resolve(process.cwd(), `output`);
     const generateGenerationOptions = () => {
-        const generationOptions = new IGenerationOptions();
+        const generationOptions = getDefaultGenerationOptions();
         generationOptions.resultsPath = resultsPath;
         return generationOptions;
     };
@@ -132,7 +136,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -154,7 +158,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -178,7 +182,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -206,7 +210,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -236,7 +240,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -264,7 +268,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -294,7 +298,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -322,7 +326,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -351,7 +355,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );
@@ -381,7 +385,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );
@@ -413,7 +417,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );
@@ -441,7 +445,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );
@@ -474,7 +478,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );
@@ -509,7 +513,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -542,7 +546,7 @@ describe("Model customization phase", async () => {
                 {}
             );
             modelGenerationPhase(
-                new IConnectionOptions(),
+                getDefaultConnectionOptions(),
                 generationOptions,
                 customizedModel
             );
@@ -568,7 +572,9 @@ describe("Model customization phase", async () => {
         const data = generateSampleData();
         const generationOptions = generateGenerationOptions();
         clearGenerationDir();
-
+        generationOptions.convertCaseEntity = "none"
+        generationOptions.convertCaseFile = "none"
+        generationOptions.convertCaseProperty = "none"
         generationOptions.customNamingStrategyPath =
             "test/modelCustomization/testNamingStrategy.ts";
         // TODO: relationId
@@ -579,7 +585,7 @@ describe("Model customization phase", async () => {
             {}
         );
         modelGenerationPhase(
-            new IConnectionOptions(),
+            getDefaultConnectionOptions(),
             generationOptions,
             customizedModel
         );

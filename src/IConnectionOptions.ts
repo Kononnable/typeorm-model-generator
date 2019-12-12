@@ -1,19 +1,35 @@
-export default class IConnectionOptions {
-    public host = "";
+// TODO: change name
 
-    public port = 0;
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export default interface IConnectionOptions {
+    host: string;
+    port: number;
+    databaseName: string;
+    user: string;
+    password: string;
+    databaseType:
+        | "mssql"
+        | "postgres"
+        | "mysql"
+        | "mariadb"
+        | "oracle"
+        | "sqlite";
+    schemaName: string;
+    ssl: boolean;
+    timeout?: number;
+}
 
-    public databaseName = "";
-
-    public user = "";
-
-    public password = "";
-
-    public databaseType = "";
-
-    public schemaName = "";
-
-    public ssl = false;
-
-    public timeout?: number;
+export function getDefaultConnectionOptions(): IConnectionOptions {
+    const connectionOptions: IConnectionOptions = {
+        host: "127.0.0.1",
+        port: 0,
+        databaseName: "",
+        user: "",
+        password: "",
+        databaseType: undefined as any,
+        schemaName: "",
+        ssl: false,
+        timeout: undefined
+    };
+    return connectionOptions;
 }

@@ -25,7 +25,7 @@ export function getGenerationOptions(resultsPath: string): IGenerationOptions {
         relationIds: false,
         skipSchema: false,
         activeRecord: false,
-        strictMode: false
+        strictMode: "none"
     };
 }
 
@@ -324,7 +324,7 @@ export function compileTsFiles(
     return compiledWithoutErrors;
 }
 
-export function getEnabledDbDrivers():string[] {
+export function getEnabledDbDrivers(): string[] {
     const dbDrivers: string[] = [];
     if (process.env.SQLITE_Skip === "0") {
         dbDrivers.push("sqlite");
