@@ -42,9 +42,6 @@ async function CliLogic() {
     console.info(
         `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
     );
-
-    // TODO: parameter for generating config file from passed arguments(yargs+inquirer)?
-    // TODO: inquirer - option to save config without connection options(only for security)
 }
 function makeDefaultConfigs() {
     const generationOptions = getDefaultGenerationOptions();
@@ -70,37 +67,49 @@ function readTOMLConfig(
     const [loadedGenerationOptions, loadedConnectionOptions] = retVal;
 
     let hasUnknownProperties = false;
-    Object.keys(loadedConnectionOptions).forEach(key => {
+    if (loadedConnectionOptions) {
+        Object.keys(loadedConnectionOptions).forEach(key => {
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    options.connectionOptions,
+                    key
+                )
+            ) {
+                options.connectionOptions[key] = loadedConnectionOptions[key];
+            } else {
+                console.error(`Unknown connection option ${key}.`);
+                hasUnknownProperties = true;
+            }
+        });
         if (
-            Object.prototype.hasOwnProperty.call(options.connectionOptions, key)
+            !Object.prototype.hasOwnProperty.call(
+                loadedConnectionOptions,
+                "timeout"
+            )
         ) {
-            options.connectionOptions[key] = loadedConnectionOptions[key];
-        } else {
-            console.error(`Unknown connection option ${key}.`);
-            hasUnknownProperties = true;
+            loadedConnectionOptions.timeout = undefined;
         }
-    });
-    Object.keys(loadedGenerationOptions).forEach(key => {
-        if (
-            Object.prototype.hasOwnProperty.call(options.generationOptions, key)
-        ) {
-            options.generationOptions[key] = loadedGenerationOptions[key];
-        } else {
-            console.error(`Unknown generation option ${key}.`);
-            hasUnknownProperties = true;
-        }
-    });
-    if (
-        !Object.prototype.hasOwnProperty.call(
-            loadedConnectionOptions,
-            "timeout"
-        )
-    ) {
-        loadedConnectionOptions.timeout = undefined;
+    }
+    if (loadedGenerationOptions) {
+        Object.keys(loadedGenerationOptions).forEach(key => {
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    options.generationOptions,
+                    key
+                )
+            ) {
+                options.generationOptions[key] = loadedGenerationOptions[key];
+            } else {
+                console.error(`Unknown generation option ${key}.`);
+                hasUnknownProperties = true;
+            }
+        });
     }
 
     const fullConfigFile =
         !hasUnknownProperties &&
+        loadedConnectionOptions &&
+        loadedGenerationOptions &&
         Object.keys(loadedConnectionOptions).length ===
             Object.keys(options.connectionOptions).length &&
         Object.keys(loadedGenerationOptions).length ===
@@ -438,7 +447,8 @@ async function useInquirer(options: options): Promise<options> {
                     },
                     {
                         name: "Use ActiveRecord syntax for generated models",
-                        value: "activeRecord"
+                        value: "activeRecord",
+                        checked: options.generationOptions.activeRecord
                     },
                     {
                         name: "Use custom naming strategy",
@@ -569,13 +579,18 @@ async function useInquirer(options: options): Promise<options> {
     }
     const { saveConfig } = await inquirer.prompt([
         {
-            default: false,
+            choices: [
+                "Yes, only model customization options",
+                "Yes, with connection details",
+                "No"
+            ],
+            default: "No",
             message: "Save configuration to config file?",
             name: "saveConfig",
-            type: "confirm"
+            type: "list"
         }
     ]);
-    if (saveConfig) {
+    if (saveConfig === "Yes, with connection details") {
         await fs.writeJson(
             path.resolve(process.cwd(), ".tomg-config"),
             [options.generationOptions, options.connectionOptions],
@@ -585,6 +600,13 @@ async function useInquirer(options: options): Promise<options> {
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Password was saved as plain text.\x1b[0m`
         );
+    } else if (saveConfig === "Yes, only model customization options") {
+        await fs.writeJson(
+            path.resolve(process.cwd(), ".tomg-config"),
+            [options.generationOptions],
+            { spaces: 2 }
+        );
+        console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
     }
     return options;
 }
