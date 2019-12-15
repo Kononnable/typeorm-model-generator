@@ -81,14 +81,6 @@ function readTOMLConfig(
                 hasUnknownProperties = true;
             }
         });
-        if (
-            !Object.prototype.hasOwnProperty.call(
-                loadedConnectionOptions,
-                "timeout"
-            )
-        ) {
-            loadedConnectionOptions.timeout = undefined;
-        }
     }
     if (loadedGenerationOptions) {
         Object.keys(loadedGenerationOptions).forEach(key => {
@@ -251,11 +243,6 @@ function checkYargsParameters(options: options): options {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
             describe: "Mark fields as optional(?) or non-null(!)"
-        },
-        timeout: {
-            describe: "SQL Query timeout(ms)",
-            default: options.connectionOptions.timeout,
-            number: true
         }
     });
 
@@ -272,7 +259,6 @@ function checkYargsParameters(options: options): options {
         ? argv.s.toString()
         : standardSchema;
     options.connectionOptions.ssl = argv.ssl;
-    options.connectionOptions.timeout = argv.timeout;
     options.connectionOptions.user = argv.u || standardUser;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
@@ -396,33 +382,6 @@ async function useInquirer(options: options): Promise<options> {
             type: "input"
         }
     ])).output;
-
-    if (
-        options.connectionOptions.databaseType === "mssql" ||
-        options.connectionOptions.databaseType === "postgres"
-    ) {
-        const { changeRequestTimeout } = await inquirer.prompt([
-            {
-                default: false,
-                message: "Do you want to change default sql query timeout?",
-                name: "changeRequestTimeout",
-                type: "confirm"
-            }
-        ]);
-        if (changeRequestTimeout) {
-            const { timeout } = await inquirer.prompt({
-                message: "Query timeout(ms):",
-                name: "timeout",
-                type: "input",
-                default: options.connectionOptions.timeout,
-                validate(value) {
-                    const valid = !Number.isNaN(parseInt(value, 10));
-                    return valid || "Please enter a valid number";
-                }
-            });
-            options.connectionOptions.timeout = parseInt(timeout, 10);
-        }
-    }
     const { customizeGeneration } = await inquirer.prompt([
         {
             default: false,

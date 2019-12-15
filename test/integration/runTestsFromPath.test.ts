@@ -23,7 +23,7 @@ const { expect } = chai;
 it("Column default values", async () => {
     const testPartialPath = "test/integration/defaultValues";
     await runTestsFromPath(testPartialPath, true);
-}).timeout();
+})
 it("Platform specific types", async () => {
     const testPartialPath = "test/integration/entityTypes";
     await runTestsFromPath(testPartialPath, true);

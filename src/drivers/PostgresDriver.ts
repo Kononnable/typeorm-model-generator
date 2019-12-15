@@ -594,7 +594,7 @@ export default class PostgresDriver extends AbstractDriver {
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
             // eslint-disable-next-line @typescript-eslint/camelcase
-            statement_timeout: connectionOptons.timeout,
+            statement_timeout: 60 * 60 * 1000,
             user: connectionOptons.user
         });
 

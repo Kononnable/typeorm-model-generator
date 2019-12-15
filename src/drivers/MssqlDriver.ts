@@ -440,7 +440,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             },
             password: connectionOptons.password,
             port: connectionOptons.port,
-            requestTimeout: connectionOptons.timeout,
+            requestTimeout: 60 * 60 * 1000,
             server: connectionOptons.host,
             user: connectionOptons.user
         };
