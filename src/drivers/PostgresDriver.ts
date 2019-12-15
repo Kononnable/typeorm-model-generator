@@ -30,7 +30,8 @@ export default class PostgresDriver extends AbstractDriver {
             TABLE_NAME: string;
             DB_NAME: string;
         }[] = (await this.Connection.query(
-            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
+            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
+ WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema})  AND table_name<>'spatial_ref_sys'`
         )).rows;
         return response;
     };
@@ -370,6 +371,7 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 switch (udtName) {
                     case "citext":
                     case "hstore":
+                    case "geography":
                     case "geometry":
                         ret.sqlType = udtName;
                         break;

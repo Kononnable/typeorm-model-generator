@@ -3,7 +3,8 @@
 ## Unreleased
 
 * change default case conversions for generated files (#196)
-* enum type safety #205
+* enum type safety (#205)
+* postgress geography type support (#232)
 
 ## 0.3.5
 
