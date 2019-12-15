@@ -57,12 +57,10 @@ export default class OracleDriver extends AbstractDriver {
             DATA_LENGTH: number;
             DATA_PRECISION: number;
             DATA_SCALE: number;
-            IDENTITY_COLUMN: string;
+            IDENTITY_COLUMN: string; // doesn't exist in old oracle versions (#195)
             IS_UNIQUE: number;
         }[] = (await this.Connection
-            .execute(`SELECT utc.TABLE_NAME, utc.COLUMN_NAME, DATA_DEFAULT, NULLABLE, DATA_TYPE, DATA_LENGTH,
-            DATA_PRECISION, DATA_SCALE, IDENTITY_COLUMN,
-            (select count(*) from USER_CONS_COLUMNS ucc
+            .execute(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
              JOIN USER_CONSTRAINTS uc ON  uc.CONSTRAINT_NAME = ucc.CONSTRAINT_NAME and uc.CONSTRAINT_TYPE='U'
             where ucc.column_name = utc.COLUMN_NAME AND ucc.table_name = utc.TABLE_NAME) IS_UNIQUE
            FROM USER_TAB_COLUMNS utc`)).rows!;
