@@ -28,7 +28,7 @@ module.exports = {
     "no-plusplus": ["error", { allowForLoopAfterthoughts: true }],
 
     "@typescript-eslint/no-non-null-assertion": ["off"],
-
+    "import/extensions": ["off"],
     "no-param-reassign": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "no-loop-func": ["off"]

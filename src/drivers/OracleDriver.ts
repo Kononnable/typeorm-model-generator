@@ -41,9 +41,11 @@ export default class OracleDriver extends AbstractDriver {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }[] = (await this.Connection.execute(
-            `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE  owner = (select user from dual)`
-        )).rows!;
+        }[] = (
+            await this.Connection.execute(
+                `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE  owner = (select user from dual)`
+            )
+        ).rows!;
         return response;
     };
 
@@ -59,11 +61,13 @@ export default class OracleDriver extends AbstractDriver {
             DATA_SCALE: number;
             IDENTITY_COLUMN: string; // doesn't exist in old oracle versions (#195)
             IS_UNIQUE: number;
-        }[] = (await this.Connection
-            .execute(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
+        }[] = (
+            await this.Connection
+                .execute(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
              JOIN USER_CONSTRAINTS uc ON  uc.CONSTRAINT_NAME = ucc.CONSTRAINT_NAME and uc.CONSTRAINT_TYPE='U'
             where ucc.column_name = utc.COLUMN_NAME AND ucc.table_name = utc.TABLE_NAME) IS_UNIQUE
-           FROM USER_TAB_COLUMNS utc`)).rows!;
+           FROM USER_TAB_COLUMNS utc`)
+        ).rows!;
 
         entities.forEach(ent => {
             response
@@ -221,12 +225,14 @@ export default class OracleDriver extends AbstractDriver {
             INDEX_NAME: string;
             UNIQUENESS: string;
             ISPRIMARYKEY: number;
-        }[] = (await this.Connection
-            .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
+        }[] = (
+            await this.Connection
+                .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
         FROM USER_INDEXES ind
         JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
         LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
-        ORDER BY col.INDEX_NAME ASC ,col.COLUMN_POSITION ASC`)).rows!;
+        ORDER BY col.INDEX_NAME ASC ,col.COLUMN_POSITION ASC`)
+        ).rows!;
 
         entities.forEach(ent => {
             const entityIndices = response.filter(
@@ -269,8 +275,9 @@ export default class OracleDriver extends AbstractDriver {
             CHILD_COLUMN_NAME: string;
             DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             CONSTRAINT_NAME: string;
-        }[] = (await this.Connection
-            .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
+        }[] = (
+            await this.Connection
+                .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
         child.TABLE_NAME CHILD_TABLE_NAME ,childCol.COLUMN_NAME CHILD_COLUMN_NAME,
         owner.DELETE_RULE,
         owner.CONSTRAINT_NAME
@@ -278,8 +285,8 @@ export default class OracleDriver extends AbstractDriver {
         join user_constraints child on owner.r_constraint_name=child.CONSTRAINT_NAME and child.constraint_type in ('P','U')
         JOIN USER_CONS_COLUMNS ownCol ON owner.CONSTRAINT_NAME = ownCol.CONSTRAINT_NAME
         JOIN USER_CONS_COLUMNS childCol ON child.CONSTRAINT_NAME = childCol.CONSTRAINT_NAME AND ownCol.POSITION=childCol.POSITION
-        ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`))
-            .rows!;
+        ORDER BY OWNER_TABLE_NAME ASC, owner.CONSTRAINT_NAME ASC, OWNER_POSITION ASC`)
+        ).rows!;
 
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
         const relationKeys = new Set(response.map(v => v.CONSTRAINT_NAME));
