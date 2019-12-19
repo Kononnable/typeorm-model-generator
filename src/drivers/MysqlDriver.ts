@@ -75,7 +75,8 @@ export default class MysqlDriver extends AbstractDriver {
                     };
                     const generated = resp.IsIdentity === 1 ? true : undefined;
                     const defaultValue = MysqlDriver.ReturnDefaultValueFunction(
-                        resp.COLUMN_DEFAULT
+                        resp.COLUMN_DEFAULT,
+                        resp.DATA_TYPE
                     );
                     let columnType = resp.DATA_TYPE;
                     if (resp.IS_NULLABLE === "YES") options.nullable = true;
@@ -173,6 +174,20 @@ export default class MysqlDriver extends AbstractDriver {
                                 .replace(/","/gi, '" | "');
                             options.enum = resp.COLUMN_TYPE.substring(
                                 5,
+                                resp.COLUMN_TYPE.length - 1
+                            )
+                                .replace(/'/gi, "")
+                                .split(",");
+                            break;
+                        case "set":
+                            tscType = `(${resp.COLUMN_TYPE.substring(
+                                4,
+                                resp.COLUMN_TYPE.length - 1
+                            )
+                                .replace(/'/gi, '"')
+                                .replace(/","/gi, '" | "')})[]`;
+                            options.enum = resp.COLUMN_TYPE.substring(
+                                4,
                                 resp.COLUMN_TYPE.length - 1
                             )
                                 .replace(/'/gi, "")
@@ -488,7 +503,8 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     private static ReturnDefaultValueFunction(
-        defVal: string | undefined
+        defVal: string | undefined,
+        dataType: string
     ): string | undefined {
         let defaultValue = defVal;
         if (!defaultValue || defaultValue === "NULL") {
@@ -502,6 +518,9 @@ export default class MysqlDriver extends AbstractDriver {
             defaultValue.startsWith(`'`)
         ) {
             return `() => "${defaultValue}"`;
+        }
+        if (dataType === "set") {
+            return `() => ['${defaultValue.split(",").join("','")}']`;
         }
         return `() => "'${defaultValue}'"`;
     }

@@ -118,4 +118,10 @@ export class Post {
 
     @Column("geometrycollection")
     geometrycollection: string;
+
+    @Column("set", {
+        enum: ["A", "B", "C"],
+        default: ["A", "B"]
+    })
+    roles: ("A" | "B" | "C")[]
 }
