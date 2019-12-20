@@ -9,6 +9,7 @@ import { RelationId } from "./models/RelationId";
 import { Column } from "./models/Column";
 
 type NamingStrategy = {
+    enablePluralization: (value: boolean) => void;
     relationIdName: (
         relationId: RelationId,
         relation: Relation,
@@ -25,6 +26,7 @@ export default function modelCustomizationPhase(
     defaultValues: DataTypeDefaults
 ): Entity[] {
     const namingStrategy: NamingStrategy = {
+        enablePluralization: NamingStrategy.enablePluralization,
         columnName: NamingStrategy.columnName,
         entityName: NamingStrategy.entityName,
         relationIdName: NamingStrategy.relationIdName,
@@ -78,7 +80,18 @@ export default function modelCustomizationPhase(
                 `[${new Date().toLocaleTimeString()}] Using standard naming strategy for relation field names.`
             );
         }
+        if (req.enablePluralization) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom pluralization method for OneToMany, ManyToMany relation field names.`
+            );
+            namingStrategy.enablePluralization = req.enablePluralization;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom pluralization method for OneToMany, ManyToMany relation field names.`
+            );
+        }
     }
+    namingStrategy.enablePluralization(generationOptions.pluralizeNames);
     let retVal = removeIndicesGeneratedByTypeorm(dbModel);
     retVal = removeColumnsInRelation(dbModel);
     retVal = applyNamingStrategy(namingStrategy, dbModel);

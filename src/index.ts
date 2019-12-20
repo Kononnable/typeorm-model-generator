@@ -239,6 +239,12 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.generateConstructor,
             describe: "Generate constructor allowing partial initialization"
         },
+        disablePluralization: {
+            boolean: true,
+            default: !options.generationOptions.pluralizeNames,
+            describe:
+                "Disable pluralization of OneToMany, ManyToMany relation names."
+        },
         strictMode: {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
@@ -272,6 +278,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.relationIds = argv.relationIds;
     options.generationOptions.skipSchema = argv.skipSchema;
     options.generationOptions.resultsPath = argv.o;
+    options.generationOptions.pluralizeNames = !argv.disablePluralization;
     options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
 
     return options;
@@ -399,6 +406,7 @@ async function useInquirer(options: options): Promise<options> {
         }
     ]);
     if (customizeGeneration) {
+        const defaultGenerationOptions = getDefaultGenerationOptions();
         const customizations: string[] = (
             await inquirer.prompt([
                 {
@@ -446,7 +454,20 @@ async function useInquirer(options: options): Promise<options> {
                         {
                             name: "Use specific naming convention",
                             value: "namingConvention",
-                            checked: options.generationOptions.lazy
+                            checked:
+                                options.generationOptions.convertCaseEntity !==
+                                    defaultGenerationOptions.convertCaseEntity ||
+                                options.generationOptions
+                                    .convertCaseProperty !==
+                                    defaultGenerationOptions.convertCaseProperty ||
+                                options.generationOptions.convertCaseFile !==
+                                    defaultGenerationOptions.convertCaseFile
+                        },
+                        {
+                            name:
+                                "Pluralize OneToMany, ManyToMany relation names.",
+                            value: "pluralize",
+                            checked: options.generationOptions.pluralizeNames
                         }
                     ],
                     message: "Available customizations",
@@ -483,6 +504,9 @@ async function useInquirer(options: options): Promise<options> {
 
         options.generationOptions.noConfigs = !customizations.includes(
             "config"
+        );
+        options.generationOptions.pluralizeNames = customizations.includes(
+            "pluralize"
         );
         options.generationOptions.lazy = customizations.includes("lazy");
         options.generationOptions.activeRecord = customizations.includes(

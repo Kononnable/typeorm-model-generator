@@ -3,6 +3,12 @@ import * as changeCase from "change-case";
 import { Relation } from "./models/Relation";
 import { RelationId } from "./models/RelationId";
 
+let pluralize: boolean;
+
+export function enablePluralization(value: boolean) {
+    pluralize = value;
+}
+
 export function relationIdName(
     relationId: RelationId,
     relation: Relation
@@ -22,7 +28,7 @@ export function relationIdName(
     if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
         newColumnName = newColumnName.substring(0, newColumnName.length - 1);
     }
-    if (isRelationToMany) {
+    if (isRelationToMany && pluralize) {
         newColumnName = plural(newColumnName);
     }
 
@@ -54,7 +60,7 @@ export function relationName(relation: Relation): string {
     if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
         newColumnName = newColumnName.substring(0, newColumnName.length - 1);
     }
-    if (isRelationToMany) {
+    if (isRelationToMany && pluralize) {
         newColumnName = plural(newColumnName);
     }
     return newColumnName;

@@ -1,7 +1,7 @@
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn";
-import IGenerationOptions from "../../src/IGenerationOptions";
+import IGenerationOptions, { getDefaultGenerationOptions } from "../../src/IGenerationOptions";
 import IConnectionOptions from "../../src/IConnectionOptions";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
 import MariaDbDriver from "../../src/drivers/MariaDbDriver";
@@ -12,21 +12,9 @@ import MysqlDriver from "../../src/drivers/MysqlDriver";
 import path = require("path");
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
-    return {
-        resultsPath,
-        noConfigs: false,
-        convertCaseEntity: "pascal",
-        convertCaseFile: "pascal",
-        convertCaseProperty: "camel",
-        propertyVisibility: "none",
-        lazy: false,
-        generateConstructor: false,
-        customNamingStrategyPath: "",
-        relationIds: false,
-        skipSchema: false,
-        activeRecord: false,
-        strictMode: "none"
-    };
+    const retVal = getDefaultGenerationOptions();
+    retVal.resultsPath = resultsPath;
+    return retVal;
 }
 
 export async function createMSSQLModels(
@@ -316,7 +304,7 @@ export function compileTsFiles(
         );
         console.log(
             `${diagnostic.file!.fileName} (${lineAndCharacter.line +
-                1},${lineAndCharacter.character + 1}): ${message}`
+            1},${lineAndCharacter.character + 1}): ${message}`
         );
         compiledWithoutErrors = false;
     });

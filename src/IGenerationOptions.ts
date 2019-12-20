@@ -5,6 +5,7 @@ import path = require("path");
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export default interface IGenerationOptions {
     resultsPath: string;
+    pluralizeNames: boolean;
     noConfigs: boolean;
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
@@ -21,6 +22,7 @@ export default interface IGenerationOptions {
 export function getDefaultGenerationOptions(): IGenerationOptions {
     const generationOptions: IGenerationOptions = {
         resultsPath: path.resolve(process.cwd(), "output"),
+        pluralizeNames: true,
         noConfigs: false,
         convertCaseFile: "pascal",
         convertCaseEntity: "pascal",
