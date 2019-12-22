@@ -1,16 +1,16 @@
-import { Column } from "./models/Column";
-import { Entity } from "./models/Entity";
-import { Index } from "./models/Index";
-import { Relation } from "./models/Relation";
-import { RelationId } from "./models/RelationId";
+import { Column as ColumnModel } from "./models/Column";
+import { Entity as EntityModel } from "./models/Entity";
+import { Index as IndexModel } from "./models/Index";
+import { Relation as RelationModel } from "./models/Relation";
+import { RelationId as RelationIdModel } from "./models/RelationId";
 
 // models exports - there may be a more succinct way to export default classes,
 // but this was the only one I could find that seemed happy
-export type Column = Column;
-export type Entity = Entity;
-export type Index = Index;
-export type Relation = Relation;
-export type RelationId = RelationId;
+export type Column = ColumnModel;
+export type Entity = EntityModel;
+export type Index = IndexModel;
+export type Relation = RelationModel;
+export type RelationId = RelationIdModel;
 
 export * from "./Engine";
 export * from "./IConnectionOptions";
