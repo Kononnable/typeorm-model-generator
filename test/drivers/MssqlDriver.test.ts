@@ -47,7 +47,7 @@ describe("MssqlDriver", () => {
                 return response;
             }
         });
-        const result = await driver.GetAllTables("schema", "db");
+        const result = await driver.GetAllTables("schema", "db", []);
         const expectedResult = [] as Entity[];
         const y: Entity = {
             columns: [],

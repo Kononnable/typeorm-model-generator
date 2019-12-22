@@ -243,7 +243,13 @@ function checkYargsParameters(options: options): options {
             boolean: true,
             default: !options.generationOptions.pluralizeNames,
             describe:
-                "Disable pluralization of OneToMany, ManyToMany relation names."
+                "Disable pluralization of OneToMany, ManyToMany relation names"
+        },
+        skipTables: {
+            string: true,
+            default: options.connectionOptions.skipTables.join(","),
+            describe:
+                "Skip schema generation for specific tables. You can pass multiple values separated by comma"
         },
         strictMode: {
             choices: ["none", "?", "!"],
@@ -280,6 +286,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.resultsPath = argv.o;
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
     options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
+    options.connectionOptions.skipTables = argv.skipTables.split(",");
 
     return options;
 }
@@ -387,6 +394,33 @@ async function useInquirer(options: options): Promise<options> {
             ])
         ).dbName;
     }
+
+    const ignoreSpecyficTables = (
+        await inquirer.prompt([
+            {
+                default:
+                    options.connectionOptions.skipTables.length === 0
+                        ? "All of them"
+                        : "Ignore specific tables",
+                message: "Generate schema for tables:",
+                choices: ["All of them", "Ignore specific tables"],
+                name: "specyficTables",
+                type: "list"
+            }
+        ])
+    ).specyficTables;
+    if (ignoreSpecyficTables === "Ignore specific tables") {
+        const { tableNames } = await inquirer.prompt({
+            default: options.connectionOptions.skipTables.join(","),
+            message: "Table names(separated by comma)",
+            name: "tableNames",
+            type: "input"
+        });
+        options.connectionOptions.skipTables = tableNames.split(",");
+    } else {
+        options.connectionOptions.skipTables = [];
+    }
+
     options.generationOptions.resultsPath = (
         await inquirer.prompt([
             {

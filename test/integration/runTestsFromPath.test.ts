@@ -320,7 +320,8 @@ async function prepareTestRuns(
                         password: String(process.env.MYSQL_Password),
                         databaseType: "mysql",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MYSQL_SSL, { default: false })
+                        ssl: yn(process.env.MYSQL_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
                 case "mariadb":
@@ -332,7 +333,8 @@ async function prepareTestRuns(
                         password: String(process.env.MARIADB_Password),
                         databaseType: "mariadb",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MARIADB_SSL, { default: false })
+                        ssl: yn(process.env.MARIADB_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
 

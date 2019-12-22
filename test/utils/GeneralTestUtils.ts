@@ -29,7 +29,8 @@ export async function createMSSQLModels(
         password: String(process.env.MSSQL_Password),
         databaseType: "mssql",
         schemaName: "dbo,sch1,sch2",
-        ssl: yn(process.env.MSSQL_SSL, { default: false })
+        ssl: yn(process.env.MSSQL_SSL, { default: false }),
+        skipTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.MSSQL_Database);
@@ -80,7 +81,8 @@ export async function createPostgresModels(
         password: String(process.env.POSTGRES_Password),
         databaseType: "postgres",
         schemaName: "public,sch1,sch2",
-        ssl: yn(process.env.POSTGRES_SSL, { default: false })
+        ssl: yn(process.env.POSTGRES_SSL, { default: false }),
+        skipTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.POSTGRES_Database);
@@ -130,7 +132,8 @@ export async function createSQLiteModels(
         password: "",
         databaseType: "sqlite",
         schemaName: "",
-        ssl: false
+        ssl: false,
+        skipTables: []
     };
 
     const connOpt: ConnectionOptions = {
@@ -164,7 +167,8 @@ export async function createMysqlModels(
         password: String(process.env.MYSQL_Password),
         databaseType: "mysql",
         schemaName: "ignored",
-        ssl: yn(process.env.MYSQL_SSL, { default: false })
+        ssl: yn(process.env.MYSQL_SSL, { default: false }),
+        skipTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -206,7 +210,8 @@ export async function createMariaDBModels(
         password: String(process.env.MARIADB_Password),
         databaseType: "mariadb",
         schemaName: "ignored",
-        ssl: yn(process.env.MARIADB_SSL, { default: false })
+        ssl: yn(process.env.MARIADB_SSL, { default: false }),
+        skipTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -250,7 +255,8 @@ export async function createOracleDBModels(
         password: String(process.env.ORACLE_PasswordSys),
         databaseType: "oracle",
         schemaName: String(process.env.ORACLE_Username),
-        ssl: yn(process.env.ORACLE_SSL, { default: false })
+        ssl: yn(process.env.ORACLE_SSL, { default: false }),
+        skipTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.user = String(process.env.ORACLE_Username);

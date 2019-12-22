@@ -15,6 +15,8 @@ import { compileGeneratedModel } from "../integration/runTestsFromPath.test";
 
 chai.use(chaiSubset);
 const { expect } = chai;
+
+// TODO: test for connectionOptions.specyficTables
 describe("Model customization phase", async () => {
     const generateSampleData: () => Entity[] = () => [
         {
