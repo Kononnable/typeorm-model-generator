@@ -3,3 +3,4 @@ test/integration/defaultValues/**/*.ts
 test/integration/entityTypes/**/*.ts
 test/integration/examples/**/*.ts
 test/integration/github-issues/**/*.ts
+dist/**/*.d.ts
