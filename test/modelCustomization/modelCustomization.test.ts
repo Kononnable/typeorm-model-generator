@@ -665,4 +665,52 @@ describe("Model customization phase", async () => {
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         })
     })
+    describe("index file generation", () => {
+        it("enabled", async () => {
+
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            generationOptions.indexFile = true;
+            clearGenerationDir();
+
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const indexFileContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Index.ts"))
+                .toString();
+            expect(indexFileContent).to.contain('export { Post } from "./Post";');
+            expect(indexFileContent).to.contain('export { PostAuthor } from "./PostAuthor";');
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        })
+        it("disabled", async () => {
+
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            generationOptions.pluralizeNames = false;
+            clearGenerationDir();
+
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            expect(fs.existsSync(path.resolve(filesGenPath, "Index.ts"))).to.equal(false);
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        })
+    })
 });

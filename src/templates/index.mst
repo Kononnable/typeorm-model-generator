@@ -1,0 +1,3 @@
+{{#entities~}}
+export { {{toEntityName tscName}} } from './{{toFileName tscName}}'
+{{/entities~}}

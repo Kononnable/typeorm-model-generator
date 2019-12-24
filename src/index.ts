@@ -255,6 +255,11 @@ function checkYargsParameters(options: options): options {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
             describe: "Mark fields as optional(?) or non-null(!)"
+        },
+        index: {
+            boolean: true,
+            default: options.generationOptions.indexFile,
+            describe: "Generate index file"
         }
     });
 
@@ -272,6 +277,7 @@ function checkYargsParameters(options: options): options {
         : standardSchema;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
+    options.connectionOptions.skipTables = argv.skipTables.split(",");
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
@@ -286,7 +292,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.resultsPath = argv.o;
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
     options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
-    options.connectionOptions.skipTables = argv.skipTables.split(",");
+    options.generationOptions.indexFile = argv.index;
 
     return options;
 }
@@ -499,9 +505,14 @@ async function useInquirer(options: options): Promise<options> {
                         },
                         {
                             name:
-                                "Pluralize OneToMany, ManyToMany relation names.",
+                                "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
                             checked: options.generationOptions.pluralizeNames
+                        },
+                        {
+                            name: "Generate index file",
+                            value: "index",
+                            checked: options.generationOptions.indexFile
                         }
                     ],
                     message: "Available customizations",
@@ -555,6 +566,7 @@ async function useInquirer(options: options): Promise<options> {
         options.generationOptions.generateConstructor = customizations.includes(
             "constructor"
         );
+        options.generationOptions.indexFile = customizations.includes("index");
 
         if (customizations.includes("namingStrategy")) {
             const namingStrategyPath = (
