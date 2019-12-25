@@ -19,6 +19,7 @@ export default interface IGenerationOptions {
     strictMode: "none" | "?" | "!";
     skipSchema: boolean;
     indexFile: boolean;
+    exportType: "named" | "default";
 }
 export function getDefaultGenerationOptions(): IGenerationOptions {
     const generationOptions: IGenerationOptions = {
@@ -36,7 +37,8 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         relationIds: false,
         strictMode: "none",
         skipSchema: false,
-        indexFile: false
+        indexFile: false,
+        exportType: "named"
     };
     return generationOptions;
 }

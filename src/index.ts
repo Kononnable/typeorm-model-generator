@@ -260,6 +260,11 @@ function checkYargsParameters(options: options): options {
             boolean: true,
             default: options.generationOptions.indexFile,
             describe: "Generate index file"
+        },
+        defaultExport: {
+            boolean: true,
+            default: options.generationOptions.exportType === "default",
+            describe: "Generate index file"
         }
     });
 
@@ -293,6 +298,9 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
     options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
     options.generationOptions.indexFile = argv.index;
+    options.generationOptions.exportType = argv.defaultExport
+        ? "default"
+        : "named";
 
     return options;
 }
@@ -513,6 +521,13 @@ async function useInquirer(options: options): Promise<options> {
                             name: "Generate index file",
                             value: "index",
                             checked: options.generationOptions.indexFile
+                        },
+                        {
+                            name: "Prefer default exports",
+                            value: "defaultExport",
+                            checked:
+                                options.generationOptions.exportType ===
+                                "default"
                         }
                     ],
                     message: "Available customizations",
@@ -567,6 +582,11 @@ async function useInquirer(options: options): Promise<options> {
             "constructor"
         );
         options.generationOptions.indexFile = customizations.includes("index");
+        options.generationOptions.exportType = customizations.includes(
+            "defaultExport"
+        )
+            ? "default"
+            : "named";
 
         if (customizations.includes("namingStrategy")) {
             const namingStrategyPath = (

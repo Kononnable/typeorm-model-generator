@@ -211,6 +211,14 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             return retVal;
         }
     );
+    Handlebars.registerHelper("defaultExport", () =>
+        generationOptions.exportType === "default" ? "default" : ""
+    );
+    Handlebars.registerHelper("localImport", (entityName: string) =>
+        generationOptions.exportType === "default"
+            ? entityName
+            : `{${entityName}}`
+    );
     Handlebars.registerHelper("strictMode", () =>
         generationOptions.strictMode !== "none"
             ? generationOptions.strictMode

@@ -666,7 +666,7 @@ describe("Model customization phase", async () => {
         })
     })
     describe("index file generation", () => {
-        it("enabled", async () => {
+        it("named export", async () => {
 
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
@@ -687,8 +687,36 @@ describe("Model customization phase", async () => {
             const indexFileContent = fs
                 .readFileSync(path.resolve(filesGenPath, "Index.ts"))
                 .toString();
-            expect(indexFileContent).to.contain('export { Post } from "./Post";');
-            expect(indexFileContent).to.contain('export { PostAuthor } from "./PostAuthor";');
+            expect(indexFileContent).to.contain('import { PostAuthor } from "./PostAuthor');
+            expect(indexFileContent).to.contain('import { Post } from "./Post');
+            expect(indexFileContent).to.contain('export { PostAuthor, Post }');
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        })
+        it("default export", async () => {
+
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            generationOptions.indexFile = true;
+            generationOptions.exportType = "default"
+            clearGenerationDir();
+
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const indexFileContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Index.ts"))
+                .toString();
+            expect(indexFileContent).to.contain('import PostAuthor from "./PostAuthor');
+            expect(indexFileContent).to.contain('import Post from "./Post');
+            expect(indexFileContent).to.contain('export { PostAuthor, Post }');
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         })
         it("disabled", async () => {
@@ -713,4 +741,5 @@ describe("Model customization phase", async () => {
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         })
     })
+
 });
