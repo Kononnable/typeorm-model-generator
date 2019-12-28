@@ -3,13 +3,15 @@
   "version": "0.3.5",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
+  "main": "./dist/src/library.js",
+  "types": "./dist/src/library.d.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
     "build": "npm run clean && tsc && ncp src/templates/ dist/src/templates/ && ncp package.json dist/package.json",
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- --bail",
-    "posttest": "eslint ./**/*.ts ./src/**/*.ts  ./test/**/*.ts",
+    "posttest": "eslint ./src/**/*.ts  ./test/**/*.ts",
     "clean": "rimraf coverage output dist",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
   },
