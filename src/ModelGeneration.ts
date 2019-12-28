@@ -14,8 +14,7 @@ export default function modelGenerationPhase(
     databaseModel: Entity[]
 ): void {
     createHandlebarsHelpers(generationOptions);
-    const templatePath = path.resolve(__dirname, "templates", "entity.mst");
-    const template = fs.readFileSync(templatePath, "UTF-8");
+
     const resultPath = generationOptions.resultsPath;
     if (!fs.existsSync(resultPath)) {
         fs.mkdirSync(resultPath);
@@ -29,7 +28,24 @@ export default function modelGenerationPhase(
             fs.mkdirSync(entitiesPath);
         }
     }
-    const compliedTemplate = Handlebars.compile(template, {
+    if (generationOptions.indexFile) {
+        createIndexFile(databaseModel, generationOptions, entitiesPath);
+    }
+    generateModels(databaseModel, generationOptions, entitiesPath);
+}
+
+function generateModels(
+    databaseModel: Entity[],
+    generationOptions: IGenerationOptions,
+    entitiesPath: string
+) {
+    const entityTemplatePath = path.resolve(
+        __dirname,
+        "templates",
+        "entity.mst"
+    );
+    const entityTemplate = fs.readFileSync(entityTemplatePath, "UTF-8");
+    const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
         noEscape: true
     });
     databaseModel.forEach(element => {
@@ -54,7 +70,7 @@ export default function modelGenerationPhase(
             entitiesPath,
             `${casedFileName}.ts`
         );
-        const rendered = compliedTemplate(element);
+        const rendered = entityCompliedTemplate(element);
         const withImportStatements = removeUnusedImports(rendered);
         const formatted = Prettier.format(withImportStatements, {
             parser: "typescript"
@@ -65,6 +81,41 @@ export default function modelGenerationPhase(
         });
     });
 }
+
+function createIndexFile(
+    databaseModel: Entity[],
+    generationOptions: IGenerationOptions,
+    entitiesPath: string
+) {
+    const templatePath = path.resolve(__dirname, "templates", "index.mst");
+    const template = fs.readFileSync(templatePath, "UTF-8");
+    const compliedTemplate = Handlebars.compile(template, {
+        noEscape: true
+    });
+    const rendered = compliedTemplate({ entities: databaseModel });
+    const formatted = Prettier.format(rendered, {
+        parser: "typescript"
+    });
+    let fileName = "index";
+    switch (generationOptions.convertCaseFile) {
+        case "camel":
+            fileName = changeCase.camelCase(fileName);
+            break;
+        case "param":
+            fileName = changeCase.paramCase(fileName);
+            break;
+        case "pascal":
+            fileName = changeCase.pascalCase(fileName);
+            break;
+        default:
+    }
+    const resultFilePath = path.resolve(entitiesPath, `${fileName}.ts`);
+    fs.writeFileSync(resultFilePath, formatted, {
+        encoding: "UTF-8",
+        flag: "w"
+    });
+}
+
 function removeUnusedImports(rendered: string) {
     const openBracketIndex = rendered.indexOf("{") + 1;
     const closeBracketIndex = rendered.indexOf("}");
@@ -159,6 +210,14 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             }
             return retVal;
         }
+    );
+    Handlebars.registerHelper("defaultExport", () =>
+        generationOptions.exportType === "default" ? "default" : ""
+    );
+    Handlebars.registerHelper("localImport", (entityName: string) =>
+        generationOptions.exportType === "default"
+            ? entityName
+            : `{${entityName}}`
     );
     Handlebars.registerHelper("strictMode", () =>
         generationOptions.strictMode !== "none"

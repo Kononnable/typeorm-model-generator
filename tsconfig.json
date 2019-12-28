@@ -1,29 +1,30 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2017",
-        "noImplicitAny": false,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "sourceMap": true,
-        "declaration": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitReturns": true,
-        "stripInternal": true,
-        "strictNullChecks": true,
-        "moduleResolution": "node",
-        "newLine": "LF",
-        "outDir": "dist",
-        "lib": [
-            "es2019","es2019.array"
-        ],
-        "typeRoots": [
-          "./node_modules/@types"
-        ],
-        "resolveJsonModule": true,
-    },
-    "include": [
-        "src",
-        "test"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "noImplicitAny": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "declaration": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "stripInternal": true,
+    "strictNullChecks": true,
+    "moduleResolution": "node",
+    "newLine": "LF",
+    "outDir": "dist",
+    "lib": [
+      "es2019",
+      "es2019.array"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "resolveJsonModule": true,
+  },
+  "include": [
+    "src",
+    "test",
+  ]
 }

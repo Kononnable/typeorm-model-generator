@@ -18,6 +18,8 @@ export default interface IGenerationOptions {
     relationIds: boolean;
     strictMode: "none" | "?" | "!";
     skipSchema: boolean;
+    indexFile: boolean;
+    exportType: "named" | "default";
 }
 export function getDefaultGenerationOptions(): IGenerationOptions {
     const generationOptions: IGenerationOptions = {
@@ -34,7 +36,9 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         customNamingStrategyPath: "",
         relationIds: false,
         strictMode: "none",
-        skipSchema: false
+        skipSchema: false,
+        indexFile: false,
+        exportType: "named"
     };
     return generationOptions;
 }

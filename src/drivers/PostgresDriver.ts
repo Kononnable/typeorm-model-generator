@@ -24,14 +24,22 @@ export default class PostgresDriver extends AbstractDriver {
 
     private Connection: PG.Client;
 
-    public GetAllTablesQuery = async (schema: string) => {
+    public GetAllTablesQuery = async (
+        schema: string,
+        dbNames: string,
+        tableNames: string[]
+    ) => {
+        const tableCondition =
+            tableNames.length > 0
+                ? ` AND NOT table_name IN ('${tableNames.join("','")}')`
+                : "";
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
         }[] = (
             await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) `
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) ${tableCondition}`
             )
         ).rows;
         return response;

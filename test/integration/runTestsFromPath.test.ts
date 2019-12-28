@@ -6,6 +6,7 @@ import * as path from "path";
 import * as chaiSubset from "chai-subset";
 import * as flatMap from "array.prototype.flatmap";
 import yn from "yn";
+import { CLIEngine } from "eslint";
 import EntityFileToJson from "../utils/EntityFileToJson";
 import { createDriver, dataCollectionPhase } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
@@ -277,6 +278,15 @@ export function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
         compiledWithoutErrors,
         "Errors detected while compiling generated model"
     ).to.equal(true);
+
+
+    const cli = new CLIEngine({ configFile: "test/configs/.eslintrc.js" });
+    const lintReport = cli.executeOnFiles(currentDirectoryFiles)
+    lintReport.results.forEach(result => result.messages.forEach(message => {
+        console.error(`${result.filePath}:${message.line} - ${message.message}`)
+    }))
+    expect(lintReport.errorCount).to.equal(0)
+    expect(lintReport.warningCount).to.equal(0)
 }
 
 async function prepareTestRuns(
@@ -320,7 +330,8 @@ async function prepareTestRuns(
                         password: String(process.env.MYSQL_Password),
                         databaseType: "mysql",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MYSQL_SSL, { default: false })
+                        ssl: yn(process.env.MYSQL_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
                 case "mariadb":
@@ -332,7 +343,8 @@ async function prepareTestRuns(
                         password: String(process.env.MARIADB_Password),
                         databaseType: "mariadb",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MARIADB_SSL, { default: false })
+                        ssl: yn(process.env.MARIADB_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
 

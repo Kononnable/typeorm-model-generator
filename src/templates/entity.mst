@@ -2,7 +2,7 @@
 @Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
 {{#*inline "Import"}}
-import { {{toEntityName .}} } from './{{toFileName .}}'
+import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 {{/inline}}
 {{#*inline "Column"}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
@@ -13,7 +13,7 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 { name: "{{name}}", referencedColumnName: "{{toPropertyName referencedColumnName}}" },
 {{/inline}}
 {{#*inline "Relation"}}
-@{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}=>{{toEntityName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
+@{{relationType}}(()=>{{toEntityName relatedTable}},{{toEntityName relatedTable}}_=>{{toEntityName relatedTable}}_.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
 {{#if joinColumnOptions}}@JoinColumn([{{#joinColumnOptions}}{{> JoinColumnOptions}}{{/joinColumnOptions}}]){{/if}}
 {{#joinTableOptions}}@JoinTable({ name:"{{name}}", joinColumns:[{{#joinColumns}}{{> JoinColumnOptions}}{{/joinColumns}}],inverseJoinColumns:[{{#inverseJoinColumns}}{{> JoinColumnOptions}}{{/inverseJoinColumns}}],{{#database}}database:"{{.}}",{{/database}}{{#schema}}schema:"{{.}}"{{/schema}} }){{/joinTableOptions}}
 {{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType}};
@@ -33,7 +33,7 @@ import { {{toEntityName .}} } from './{{toFileName .}}'
 {{#*inline "Entity"}}
 {{#indices}}{{> Index}}{{/indices~}}
 @Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}})
-export class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
+export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
 
 {{#columns}}{{> Column}}{{/columns~}}
 {{#relations}}{{> Relation}}{{/relations~}}

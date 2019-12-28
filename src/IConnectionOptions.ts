@@ -16,6 +16,7 @@ export default interface IConnectionOptions {
         | "sqlite";
     schemaName: string;
     ssl: boolean;
+    skipTables: string[];
 }
 
 export function getDefaultConnectionOptions(): IConnectionOptions {
@@ -27,7 +28,8 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         password: "",
         databaseType: undefined as any,
         schemaName: "",
-        ssl: false
+        ssl: false,
+        skipTables: []
     };
     return connectionOptions;
 }

@@ -243,12 +243,28 @@ function checkYargsParameters(options: options): options {
             boolean: true,
             default: !options.generationOptions.pluralizeNames,
             describe:
-                "Disable pluralization of OneToMany, ManyToMany relation names."
+                "Disable pluralization of OneToMany, ManyToMany relation names"
+        },
+        skipTables: {
+            string: true,
+            default: options.connectionOptions.skipTables.join(","),
+            describe:
+                "Skip schema generation for specific tables. You can pass multiple values separated by comma"
         },
         strictMode: {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
             describe: "Mark fields as optional(?) or non-null(!)"
+        },
+        index: {
+            boolean: true,
+            default: options.generationOptions.indexFile,
+            describe: "Generate index file"
+        },
+        defaultExport: {
+            boolean: true,
+            default: options.generationOptions.exportType === "default",
+            describe: "Generate index file"
         }
     });
 
@@ -266,6 +282,7 @@ function checkYargsParameters(options: options): options {
         : standardSchema;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
+    options.connectionOptions.skipTables = argv.skipTables.split(",");
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
@@ -280,6 +297,10 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.resultsPath = argv.o;
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
     options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
+    options.generationOptions.indexFile = argv.index;
+    options.generationOptions.exportType = argv.defaultExport
+        ? "default"
+        : "named";
 
     return options;
 }
@@ -387,6 +408,33 @@ async function useInquirer(options: options): Promise<options> {
             ])
         ).dbName;
     }
+
+    const ignoreSpecyficTables = (
+        await inquirer.prompt([
+            {
+                default:
+                    options.connectionOptions.skipTables.length === 0
+                        ? "All of them"
+                        : "Ignore specific tables",
+                message: "Generate schema for tables:",
+                choices: ["All of them", "Ignore specific tables"],
+                name: "specyficTables",
+                type: "list"
+            }
+        ])
+    ).specyficTables;
+    if (ignoreSpecyficTables === "Ignore specific tables") {
+        const { tableNames } = await inquirer.prompt({
+            default: options.connectionOptions.skipTables.join(","),
+            message: "Table names(separated by comma)",
+            name: "tableNames",
+            type: "input"
+        });
+        options.connectionOptions.skipTables = tableNames.split(",");
+    } else {
+        options.connectionOptions.skipTables = [];
+    }
+
     options.generationOptions.resultsPath = (
         await inquirer.prompt([
             {
@@ -465,9 +513,21 @@ async function useInquirer(options: options): Promise<options> {
                         },
                         {
                             name:
-                                "Pluralize OneToMany, ManyToMany relation names.",
+                                "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
                             checked: options.generationOptions.pluralizeNames
+                        },
+                        {
+                            name: "Generate index file",
+                            value: "index",
+                            checked: options.generationOptions.indexFile
+                        },
+                        {
+                            name: "Prefer default exports",
+                            value: "defaultExport",
+                            checked:
+                                options.generationOptions.exportType ===
+                                "default"
                         }
                     ],
                     message: "Available customizations",
@@ -521,6 +581,12 @@ async function useInquirer(options: options): Promise<options> {
         options.generationOptions.generateConstructor = customizations.includes(
             "constructor"
         );
+        options.generationOptions.indexFile = customizations.includes("index");
+        options.generationOptions.exportType = customizations.includes(
+            "defaultExport"
+        )
+            ? "default"
+            : "named";
 
         if (customizations.includes("namingStrategy")) {
             const namingStrategyPath = (

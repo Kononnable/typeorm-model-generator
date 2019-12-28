@@ -11,7 +11,7 @@
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
     "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- --bail",
-    "posttest": "eslint ./**/*.ts ./src/**/*.ts  ./test/**/*.ts",
+    "posttest": "eslint ./src/**/*.ts  ./test/**/*.ts",
     "clean": "rimraf coverage output dist",
     "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
   },
@@ -47,6 +47,7 @@
     "@types/chai": "^4.2.7",
     "@types/chai-as-promised": "^7.1.2",
     "@types/chai-subset": "^1.3.3",
+    "@types/eslint": "^6.1.3",
     "@types/fs-extra": "^8.0.1",
     "@types/handlebars": "^4.1.0",
     "@types/inquirer": "^6.5.0",

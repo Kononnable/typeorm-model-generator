@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "newLine": "LF",
+    "typeRoots": [
+      "../../node_modules/@types"
+    ],
+    "resolveJsonModule": true,
+  },
+  "include": [
+    "../../output"
+  ]
+}

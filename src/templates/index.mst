@@ -1,0 +1,5 @@
+{{#entities~}}
+import {{localImport (toEntityName tscName)}} from './{{toFileName tscName}}'
+{{/entities}}
+
+export { {{#entities}}{{toEntityName tscName}},{{/entities~}} }

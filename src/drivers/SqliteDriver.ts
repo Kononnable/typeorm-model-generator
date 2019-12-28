@@ -30,10 +30,18 @@ export default class SqliteDriver extends AbstractDriver {
 
     public GetAllTablesQuery: any;
 
-    public async GetAllTables(): Promise<Entity[]> {
+    public async GetAllTables(
+        schema: string,
+        dbNames: string,
+        tableNames: string[]
+    ): Promise<Entity[]> {
         const ret: Entity[] = [] as Entity[];
+        const tableCondition =
+            tableNames.length > 0
+                ? ` AND NOT tbl_name IN ('${tableNames.join("','")}')`
+                : "";
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
-            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
+            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%' ${tableCondition}`
         );
         rows.forEach(val => {
             if (val.sql.includes("AUTOINCREMENT")) {
