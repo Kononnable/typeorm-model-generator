@@ -65,7 +65,7 @@ export default class SqliteDriver extends AbstractDriver {
                 }>(`PRAGMA table_info('${ent.tscName}');`);
                 response.forEach(resp => {
                     const tscName = resp.name;
-                    let tscType = "NonNullable<unknown>";
+                    let tscType = "";
                     const options: Column["options"] = { name: resp.name };
                     if (resp.notnull === 0) options.nullable = true;
                     const isPrimary = resp.pk > 0 ? true : undefined;
@@ -164,6 +164,7 @@ export default class SqliteDriver extends AbstractDriver {
                             tscType = "Date";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type: ${columnType}  table name: ${ent.tscName} column name: ${resp.name}`
                             );
@@ -218,17 +219,15 @@ export default class SqliteDriver extends AbstractDriver {
                         );
                     }
 
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            primary: isPrimary,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        primary: isPrimary,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
             })
         );

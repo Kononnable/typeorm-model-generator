@@ -74,7 +74,7 @@ describe("MssqlDriver", () => {
                     COLUMN_DEFAULT: "'a'",
                     COLUMN_NAME: "name",
                     DATA_TYPE: "int",
-                    IS_NULLABLE: "YES",
+                    IS_NULLABLE: "NO",
                     NUMERIC_PRECISION: 0,
                     NUMERIC_SCALE: 0,
                     IsIdentity: 1
@@ -99,7 +99,6 @@ describe("MssqlDriver", () => {
         const expected: Entity[] = JSON.parse(JSON.stringify(entities));
         expected[0].columns.push({
             options: {
-                nullable: true,
                 name: "name"
             },
             type: "int",

@@ -87,7 +87,7 @@ export default class OracleDriver extends AbstractDriver {
                               );
                     const DATA_TYPE = resp.DATA_TYPE.replace(/\([0-9]+\)/g, "");
                     const columnType = DATA_TYPE.toLowerCase();
-                    let tscType = "NonNullable<unknown>";
+                    let tscType = "";
                     switch (DATA_TYPE.toLowerCase()) {
                         case "char":
                             tscType = "string";
@@ -177,6 +177,7 @@ export default class OracleDriver extends AbstractDriver {
                             tscType = "number";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type:${DATA_TYPE}`
                             );
@@ -201,16 +202,14 @@ export default class OracleDriver extends AbstractDriver {
                             resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : undefined;
                     }
 
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;

@@ -69,7 +69,7 @@ export default class MysqlDriver extends AbstractDriver {
                 .filter(filterVal => filterVal.TABLE_NAME === ent.tscName)
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
-                    let tscType = "NonNullable<unknown>";
+                    let tscType = "";
                     const options: Column["options"] = {
                         name: resp.COLUMN_NAME
                     };
@@ -214,6 +214,7 @@ export default class MysqlDriver extends AbstractDriver {
                             tscType = "string";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
@@ -250,16 +251,14 @@ export default class MysqlDriver extends AbstractDriver {
                                 : undefined;
                     }
 
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;
