@@ -187,6 +187,7 @@ export default class OracleDriver extends AbstractDriver {
                             tscType = "number";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type:${DATA_TYPE}`
                             );
@@ -211,16 +212,14 @@ export default class OracleDriver extends AbstractDriver {
                             resp.DATA_LENGTH > 0 ? resp.DATA_LENGTH : undefined;
                     }
 
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;

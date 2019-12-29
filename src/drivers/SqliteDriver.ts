@@ -172,6 +172,7 @@ export default class SqliteDriver extends AbstractDriver {
                             tscType = "Date";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type: ${columnType}  table name: ${ent.tscName} column name: ${resp.name}`
                             );
@@ -226,17 +227,15 @@ export default class SqliteDriver extends AbstractDriver {
                         );
                     }
 
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            primary: isPrimary,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        primary: isPrimary,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
             })
         );

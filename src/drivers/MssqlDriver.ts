@@ -204,6 +204,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                             tscType = "string";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
                                 `Unknown column type: ${resp.DATA_TYPE}  table name: ${resp.TABLE_NAME} column name: ${resp.COLUMN_NAME}`
                             );
@@ -230,17 +231,14 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                                 ? resp.CHARACTER_MAXIMUM_LENGTH
                                 : undefined;
                     }
-
-                    if (columnType) {
-                        ent.columns.push({
-                            generated,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;

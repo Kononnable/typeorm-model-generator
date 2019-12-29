@@ -111,21 +111,22 @@ export default class PostgresDriver extends AbstractDriver {
                         resp.udt_name,
                         resp.enumvalues
                     );
-                    if (!columnTypes.sqlType || !columnTypes.tsType) {
+                    if (columnTypes.tsType === "NonNullable<unknown>") {
                         if (
                             resp.data_type === "USER-DEFINED" ||
                             resp.data_type === "ARRAY"
                         ) {
                             TomgUtils.LogError(
-                                `Unknown ${resp.data_type} column type: ${resp.udt_name}  table name: ${resp.table_name} column name: ${resp.column_name}`
+                                `Unknown ${resp.data_type} column type: ${resp.udt_name} table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         } else {
                             TomgUtils.LogError(
-                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
+                                `Unknown column type: ${resp.data_type} table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         }
                         return;
                     }
+
                     const columnType = columnTypes.sqlType;
                     let tscType = columnTypes.tsType;
                     if (columnTypes.isArray) options.array = true;
@@ -164,16 +165,15 @@ export default class PostgresDriver extends AbstractDriver {
                                 ? resp.character_maximum_length
                                 : undefined;
                     }
-                    if (columnType && tscType) {
-                        ent.columns.push({
-                            generated,
-                            type: columnType,
-                            default: defaultValue,
-                            options,
-                            tscName,
-                            tscType
-                        });
-                    }
+
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;
@@ -185,17 +185,16 @@ export default class PostgresDriver extends AbstractDriver {
         enumValues: string | null
     ) {
         let ret: {
-            tsType?: Column["tscType"];
-            sqlType: string | null;
+            tsType: Column["tscType"];
+            sqlType: string;
             isArray: boolean;
             enumValues: string[];
         } = {
-            tsType: undefined,
-            sqlType: null,
+            tsType: "",
+            sqlType: dataType,
             isArray: false,
             enumValues: []
         };
-        ret.sqlType = dataType;
         switch (dataType) {
             case "int2":
                 ret.tsType = "number";
@@ -401,16 +400,12 @@ export default class PostgresDriver extends AbstractDriver {
                                 .join('" | "')}"` as never) as string;
                             ret.sqlType = "enum";
                             ret.enumValues = enumValues.split(",");
-                        } else {
-                            ret.tsType = undefined;
-                            ret.sqlType = null;
                         }
                         break;
                 }
                 break;
             default:
-                ret.tsType = undefined;
-                ret.sqlType = null;
+                ret.tsType = "NonNullable<unknown>";
                 break;
         }
         return ret;

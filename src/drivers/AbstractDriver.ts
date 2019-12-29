@@ -369,11 +369,20 @@ export default abstract class AbstractDriver {
                     ownerColumns[0].tscName,
                     ownerEntity
                 );
+
+                let fieldType = "";
+                if (isOneToMany) {
+                    fieldType = `${ownerColumns[0].tscType}[]`;
+                } else {
+                    fieldType = ownerColumns[0].tscType;
+                    if (ownerColumns[0].options.nullable) {
+                        fieldType += " | null";
+                    }
+                }
+
                 ownerEntity.relationIds.push({
                     fieldName: relationIdFieldName,
-                    fieldType: isOneToMany
-                        ? `${ownerColumns[0].tscType}[]`
-                        : ownerColumns[0].tscType,
+                    fieldType,
                     relationField: ownerRelation.fieldName
                 });
                 // TODO: RelationId on ManyToMany
