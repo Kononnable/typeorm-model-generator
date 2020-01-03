@@ -1,7 +1,9 @@
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn";
-import IGenerationOptions, { getDefaultGenerationOptions } from "../../src/IGenerationOptions";
+import IGenerationOptions, {
+    getDefaultGenerationOptions
+} from "../../src/IGenerationOptions";
 import IConnectionOptions from "../../src/IConnectionOptions";
 import MssqlDriver from "../../src/drivers/MssqlDriver";
 import MariaDbDriver from "../../src/drivers/MariaDbDriver";
@@ -82,7 +84,7 @@ export async function createPostgresModels(
         databaseType: "postgres",
         schemaName: "public,sch1,sch2",
         ssl: yn(process.env.POSTGRES_SSL, { default: false }),
-        skipTables: []
+        skipTables: ["spatial_ref_sys"]
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.POSTGRES_Database);
@@ -310,7 +312,7 @@ export function compileTsFiles(
         );
         console.log(
             `${diagnostic.file!.fileName} (${lineAndCharacter.line +
-            1},${lineAndCharacter.character + 1}): ${message}`
+                1},${lineAndCharacter.character + 1}): ${message}`
         );
         compiledWithoutErrors = false;
     });

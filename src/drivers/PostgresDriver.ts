@@ -390,6 +390,7 @@ export default class PostgresDriver extends AbstractDriver {
                 switch (udtName) {
                     case "citext":
                     case "hstore":
+                    case "geography":
                     case "geometry":
                         ret.sqlType = udtName;
                         break;

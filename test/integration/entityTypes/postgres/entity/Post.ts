@@ -186,4 +186,7 @@ export class Post {
 
     @Column("daterange")
     daterange: string;
+
+    @Column("geography")
+    geography: string;
 }
