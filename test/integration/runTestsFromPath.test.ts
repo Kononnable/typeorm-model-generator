@@ -24,7 +24,7 @@ const { expect } = chai;
 it("Column default values", async () => {
     const testPartialPath = "test/integration/defaultValues";
     await runTestsFromPath(testPartialPath, true);
-})
+});
 it("Platform specific types", async () => {
     const testPartialPath = "test/integration/entityTypes";
     await runTestsFromPath(testPartialPath, true);
@@ -249,7 +249,11 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
 
 // TODO: Move(?)
 // eslint-disable-next-line import/prefer-default-export
-export function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
+export function compileGeneratedModel(
+    filesGenPath: string,
+    drivers: string[],
+    lintGeneratedFiles = true
+) {
     const currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
         const entitiesPath = path.resolve(filesGenPath, driver, "entities");
@@ -279,14 +283,19 @@ export function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
         "Errors detected while compiling generated model"
     ).to.equal(true);
 
-
-    const cli = new CLIEngine({ configFile: "test/configs/.eslintrc.js" });
-    const lintReport = cli.executeOnFiles(currentDirectoryFiles)
-    lintReport.results.forEach(result => result.messages.forEach(message => {
-        console.error(`${result.filePath}:${message.line} - ${message.message}`)
-    }))
-    expect(lintReport.errorCount).to.equal(0)
-    expect(lintReport.warningCount).to.equal(0)
+    if (lintGeneratedFiles) {
+        const cli = new CLIEngine({ configFile: "test/configs/.eslintrc.js" });
+        const lintReport = cli.executeOnFiles(currentDirectoryFiles);
+        lintReport.results.forEach(result =>
+            result.messages.forEach(message => {
+                console.error(
+                    `${result.filePath}:${message.line} - ${message.message}`
+                );
+            })
+        );
+        expect(lintReport.errorCount).to.equal(0);
+        expect(lintReport.warningCount).to.equal(0);
+    }
 }
 
 async function prepareTestRuns(

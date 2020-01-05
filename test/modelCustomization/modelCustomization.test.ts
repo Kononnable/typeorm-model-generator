@@ -4,13 +4,9 @@ import * as chai from "chai";
 import * as chaiSubset from "chai-subset";
 import { Entity } from "../../src/models/Entity";
 import modelCustomizationPhase from "../../src/ModelCustomization";
-import {
-    getDefaultGenerationOptions
-} from "../../src/IGenerationOptions";
+import { getDefaultGenerationOptions } from "../../src/IGenerationOptions";
 import modelGenerationPhase from "../../src/ModelGeneration";
-import {
-    getDefaultConnectionOptions
-} from "../../src/IConnectionOptions";
+import { getDefaultConnectionOptions } from "../../src/IConnectionOptions";
 import { compileGeneratedModel } from "../integration/runTestsFromPath.test";
 
 chai.use(chaiSubset);
@@ -226,7 +222,7 @@ describe("Model customization phase", async () => {
             expect(postContent).to.contain("class post {");
             expect(postAuthorContent).to.contain("class postAuthor {");
 
-            compileGeneratedModel(generationOptions.resultsPath, [""]);
+            compileGeneratedModel(generationOptions.resultsPath, [""], false);
         });
     });
     describe("case-property", async () => {
@@ -256,7 +252,7 @@ describe("Model customization phase", async () => {
             expect(postContent).to.contain("Title: string;");
             expect(postAuthorContent).to.contain("Posts: Post[];");
 
-            compileGeneratedModel(generationOptions.resultsPath, [""]);
+            compileGeneratedModel(generationOptions.resultsPath, [""], false);
         });
         it("camelCase", () => {
             const data = generateSampleData();
@@ -575,9 +571,9 @@ describe("Model customization phase", async () => {
         const data = generateSampleData();
         const generationOptions = generateGenerationOptions();
         clearGenerationDir();
-        generationOptions.convertCaseEntity = "none"
-        generationOptions.convertCaseFile = "none"
-        generationOptions.convertCaseProperty = "none"
+        generationOptions.convertCaseEntity = "none";
+        generationOptions.convertCaseFile = "none";
+        generationOptions.convertCaseProperty = "none";
         generationOptions.customNamingStrategyPath =
             "test/modelCustomization/testNamingStrategy.ts";
         // TODO: relationId
@@ -613,11 +609,10 @@ describe("Model customization phase", async () => {
             `import { Post_B } from "./Post_B";`
         );
 
-        compileGeneratedModel(generationOptions.resultsPath, [""]);
+        compileGeneratedModel(generationOptions.resultsPath, [""], false);
     });
     describe("pluralization", () => {
         it("enabled", async () => {
-
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             generationOptions.pluralizeNames = true;
@@ -639,9 +634,8 @@ describe("Model customization phase", async () => {
                 .toString();
             expect(postAuthorContent).to.contain("posts: Post[];");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
-        })
+        });
         it("disabled", async () => {
-
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             generationOptions.pluralizeNames = false;
@@ -663,11 +657,10 @@ describe("Model customization phase", async () => {
                 .toString();
             expect(postAuthorContent).to.contain("post: Post[];");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
-        })
-    })
+        });
+    });
     describe("index file generation", () => {
         it("named export", async () => {
-
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             generationOptions.indexFile = true;
@@ -687,17 +680,18 @@ describe("Model customization phase", async () => {
             const indexFileContent = fs
                 .readFileSync(path.resolve(filesGenPath, "Index.ts"))
                 .toString();
-            expect(indexFileContent).to.contain('import { PostAuthor } from "./PostAuthor');
+            expect(indexFileContent).to.contain(
+                'import { PostAuthor } from "./PostAuthor'
+            );
             expect(indexFileContent).to.contain('import { Post } from "./Post');
-            expect(indexFileContent).to.contain('export { PostAuthor, Post }');
+            expect(indexFileContent).to.contain("export { PostAuthor, Post }");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
-        })
+        });
         it("default export", async () => {
-
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             generationOptions.indexFile = true;
-            generationOptions.exportType = "default"
+            generationOptions.exportType = "default";
             clearGenerationDir();
 
             const customizedModel = modelCustomizationPhase(
@@ -714,13 +708,14 @@ describe("Model customization phase", async () => {
             const indexFileContent = fs
                 .readFileSync(path.resolve(filesGenPath, "Index.ts"))
                 .toString();
-            expect(indexFileContent).to.contain('import PostAuthor from "./PostAuthor');
+            expect(indexFileContent).to.contain(
+                'import PostAuthor from "./PostAuthor'
+            );
             expect(indexFileContent).to.contain('import Post from "./Post');
-            expect(indexFileContent).to.contain('export { PostAuthor, Post }');
+            expect(indexFileContent).to.contain("export { PostAuthor, Post }");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
-        })
+        });
         it("disabled", async () => {
-
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             generationOptions.pluralizeNames = false;
@@ -737,9 +732,10 @@ describe("Model customization phase", async () => {
                 customizedModel
             );
             const filesGenPath = path.resolve(resultsPath, "entities");
-            expect(fs.existsSync(path.resolve(filesGenPath, "Index.ts"))).to.equal(false);
+            expect(
+                fs.existsSync(path.resolve(filesGenPath, "Index.ts"))
+            ).to.equal(false);
             compileGeneratedModel(generationOptions.resultsPath, [""]);
-        })
-    })
-
+        });
+    });
 });
