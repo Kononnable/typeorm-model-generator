@@ -30,6 +30,7 @@ async function CliLogic() {
     } else if (!TOMLConfig.fullConfigFile) {
         options = await useInquirer(options);
     }
+    options = validateConfig(options);
     const driver = createDriver(options.connectionOptions.databaseType);
     console.log(
         `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
@@ -42,6 +43,19 @@ async function CliLogic() {
     console.info(
         `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
     );
+}
+function validateConfig(options: options): options {
+    if (
+        options.generationOptions.lazy &&
+        options.generationOptions.relationIds
+    ) {
+        TomgUtils.LogError(
+            "Typeorm doesn't support RelationId fields for lazy relations.",
+            false
+        );
+        options.generationOptions.relationIds = false;
+    }
+    return options;
 }
 function makeDefaultConfigs() {
     const generationOptions = getDefaultGenerationOptions();
