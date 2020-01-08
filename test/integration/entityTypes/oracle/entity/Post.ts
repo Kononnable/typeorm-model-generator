@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryColumn()
     id: number;
 
@@ -58,7 +57,7 @@ export class Post {
     real: number;
 
     @Column("double precision")
-    double_precision: number;
+    doublePrecision: number;
 
     @Column("date")
     date: Date;
@@ -67,16 +66,16 @@ export class Post {
     timestamp: Date;
 
     @Column("timestamp with time zone")
-    timestamp_with_time_zone: Date;
+    timestampWithTimeZone: Date;
 
     @Column("timestamp with local time zone")
-    timestamp_with_local_time_zone: Date;
+    timestampWithLocalTimeZone: Date;
 
     @Column("interval year to month")
-    interval_year_to_month: string;
+    intervalYearToMonth: string;
 
     @Column("interval day to second")
-    interval_day_to_second: string;
+    intervalDayToSecond: string;
 
     @Column("bfile")
     bfile: Buffer;
@@ -95,5 +94,4 @@ export class Post {
 
     @Column("urowid")
     urowid: number;
-
 }

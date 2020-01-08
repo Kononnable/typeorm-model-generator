@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryColumn()
     id: number;
 
@@ -91,7 +90,7 @@ export class Post {
     hierarchyid: string;
 
     @Column("sql_variant")
-    sql_variant: string;
+    sqlVariant: string;
 
     @Column("timestamp")
     timestamp: Date;
@@ -107,5 +106,4 @@ export class Post {
 
     @Column("geography")
     geography: string;
-
 }

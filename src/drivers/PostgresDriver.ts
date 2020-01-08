@@ -4,12 +4,12 @@ import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
-import EntityInfo from "../models/EntityInfo";
-import ColumnInfo from "../models/ColumnInfo";
-import IndexInfo from "../models/IndexInfo";
-import IndexColumnInfo from "../models/IndexColumnInfo";
-import RelationTempInfo from "../models/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
+import { Column } from "../models/Column";
+import { Index } from "../models/Index";
+import IGenerationOptions from "../IGenerationOptions";
+import { RelationInternal } from "../models/RelationInternal";
 
 export default class PostgresDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
@@ -24,22 +24,31 @@ export default class PostgresDriver extends AbstractDriver {
 
     private Connection: PG.Client;
 
-    public GetAllTablesQuery = async (schema: string) => {
+    public GetAllTablesQuery = async (
+        schema: string,
+        dbNames: string,
+        tableNames: string[]
+    ) => {
+        const tableCondition =
+            tableNames.length > 0
+                ? ` AND NOT table_name IN ('${tableNames.join("','")}')`
+                : "";
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }[] = (await this.Connection.query(
-            `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
- WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema})  AND table_name<>'spatial_ref_sys'`
-        )).rows;
+        }[] = (
+            await this.Connection.query(
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) ${tableCondition}`
+            )
+        ).rows;
         return response;
     };
 
     public async GetCoulmnsFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string
-    ): Promise<EntityInfo[]> {
+    ): Promise<Entity[]> {
         const response: {
             table_name: string;
             column_name: string;
@@ -53,41 +62,46 @@ export default class PostgresDriver extends AbstractDriver {
             isidentity: string;
             isunique: string;
             enumvalues: string | null;
-        }[] = (await this.Connection
-            .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
-            data_type,character_maximum_length,numeric_precision,numeric_scale,
-            case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
-			(SELECT count(*)
-    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-    where
-        tc.CONSTRAINT_TYPE = 'UNIQUE'
-        and tc.TABLE_NAME = c.TABLE_NAME
-        and cu.COLUMN_NAME = c.COLUMN_NAME
-        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-        (SELECT
-string_agg(enumlabel, ',')
-FROM "pg_enum" "e"
-INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-        ) enumValues
-            FROM INFORMATION_SCHEMA.COLUMNS c
-            where table_schema in (${schema})
-			order by ordinal_position`)).rows;
+        }[] = (
+            await this.Connection
+                .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
+                    data_type,character_maximum_length,numeric_precision,numeric_scale,
+                    case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+        			(SELECT count(*)
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+                    on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+            where
+                tc.CONSTRAINT_TYPE = 'UNIQUE'
+                and tc.TABLE_NAME = c.TABLE_NAME
+                and cu.COLUMN_NAME = c.COLUMN_NAME
+                and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+                (SELECT
+        string_agg(enumlabel, ',')
+        FROM "pg_enum" "e"
+        INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+                ) enumValues
+                    FROM INFORMATION_SCHEMA.COLUMNS c
+                    where table_schema in (${schema})
+        			order by ordinal_position`)
+        ).rows;
         entities.forEach(ent => {
             response
-                .filter(filterVal => filterVal.table_name === ent.tsEntityName)
+                .filter(filterVal => filterVal.table_name === ent.tscName)
                 .forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.column_name;
-                    colInfo.options.name = resp.column_name;
-                    colInfo.options.nullable = resp.is_nullable === "YES";
-                    colInfo.options.generated = resp.isidentity === "YES";
-                    colInfo.options.unique = resp.isunique === "1";
-                    colInfo.options.default = colInfo.options.generated
-                        ? null
+                    const tscName = resp.column_name;
+                    const options: Column["options"] = {
+                        name: resp.column_name
+                    };
+                    if (resp.is_nullable === "YES") options.nullable = true;
+                    if (resp.isunique === "1") options.unique = true;
+
+                    const generated =
+                        resp.isidentity === "YES" ? true : undefined;
+                    const defaultValue = generated
+                        ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
                               resp.column_default
                           );
@@ -97,63 +111,69 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                         resp.udt_name,
                         resp.enumvalues
                     );
-                    if (!columnTypes.sqlType || !columnTypes.tsType) {
+                    if (columnTypes.tsType === "NonNullable<unknown>") {
                         if (
                             resp.data_type === "USER-DEFINED" ||
                             resp.data_type === "ARRAY"
                         ) {
                             TomgUtils.LogError(
-                                `Unknown ${resp.data_type} column type: ${resp.udt_name}  table name: ${resp.table_name} column name: ${resp.column_name}`
+                                `Unknown ${resp.data_type} column type: ${resp.udt_name} table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         } else {
                             TomgUtils.LogError(
-                                `Unknown column type: ${resp.data_type}  table name: ${resp.table_name} column name: ${resp.column_name}`
+                                `Unknown column type: ${resp.data_type} table name: ${resp.table_name} column name: ${resp.column_name}`
                             );
                         }
                         return;
                     }
-                    colInfo.options.type = columnTypes.sqlType as any;
-                    colInfo.tsType = columnTypes.tsType;
-                    colInfo.options.array = columnTypes.isArray;
-                    colInfo.options.enum = columnTypes.enumValues;
-                    if (colInfo.options.array) {
-                        colInfo.tsType = colInfo.tsType
+
+                    const columnType = columnTypes.sqlType;
+                    let tscType = columnTypes.tsType;
+                    if (columnTypes.isArray) options.array = true;
+                    if (columnTypes.enumValues.length > 0)
+                        options.enum = columnTypes.enumValues;
+                    if (options.array) {
+                        tscType = tscType
                             .split("|")
                             .map(x => `${x.replace("|", "").trim()}[]`)
-                            .join(" | ") as any;
+                            .join(" | ");
                     }
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
+                            v => v === columnType
                         )
                     ) {
-                        colInfo.options.precision = resp.numeric_precision;
-                        colInfo.options.scale = resp.numeric_scale;
+                        if (resp.numeric_precision !== null) {
+                            options.precision = resp.numeric_precision;
+                        }
+                        if (resp.numeric_scale !== null) {
+                            options.scale = resp.numeric_scale;
+                        }
                     }
                     if (
-                        this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
-                        )
+                        this.ColumnTypesWithLength.some(v => v === columnType)
                     ) {
-                        colInfo.options.length =
+                        options.length =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
                                 : undefined;
                     }
-                    if (
-                        this.ColumnTypesWithWidth.some(
-                            v => v === colInfo.options.type
-                        )
-                    ) {
-                        colInfo.options.width =
+                    if (this.ColumnTypesWithWidth.some(v => v === columnType)) {
+                        options.width =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
                                 : undefined;
                     }
-                    if (colInfo.options.type && colInfo.tsType) {
-                        ent.Columns.push(colInfo);
-                    }
+
+                    ent.columns.push({
+                        generated,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
         });
         return entities;
@@ -165,17 +185,16 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
         enumValues: string | null
     ) {
         let ret: {
-            tsType?: ColumnInfo["tsType"];
-            sqlType: string | null;
+            tsType: Column["tscType"];
+            sqlType: string;
             isArray: boolean;
             enumValues: string[];
         } = {
-            tsType: undefined,
-            sqlType: null,
+            tsType: "",
+            sqlType: dataType,
             isArray: false,
             enumValues: []
         };
-        ret.sqlType = dataType;
         switch (dataType) {
             case "int2":
                 ret.tsType = "number";
@@ -381,35 +400,30 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                                 .split(",")
                                 .join('" | "')}"` as never) as string;
                             ret.sqlType = "enum";
-                            ret.enumValues = (`"${enumValues
-                                .split(",")
-                                .join('","')}"` as never) as string[];
-                        } else {
-                            ret.tsType = undefined;
-                            ret.sqlType = null;
+                            ret.enumValues = enumValues.split(",");
                         }
                         break;
                 }
                 break;
             default:
-                ret.tsType = undefined;
-                ret.sqlType = null;
+                ret.tsType = "NonNullable<unknown>";
                 break;
         }
         return ret;
     }
 
     public async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string
-    ): Promise<EntityInfo[]> {
+    ): Promise<Entity[]> {
         const response: {
             tablename: string;
             indexname: string;
             columnname: string;
             is_unique: number;
             is_primary_key: number;
-        }[] = (await this.Connection.query(`SELECT
+        }[] = (
+            await this.Connection.query(`SELECT
         c.relname AS tablename,
         i.relname as indexname,
         f.attname AS columnname,
@@ -432,43 +446,40 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
         AND n.nspname in (${schema})
         AND f.attnum > 0
         AND i.oid<>0
-        ORDER BY c.relname,f.attname;`)).rows;
+        ORDER BY c.relname,f.attname;`)
+        ).rows;
         entities.forEach(ent => {
-            response
-                .filter(filterVal => filterVal.tablename === ent.tsEntityName)
-                .forEach(resp => {
-                    let indexInfo: IndexInfo = {} as IndexInfo;
-                    const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                    if (
-                        ent.Indexes.filter(
-                            filterVal => filterVal.name === resp.indexname
-                        ).length > 0
-                    ) {
-                        indexInfo = ent.Indexes.find(
-                            filterVal => filterVal.name === resp.indexname
-                        )!;
-                    } else {
-                        indexInfo.columns = [] as IndexColumnInfo[];
-                        indexInfo.name = resp.indexname;
-                        indexInfo.isUnique = resp.is_unique === 1;
-                        indexInfo.isPrimaryKey = resp.is_primary_key === 1;
-                        ent.Indexes.push(indexInfo);
-                    }
-                    indexColumnInfo.name = resp.columnname;
-                    if (resp.is_primary_key === 0) {
-                        indexInfo.isPrimaryKey = false;
-                    }
-                    indexInfo.columns.push(indexColumnInfo);
+            const entityIndices = response.filter(
+                filterVal => filterVal.tablename === ent.tscName
+            );
+            const indexNames = new Set(entityIndices.map(v => v.indexname));
+            indexNames.forEach(indexName => {
+                const records = entityIndices.filter(
+                    v => v.indexname === indexName
+                );
+                const indexInfo: Index = {
+                    columns: [],
+                    options: {},
+                    name: records[0].indexname
+                };
+                if (records[0].is_primary_key === 1) indexInfo.primary = true;
+                if (records[0].is_unique === 1) indexInfo.options.unique = true;
+                records.forEach(record => {
+                    indexInfo.columns.push(record.columnname);
                 });
+                ent.indices.push(indexInfo);
+            });
         });
 
         return entities;
     }
 
     public async GetRelations(
-        entities: EntityInfo[],
-        schema: string
-    ): Promise<EntityInfo[]> {
+        entities: Entity[],
+        schema: string,
+        dbNames: string,
+        generationOptions: IGenerationOptions
+    ): Promise<Entity[]> {
         const response: {
             tablewithforeignkey: string;
             fk_partno: number;
@@ -479,7 +490,8 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             object_id: string;
             // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
-        }[] = (await this.Connection.query(`SELECT DISTINCT
+        }[] = (
+            await this.Connection.query(`SELECT DISTINCT
             con.relname AS tablewithforeignkey,
             att.attnum as fk_partno,
                  att2.attname AS foreignkeycolumn,
@@ -518,31 +530,50 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 AND att2.attrelid = con.conrelid
                 AND att2.attnum = con.parent
                 AND rc.constraint_name= con.conname AND constraint_catalog=current_database() AND rc.constraint_schema=nspname
-                `)).rows;
-        const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-        response.forEach(resp => {
-            let rels = relationsTemp.find(
-                val => val.objectId === resp.object_id
+                `)
+        ).rows;
+
+        const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+        const relationKeys = new Set(response.map(v => v.object_id));
+
+        relationKeys.forEach(relationId => {
+            const rows = response.filter(v => v.object_id === relationId);
+            const ownerTable = entities.find(
+                v => v.sqlName === rows[0].tablewithforeignkey
             );
-            if (rels === undefined) {
-                rels = {} as RelationTempInfo;
-                rels.ownerColumnsNames = [];
-                rels.referencedColumnsNames = [];
-                rels.actionOnDelete =
-                    resp.ondelete === "NO ACTION" ? null : resp.ondelete;
-                rels.actionOnUpdate =
-                    resp.onupdate === "NO ACTION" ? null : resp.onupdate;
-                rels.objectId = resp.object_id;
-                rels.ownerTable = resp.tablewithforeignkey;
-                rels.referencedTable = resp.tablereferenced;
-                relationsTemp.push(rels);
+            const relatedTable = entities.find(
+                v => v.sqlName === rows[0].tablereferenced
+            );
+            if (!ownerTable || !relatedTable) {
+                TomgUtils.LogError(
+                    `Relation between tables ${rows[0].tablewithforeignkey} and ${rows[0].tablereferenced} wasn't found in entity model.`,
+                    true
+                );
+                return;
             }
-            rels.ownerColumnsNames.push(resp.foreignkeycolumn);
-            rels.referencedColumnsNames.push(resp.foreignkeycolumnreferenced);
+            const internal: RelationInternal = {
+                ownerColumns: [],
+                relatedColumns: [],
+                ownerTable,
+                relatedTable
+            };
+            if (rows[0].ondelete !== "NO ACTION") {
+                internal.onDelete = rows[0].ondelete;
+            }
+            if (rows[0].onupdate !== "NO ACTION") {
+                internal.onUpdate = rows[0].onupdate;
+            }
+            rows.forEach(row => {
+                internal.ownerColumns.push(row.foreignkeycolumn);
+                internal.relatedColumns.push(row.foreignkeycolumnreferenced);
+            });
+            relationsTemp.push(internal);
         });
+
         const retVal = PostgresDriver.GetRelationsFromRelationTempInfo(
             relationsTemp,
-            entities
+            entities,
+            generationOptions
         );
         return retVal;
     }
@@ -575,7 +606,7 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
             // eslint-disable-next-line @typescript-eslint/camelcase
-            statement_timeout: connectionOptons.timeout,
+            statement_timeout: 60 * 60 * 1000,
             user: connectionOptons.user
         });
 
@@ -618,10 +649,10 @@ WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
 
     private static ReturnDefaultValueFunction(
         defVal: string | null
-    ): string | null {
+    ): string | undefined {
         let defaultValue = defVal;
         if (!defaultValue) {
-            return null;
+            return undefined;
         }
         defaultValue = defaultValue.replace(/'::[\w ]*/, "'");
         if (defaultValue.startsWith(`'`)) {

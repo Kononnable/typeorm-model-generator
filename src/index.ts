@@ -1,9 +1,12 @@
 import * as Yargs from "yargs";
 import { createDriver, createModelFromDatabase } from "./Engine";
 import * as TomgUtils from "./Utils";
-import AbstractDriver from "./drivers/AbstractDriver";
-import IConnectionOptions from "./IConnectionOptions";
-import IGenerationOptions from "./IGenerationOptions";
+import IConnectionOptions, {
+    getDefaultConnectionOptions
+} from "./IConnectionOptions";
+import IGenerationOptions, {
+    getDefaultGenerationOptions
+} from "./IGenerationOptions";
 
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
@@ -12,72 +15,154 @@ import path = require("path");
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 
+type options = {
+    connectionOptions: IConnectionOptions;
+    generationOptions: IGenerationOptions;
+};
+
 async function CliLogic() {
     console.log(TomgUtils.packageVersion());
-    let driver: AbstractDriver;
-    let connectionOptions: IConnectionOptions;
-    let generationOptions: IGenerationOptions;
+    let options = makeDefaultConfigs();
+    const TOMLConfig = readTOMLConfig(options);
+    options = TOMLConfig.options;
     if (process.argv.length > 2) {
-        const retVal = GetUtilParametersByArgs();
-        connectionOptions = retVal.connectionOptions;
-        generationOptions = retVal.generationOptions;
-        driver = retVal.driver;
-    } else if (fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
-        console.log(
-            `[${new Date().toLocaleTimeString()}] Using configuration file. [${path.resolve(
-                process.cwd(),
-                ".tomg-config"
-            )}]`
-        );
-        const retVal = await fs.readJson(
-            path.resolve(process.cwd(), ".tomg-config")
-        );
-        [connectionOptions, generationOptions] = retVal;
-        driver = createDriver(connectionOptions.databaseType);
-    } else {
-        const retVal = await GetUtilParametersByInquirer();
-        driver = retVal.driver;
-        connectionOptions = retVal.connectionOptions;
-        generationOptions = retVal.generationOptions;
+        options = checkYargsParameters(options);
+    } else if (!TOMLConfig.fullConfigFile) {
+        options = await useInquirer(options);
     }
+    options = validateConfig(options);
+    const driver = createDriver(options.connectionOptions.databaseType);
     console.log(
         `[${new Date().toLocaleTimeString()}] Starting creation of model classes.`
     );
-    await createModelFromDatabase(driver, connectionOptions, generationOptions);
+    await createModelFromDatabase(
+        driver,
+        options.connectionOptions,
+        options.generationOptions
+    );
     console.info(
         `[${new Date().toLocaleTimeString()}] Typeorm model classes created.`
     );
 }
+function validateConfig(options: options): options {
+    if (
+        options.generationOptions.lazy &&
+        options.generationOptions.relationIds
+    ) {
+        TomgUtils.LogError(
+            "Typeorm doesn't support RelationId fields for lazy relations.",
+            false
+        );
+        options.generationOptions.relationIds = false;
+    }
+    return options;
+}
+function makeDefaultConfigs() {
+    const generationOptions = getDefaultGenerationOptions();
+    const connectionOptions = getDefaultConnectionOptions();
+    return {
+        generationOptions,
+        connectionOptions
+    };
+}
+function readTOMLConfig(
+    options: options
+): { options; fullConfigFile: boolean } {
+    if (!fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
+        return { options, fullConfigFile: false };
+    }
+    console.log(
+        `[${new Date().toLocaleTimeString()}] Using configuration file. [${path.resolve(
+            process.cwd(),
+            ".tomg-config"
+        )}]`
+    );
+    const retVal = fs.readJsonSync(path.resolve(process.cwd(), ".tomg-config"));
+    const [loadedGenerationOptions, loadedConnectionOptions] = retVal;
 
-function GetUtilParametersByArgs() {
+    let hasUnknownProperties = false;
+    if (loadedConnectionOptions) {
+        Object.keys(loadedConnectionOptions).forEach(key => {
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    options.connectionOptions,
+                    key
+                )
+            ) {
+                options.connectionOptions[key] = loadedConnectionOptions[key];
+            } else {
+                console.error(`Unknown connection option ${key}.`);
+                hasUnknownProperties = true;
+            }
+        });
+    }
+    if (loadedGenerationOptions) {
+        Object.keys(loadedGenerationOptions).forEach(key => {
+            if (
+                Object.prototype.hasOwnProperty.call(
+                    options.generationOptions,
+                    key
+                )
+            ) {
+                options.generationOptions[key] = loadedGenerationOptions[key];
+            } else {
+                console.error(`Unknown generation option ${key}.`);
+                hasUnknownProperties = true;
+            }
+        });
+    }
+
+    const fullConfigFile =
+        !hasUnknownProperties &&
+        loadedConnectionOptions &&
+        loadedGenerationOptions &&
+        Object.keys(loadedConnectionOptions).length ===
+            Object.keys(options.connectionOptions).length &&
+        Object.keys(loadedGenerationOptions).length ===
+            Object.keys(options.generationOptions).length;
+
+    return {
+        options,
+        fullConfigFile
+    };
+}
+function checkYargsParameters(options: options): options {
     const { argv } = Yargs.usage(
-        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specyfiying any parameters."
-    )
-        .option("h", {
+        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specifying any parameters."
+    ).options({
+        h: {
             alias: "host",
-            default: "127.0.0.1",
+            string: true,
+            default: options.connectionOptions.host,
             describe: "IP address/Hostname for database server"
-        })
-        .option("d", {
+        },
+        d: {
             alias: "database",
+            string: true,
             demand: true,
+            default: options.connectionOptions.databaseName,
             describe:
                 "Database name(or path for sqlite). You can pass multiple values separated by comma."
-        })
-        .option("u", {
+        },
+        u: {
             alias: "user",
+            string: true,
+            default: options.connectionOptions.user,
             describe: "Username for database server"
-        })
-        .option("x", {
+        },
+        x: {
             alias: "pass",
-            default: "",
+            string: true,
+            default: options.connectionOptions.password,
             describe: "Password for database server"
-        })
-        .option("p", {
+        },
+        p: {
+            number: true,
             alias: "port",
+            default: options.connectionOptions.port,
             describe: "Port number for database server"
-        })
-        .option("e", {
+        },
+        e: {
             alias: "engine",
             choices: [
                 "mssql",
@@ -87,155 +172,183 @@ function GetUtilParametersByArgs() {
                 "oracle",
                 "sqlite"
             ],
-            default: "mssql",
+            demand: true,
+            default: options.connectionOptions.databaseType,
             describe: "Database engine"
-        })
-        .option("o", {
+        },
+        o: {
             alias: "output",
-            default: path.resolve(process.cwd(), "output"),
+            default: options.generationOptions.resultsPath,
             describe: "Where to place generated models"
-        })
-        .option("s", {
+        },
+        s: {
             alias: "schema",
+            string: true,
+            default: options.connectionOptions.schemaName,
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3"
-        })
-        .option("ssl", {
+        },
+        ssl: {
             boolean: true,
-            default: false
-        })
-        .option("noConfig", {
+            default: options.connectionOptions.ssl
+        },
+        noConfig: {
             boolean: true,
-            default: false,
+            default: options.generationOptions.noConfigs,
             describe: `Doesn't create tsconfig.json and ormconfig.json`
-        })
-        .option("cf", {
+        },
+        cf: {
             alias: "case-file",
             choices: ["pascal", "param", "camel", "none"],
-            default: "pascal",
+            default: options.generationOptions.convertCaseFile,
             describe: "Convert file names to specified case"
-        })
-        .option("ce", {
+        },
+        ce: {
             alias: "case-entity",
             choices: ["pascal", "camel", "none"],
-            default: "pascal",
+            default: options.generationOptions.convertCaseEntity,
             describe: "Convert class names to specified case"
-        })
-        .option("cp", {
+        },
+        cp: {
             alias: "case-property",
             choices: ["pascal", "camel", "none"],
-            default: "camel",
+            default: options.generationOptions.convertCaseProperty,
             describe: "Convert property names to specified case"
-        })
-        .option("pv", {
+        },
+        pv: {
             alias: "property-visibility",
             choices: ["public", "protected", "private", "none"],
-            default: "none",
+            default: options.generationOptions.propertyVisibility,
             describe:
                 "Defines which visibility should have the generated property"
-        })
-        .option("lazy", {
+        },
+        lazy: {
             boolean: true,
-            default: false,
+            default: options.generationOptions.lazy,
             describe: "Generate lazy relations"
-        })
-        .option("a", {
+        },
+        a: {
             alias: "active-record",
             boolean: true,
-            default: false,
+            default: options.generationOptions.activeRecord,
             describe: "Use ActiveRecord syntax for generated models"
-        })
-        .option("namingStrategy", {
-            describe: "Use custom naming strategy"
-        })
-        .option("relationIds", {
+        },
+        namingStrategy: {
+            describe: "Use custom naming strategy",
+            default: options.generationOptions.customNamingStrategyPath,
+            string: true
+        },
+        relationIds: {
             boolean: true,
-            default: false,
+            default: options.generationOptions.relationIds,
             describe: "Generate RelationId fields"
-        })
-        .option("skipSchema", {
+        },
+        skipSchema: {
             boolean: true,
-            default: false,
+            default: options.generationOptions.skipSchema,
             describe: "Omits schema identifier in generated entities"
-        })
-        .option("generateConstructor", {
+        },
+        generateConstructor: {
             boolean: true,
-            default: false,
+            default: options.generationOptions.generateConstructor,
             describe: "Generate constructor allowing partial initialization"
-        })
-        .option("strictMode", {
+        },
+        disablePluralization: {
+            boolean: true,
+            default: !options.generationOptions.pluralizeNames,
+            describe:
+                "Disable pluralization of OneToMany, ManyToMany relation names"
+        },
+        skipTables: {
+            string: true,
+            default: options.connectionOptions.skipTables.join(","),
+            describe:
+                "Skip schema generation for specific tables. You can pass multiple values separated by comma"
+        },
+        strictMode: {
             choices: ["none", "?", "!"],
-            default: "none",
+            default: options.generationOptions.strictMode,
             describe: "Mark fields as optional(?) or non-null(!)"
-        })
-        .option("timeout", {
-            describe: "SQL Query timeout(ms)",
-            number: true
-        });
+        },
+        index: {
+            boolean: true,
+            default: options.generationOptions.indexFile,
+            describe: "Generate index file"
+        },
+        defaultExport: {
+            boolean: true,
+            default: options.generationOptions.exportType === "default",
+            describe: "Generate index file"
+        }
+    });
 
-    const driver = createDriver(argv.e);
-    const { standardPort } = driver;
-    const { standardSchema } = driver;
-    const standardUser = driver.standardPort;
-    let namingStrategyPath: string;
-    if (argv.namingStrategy && argv.namingStrategy !== "") {
-        namingStrategyPath = argv.namingStrategy;
-    } else {
-        namingStrategyPath = "";
-    }
-    const connectionOptions: IConnectionOptions = new IConnectionOptions();
-    connectionOptions.databaseName = argv.d ? argv.d.toString() : null;
-    connectionOptions.databaseType = argv.e;
-    connectionOptions.host = argv.h;
-    connectionOptions.password = argv.x ? argv.x.toString() : null;
-    connectionOptions.port = parseInt(argv.p, 10) || standardPort;
-    connectionOptions.schemaName = argv.s ? argv.s.toString() : standardSchema;
-    connectionOptions.ssl = argv.ssl;
-    connectionOptions.timeout = argv.timeout;
-    connectionOptions.user = argv.u ? argv.u.toString() : standardUser;
-    const generationOptions: IGenerationOptions = new IGenerationOptions();
-    generationOptions.activeRecord = argv.a;
-    generationOptions.generateConstructor = argv.generateConstructor;
-    generationOptions.convertCaseEntity = argv.ce;
-    generationOptions.convertCaseFile = argv.cf;
-    generationOptions.convertCaseProperty = argv.cp;
-    generationOptions.lazy = argv.lazy;
-    generationOptions.customNamingStrategyPath = namingStrategyPath;
-    generationOptions.noConfigs = argv.noConfig;
-    generationOptions.propertyVisibility = argv.pv;
-    generationOptions.relationIds = argv.relationIds;
-    generationOptions.skipSchema = argv.skipSchema;
-    generationOptions.resultsPath = argv.o ? argv.o.toString() : null;
-    generationOptions.strictMode =
-        argv.strictMode === "none" ? false : argv.strictMode;
+    options.connectionOptions.databaseName = argv.d;
+    options.connectionOptions.databaseType = argv.e;
 
-    return { driver, connectionOptions, generationOptions };
+    const driver = createDriver(options.connectionOptions.databaseType);
+    const { standardPort, standardSchema, standardUser } = driver;
+
+    options.connectionOptions.host = argv.h;
+    options.connectionOptions.password = argv.x;
+    options.connectionOptions.port = argv.p || standardPort;
+    options.connectionOptions.schemaName = argv.s
+        ? argv.s.toString()
+        : standardSchema;
+    options.connectionOptions.ssl = argv.ssl;
+    options.connectionOptions.user = argv.u || standardUser;
+    options.connectionOptions.skipTables = argv.skipTables.split(",");
+    options.generationOptions.activeRecord = argv.a;
+    options.generationOptions.generateConstructor = argv.generateConstructor;
+    options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
+    options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
+    options.generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
+    options.generationOptions.lazy = argv.lazy;
+    options.generationOptions.customNamingStrategyPath = argv.namingStrategy;
+    options.generationOptions.noConfigs = argv.noConfig;
+    options.generationOptions.propertyVisibility = argv.pv as IGenerationOptions["propertyVisibility"];
+    options.generationOptions.relationIds = argv.relationIds;
+    options.generationOptions.skipSchema = argv.skipSchema;
+    options.generationOptions.resultsPath = argv.o;
+    options.generationOptions.pluralizeNames = !argv.disablePluralization;
+    options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
+    options.generationOptions.indexFile = argv.index;
+    options.generationOptions.exportType = argv.defaultExport
+        ? "default"
+        : "named";
+
+    return options;
 }
 
-async function GetUtilParametersByInquirer() {
-    const connectionOptions: IConnectionOptions = new IConnectionOptions();
-    const generationOptions: IGenerationOptions = new IGenerationOptions();
-
-    connectionOptions.databaseType = ((await inquirer.prompt([
-        {
-            choices: [
-                "mssql",
-                "postgres",
-                "mysql",
-                "mariadb",
-                "oracle",
-                "sqlite"
-            ],
-            message: "Choose database engine",
-            name: "engine",
-            type: "list"
-        }
-    ])) as any).engine;
-    const driver = createDriver(connectionOptions.databaseType);
-    if (connectionOptions.databaseType !== "sqlite") {
-        const answ: any = await inquirer.prompt([
+async function useInquirer(options: options): Promise<options> {
+    const oldDatabaseType = options.connectionOptions.databaseType;
+    options.connectionOptions.databaseType = (
+        await inquirer.prompt([
             {
-                default: "localhost",
+                choices: [
+                    "mssql",
+                    "postgres",
+                    "mysql",
+                    "mariadb",
+                    "oracle",
+                    "sqlite"
+                ],
+                default: options.connectionOptions.databaseType,
+                message: "Choose database engine",
+                name: "engine",
+                type: "list"
+            }
+        ])
+    ).engine;
+    const driver = createDriver(options.connectionOptions.databaseType);
+    if (options.connectionOptions.databaseType !== oldDatabaseType) {
+        options.connectionOptions.port = driver.standardPort;
+        options.connectionOptions.user = driver.standardUser;
+        options.connectionOptions.schemaName = driver.standardSchema;
+    }
+    if (options.connectionOptions.databaseType !== "sqlite") {
+        const answ = await inquirer.prompt([
+            {
+                default: options.connectionOptions.host,
                 message: "Database address:",
                 name: "host",
                 type: "input"
@@ -244,16 +357,14 @@ async function GetUtilParametersByInquirer() {
                 message: "Database port:",
                 name: "port",
                 type: "input",
-                default() {
-                    return driver.standardPort;
-                },
+                default: options.connectionOptions.port,
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid port number";
                 }
             },
             {
-                default: false,
+                default: options.connectionOptions.ssl,
                 message: "Use SSL:",
                 name: "ssl",
                 type: "confirm"
@@ -262,9 +373,7 @@ async function GetUtilParametersByInquirer() {
                 message: "Database user name:",
                 name: "login",
                 type: "input",
-                default() {
-                    return driver.standardUser;
-                }
+                default: options.connectionOptions.user
             },
             {
                 message: "Database user password:",
@@ -272,7 +381,7 @@ async function GetUtilParametersByInquirer() {
                 type: "password"
             },
             {
-                default: "",
+                default: options.connectionOptions.databaseName,
                 message:
                     "Database name: (You can pass multiple values separated by comma)",
                 name: "dbName",
@@ -280,227 +389,307 @@ async function GetUtilParametersByInquirer() {
             }
         ]);
         if (
-            connectionOptions.databaseType === "mssql" ||
-            connectionOptions.databaseType === "postgres"
+            options.connectionOptions.databaseType === "mssql" ||
+            options.connectionOptions.databaseType === "postgres"
         ) {
-            connectionOptions.schemaName = ((await inquirer.prompt([
+            options.connectionOptions.schemaName = (
+                await inquirer.prompt([
+                    {
+                        default: options.connectionOptions.schemaName,
+                        message:
+                            "Database schema: (You can pass multiple values separated by comma)",
+                        name: "schema",
+                        type: "input"
+                    }
+                ])
+            ).schema;
+        }
+        options.connectionOptions.port = parseInt(answ.port, 10);
+        options.connectionOptions.host = answ.host;
+        options.connectionOptions.user = answ.login;
+        options.connectionOptions.password = answ.password;
+        options.connectionOptions.databaseName = answ.dbName;
+        options.connectionOptions.ssl = answ.ssl;
+    } else {
+        options.connectionOptions.databaseName = (
+            await inquirer.prompt([
                 {
-                    default: driver.standardSchema,
-                    message:
-                        "Database schema: (You can pass multiple values separated by comma)",
-                    name: "schema",
+                    default: options.connectionOptions.databaseName,
+                    message: "Path to database file:",
+                    name: "dbName",
                     type: "input"
                 }
-            ])) as any).schema;
-        }
-        connectionOptions.port = parseInt(answ.port, 10);
-        connectionOptions.host = answ.host;
-        connectionOptions.user = answ.login;
-        connectionOptions.password = answ.password;
-        connectionOptions.databaseName = answ.dbName;
-        connectionOptions.ssl = answ.ssl;
-    } else {
-        connectionOptions.databaseName = ((await inquirer.prompt([
+            ])
+        ).dbName;
+    }
+
+    const ignoreSpecyficTables = (
+        await inquirer.prompt([
             {
-                default: "",
-                message: "Path to database file:",
-                name: "dbName",
+                default:
+                    options.connectionOptions.skipTables.length === 0
+                        ? "All of them"
+                        : "Ignore specific tables",
+                message: "Generate schema for tables:",
+                choices: ["All of them", "Ignore specific tables"],
+                name: "specyficTables",
+                type: "list"
+            }
+        ])
+    ).specyficTables;
+    if (ignoreSpecyficTables === "Ignore specific tables") {
+        const { tableNames } = await inquirer.prompt({
+            default: options.connectionOptions.skipTables.join(","),
+            message: "Table names(separated by comma)",
+            name: "tableNames",
+            type: "input"
+        });
+        options.connectionOptions.skipTables = tableNames.split(",");
+    } else {
+        options.connectionOptions.skipTables = [];
+    }
+
+    options.generationOptions.resultsPath = (
+        await inquirer.prompt([
+            {
+                default: options.generationOptions.resultsPath,
+                message: "Path where generated models should be stored:",
+                name: "output",
                 type: "input"
             }
-        ])) as any).dbName;
-    }
-    generationOptions.resultsPath = ((await inquirer.prompt([
-        {
-            default: path.resolve(process.cwd(), "output"),
-            message: "Path where generated models should be stored:",
-            name: "output",
-            type: "input"
-        }
-    ])) as any).output;
-
-    if (
-        connectionOptions.databaseType === "mssql" ||
-        connectionOptions.databaseType === "postgres"
-    ) {
-        const { changeRequestTimeout } = (await inquirer.prompt([
-            {
-                default: false,
-                message: "Do you want to change default sql query timeout?",
-                name: "changeRequestTimeout",
-                type: "confirm"
-            }
-        ])) as any;
-        if (changeRequestTimeout) {
-            const { timeout } = (await inquirer.prompt({
-                message: "Query timeout(ms):",
-                name: "timeout",
-                type: "input",
-                validate(value) {
-                    const valid = !Number.isNaN(parseInt(value, 10));
-                    return valid || "Please enter a valid number";
-                }
-            })) as any;
-            connectionOptions.timeout = parseInt(timeout, 10);
-        }
-    }
-    const { customizeGeneration } = (await inquirer.prompt([
+        ])
+    ).output;
+    const { customizeGeneration } = await inquirer.prompt([
         {
             default: false,
             message: "Do you want to customize generated model?",
             name: "customizeGeneration",
             type: "confirm"
         }
-    ])) as any;
+    ]);
     if (customizeGeneration) {
-        const customizations: string[] = ((await inquirer.prompt([
-            {
-                choices: [
-                    {
-                        checked: true,
-                        name: "Generate config files",
-                        value: "config"
-                    },
-                    {
-                        name: "Generate lazy relations",
-                        value: "lazy"
-                    },
-                    {
-                        name: "Use ActiveRecord syntax for generated models",
-                        value: "activeRecord"
-                    },
-                    {
-                        name: "Use custom naming strategy",
-                        value: "namingStrategy"
-                    },
-                    {
-                        name: "Generate RelationId fields",
-                        value: "relationId"
-                    },
-                    {
-                        name: "Omits schema identifier in generated entities",
-                        value: "skipSchema"
-                    },
-                    {
-                        name:
-                            "Generate constructor allowing partial initialization",
-                        value: "constructor"
-                    },
-                    {
-                        name: "Use specific naming convention",
-                        value: "namingConvention"
-                    }
-                ],
-                message: "Available customizations",
-                name: "selected",
-                type: "checkbox"
-            }
-        ])) as any).selected;
+        const defaultGenerationOptions = getDefaultGenerationOptions();
+        const customizations: string[] = (
+            await inquirer.prompt([
+                {
+                    choices: [
+                        {
+                            checked: !options.generationOptions.noConfigs,
+                            name: "Generate config files",
+                            value: "config"
+                        },
+                        {
+                            name: "Generate lazy relations",
+                            value: "lazy",
+                            checked: options.generationOptions.lazy
+                        },
+                        {
+                            name:
+                                "Use ActiveRecord syntax for generated models",
+                            value: "activeRecord",
+                            checked: options.generationOptions.activeRecord
+                        },
+                        {
+                            name: "Use custom naming strategy",
+                            value: "namingStrategy",
+                            checked: !!options.generationOptions
+                                .customNamingStrategyPath
+                        },
+                        {
+                            name: "Generate RelationId fields",
+                            value: "relationId",
+                            checked: options.generationOptions.relationIds
+                        },
+                        {
+                            name:
+                                "Omits schema identifier in generated entities",
+                            value: "skipSchema",
+                            checked: options.generationOptions.skipSchema
+                        },
+                        {
+                            name:
+                                "Generate constructor allowing partial initialization",
+                            value: "constructor",
+                            checked:
+                                options.generationOptions.generateConstructor
+                        },
+                        {
+                            name: "Use specific naming convention",
+                            value: "namingConvention",
+                            checked:
+                                options.generationOptions.convertCaseEntity !==
+                                    defaultGenerationOptions.convertCaseEntity ||
+                                options.generationOptions
+                                    .convertCaseProperty !==
+                                    defaultGenerationOptions.convertCaseProperty ||
+                                options.generationOptions.convertCaseFile !==
+                                    defaultGenerationOptions.convertCaseFile
+                        },
+                        {
+                            name:
+                                "Pluralize OneToMany, ManyToMany relation names",
+                            value: "pluralize",
+                            checked: options.generationOptions.pluralizeNames
+                        },
+                        {
+                            name: "Generate index file",
+                            value: "index",
+                            checked: options.generationOptions.indexFile
+                        },
+                        {
+                            name: "Prefer default exports",
+                            value: "defaultExport",
+                            checked:
+                                options.generationOptions.exportType ===
+                                "default"
+                        }
+                    ],
+                    message: "Available customizations",
+                    name: "selected",
+                    type: "checkbox"
+                }
+            ])
+        ).selected;
 
-        generationOptions.propertyVisibility = ((await inquirer.prompt([
-            {
-                choices: ["public", "protected", "private", "none"],
-                message:
-                    "Defines which visibility should have the generated property",
-                name: "propertyVisibility",
-                default: "none",
-                type: "list"
-            }
-        ])) as any).propertyVisibility;
+        options.generationOptions.propertyVisibility = (
+            await inquirer.prompt([
+                {
+                    choices: ["public", "protected", "private", "none"],
+                    message:
+                        "Defines which visibility should have the generated property",
+                    name: "propertyVisibility",
+                    default: options.generationOptions.propertyVisibility,
+                    type: "list"
+                }
+            ])
+        ).propertyVisibility;
 
-        const { strictModeRaw } = (await inquirer.prompt([
-            {
-                choices: ["none", "?", "!"],
-                message: "Mark fields as optional(?) or non-null(!)",
-                name: "strictModeRaw",
-                default: "none",
-                type: "list"
-            }
-        ])) as any;
+        options.generationOptions.strictMode = (
+            await inquirer.prompt([
+                {
+                    choices: ["none", "?", "!"],
+                    message: "Mark fields as optional(?) or non-null(!)",
+                    name: "strictMode",
+                    default: options.generationOptions.strictMode,
+                    type: "list"
+                }
+            ])
+        ).strictMode;
 
-        generationOptions.strictMode =
-            strictModeRaw === "none" ? false : strictModeRaw;
-        generationOptions.noConfigs = !customizations.includes("config");
-        generationOptions.lazy = customizations.includes("lazy");
-        generationOptions.activeRecord = customizations.includes(
+        options.generationOptions.noConfigs = !customizations.includes(
+            "config"
+        );
+        options.generationOptions.pluralizeNames = customizations.includes(
+            "pluralize"
+        );
+        options.generationOptions.lazy = customizations.includes("lazy");
+        options.generationOptions.activeRecord = customizations.includes(
             "activeRecord"
         );
-        generationOptions.relationIds = customizations.includes("relationId");
-        generationOptions.skipSchema = customizations.includes("skipSchema");
-        generationOptions.generateConstructor = customizations.includes(
+        options.generationOptions.relationIds = customizations.includes(
+            "relationId"
+        );
+        options.generationOptions.skipSchema = customizations.includes(
+            "skipSchema"
+        );
+        options.generationOptions.generateConstructor = customizations.includes(
             "constructor"
         );
+        options.generationOptions.indexFile = customizations.includes("index");
+        options.generationOptions.exportType = customizations.includes(
+            "defaultExport"
+        )
+            ? "default"
+            : "named";
 
         if (customizations.includes("namingStrategy")) {
-            const namingStrategyPath = ((await inquirer.prompt([
-                {
-                    default: path.resolve(process.cwd()),
-                    message: "Path to custom naming strategy file:",
-                    name: "namingStrategy",
-                    type: "input",
-                    validate(value) {
-                        const valid = value === "" || fs.existsSync(value);
-                        return (
-                            valid ||
-                            "Please enter a a valid path to custom naming strategy file"
-                        );
+            const namingStrategyPath = (
+                await inquirer.prompt([
+                    {
+                        default:
+                            options.generationOptions.customNamingStrategyPath,
+                        message: "Path to custom naming strategy file:",
+                        name: "namingStrategy",
+                        type: "input",
+                        validate(value) {
+                            const valid = value === "" || fs.existsSync(value);
+                            return (
+                                valid ||
+                                "Please enter a a valid path to custom naming strategy file"
+                            );
+                        }
                     }
-                }
-            ])) as any).namingStrategy;
+                ])
+            ).namingStrategy;
 
             if (namingStrategyPath && namingStrategyPath !== "") {
-                generationOptions.customNamingStrategyPath = namingStrategyPath;
+                options.generationOptions.customNamingStrategyPath = namingStrategyPath;
             } else {
-                generationOptions.customNamingStrategyPath = "";
+                options.generationOptions.customNamingStrategyPath = "";
             }
         }
         if (customizations.includes("namingConvention")) {
-            const namingConventions = (await inquirer.prompt([
+            const namingConventions = await inquirer.prompt([
                 {
                     choices: ["pascal", "param", "camel", "none"],
-                    default: "pascal",
+                    default: options.generationOptions.convertCaseFile,
                     message: "Convert file names to specified case:",
                     name: "fileCase",
                     type: "list"
                 },
                 {
                     choices: ["pascal", "camel", "none"],
-                    default: "pascal",
+                    default: options.generationOptions.convertCaseEntity,
                     message: "Convert class names to specified case:",
                     name: "entityCase",
                     type: "list"
                 },
                 {
                     choices: ["pascal", "camel", "none"],
-                    default: "camel",
+                    default: options.generationOptions.convertCaseProperty,
                     message: "Convert property names to specified case:",
                     name: "propertyCase",
                     type: "list"
                 }
-            ])) as any;
-            generationOptions.convertCaseFile = namingConventions.fileCase;
-            generationOptions.convertCaseProperty =
+            ]);
+            options.generationOptions.convertCaseFile =
+                namingConventions.fileCase;
+            options.generationOptions.convertCaseProperty =
                 namingConventions.propertyCase;
-            generationOptions.convertCaseEntity = namingConventions.entityCase;
+            options.generationOptions.convertCaseEntity =
+                namingConventions.entityCase;
         }
     }
-    const { saveConfig } = (await inquirer.prompt([
+    const { saveConfig } = await inquirer.prompt([
         {
-            default: false,
+            choices: [
+                "Yes, only model customization options",
+                "Yes, with connection details",
+                "No"
+            ],
+            default: "No",
             message: "Save configuration to config file?",
             name: "saveConfig",
-            type: "confirm"
+            type: "list"
         }
-    ])) as any;
-    if (saveConfig) {
+    ]);
+    if (saveConfig === "Yes, with connection details") {
         await fs.writeJson(
             path.resolve(process.cwd(), ".tomg-config"),
-            [connectionOptions, generationOptions],
+            [options.generationOptions, options.connectionOptions],
             { spaces: 2 }
         );
         console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
         console.warn(
             `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Password was saved as plain text.\x1b[0m`
         );
+    } else if (saveConfig === "Yes, only model customization options") {
+        await fs.writeJson(
+            path.resolve(process.cwd(), ".tomg-config"),
+            [options.generationOptions],
+            { spaces: 2 }
+        );
+        console.log(`[${new Date().toLocaleTimeString()}] Config file saved.`);
     }
-    return { driver, connectionOptions, generationOptions };
+    return options;
 }

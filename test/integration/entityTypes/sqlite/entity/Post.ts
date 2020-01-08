@@ -2,7 +2,6 @@ import { Entity, PrimaryColumn, Column } from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryColumn()
     id: number;
 
@@ -34,7 +33,7 @@ export class Post {
     bigint: string;
 
     @Column("unsigned big int")
-    unsigned_big_int: string;
+    unsignedBigInt: string;
 
     @Column("character")
     character: string;
@@ -43,13 +42,13 @@ export class Post {
     varchar: string;
 
     @Column("varying character")
-    varying_character: string;
+    varyingCharacter: string;
 
     @Column("nchar")
     nchar: string;
 
     @Column("native character")
-    native_character: string;
+    nativeCharacter: string;
 
     @Column("nvarchar")
     nvarchar: string;
@@ -88,5 +87,4 @@ export class Post {
 
     @Column("datetime")
     datetime: Date;
-
 }

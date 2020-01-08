@@ -1,8 +1,14 @@
-import { PrimaryGeneratedColumn, Column, Entity, OneToOne, JoinColumn, Index } from "typeorm";
+import {
+    PrimaryGeneratedColumn,
+    Column,
+    Entity,
+    OneToOne,
+    JoinColumn,
+    Index
+} from "typeorm";
 
 @Entity("EverythingEntity")
 export class EverythingEntity {
-    //TODO: change to check column types per database engine
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -68,5 +74,4 @@ export class EverythingEntity {
 
     // @UpdateDateColumn()
     // updatedDate: Date;
-
 }

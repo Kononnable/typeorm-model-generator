@@ -1,28 +1,44 @@
-export default class IGenerationOptions {
-    public resultsPath: string = "";
+import path = require("path");
 
-    public noConfigs: boolean = false;
+// TODO: change name
 
-    public convertCaseFile: "pascal" | "param" | "camel" | "none" = "none";
-
-    public convertCaseEntity: "pascal" | "camel" | "none" = "none";
-
-    public convertCaseProperty: "pascal" | "camel" | "none" = "none";
-
-    public propertyVisibility: "public" | "protected" | "private" | "none" =
-        "none";
-
-    public lazy: boolean = false;
-
-    public activeRecord: boolean = false;
-
-    public generateConstructor: boolean = false;
-
-    public customNamingStrategyPath: string = "";
-
-    public relationIds: boolean = false;
-
-    public strictMode: false | "?" | "!" = false;
-
-    public skipSchema: boolean = false;
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+export default interface IGenerationOptions {
+    resultsPath: string;
+    pluralizeNames: boolean;
+    noConfigs: boolean;
+    convertCaseFile: "pascal" | "param" | "camel" | "none";
+    convertCaseEntity: "pascal" | "camel" | "none";
+    convertCaseProperty: "pascal" | "camel" | "none";
+    propertyVisibility: "public" | "protected" | "private" | "none";
+    lazy: boolean;
+    activeRecord: boolean;
+    generateConstructor: boolean;
+    customNamingStrategyPath: string;
+    relationIds: boolean;
+    strictMode: "none" | "?" | "!";
+    skipSchema: boolean;
+    indexFile: boolean;
+    exportType: "named" | "default";
+}
+export function getDefaultGenerationOptions(): IGenerationOptions {
+    const generationOptions: IGenerationOptions = {
+        resultsPath: path.resolve(process.cwd(), "output"),
+        pluralizeNames: true,
+        noConfigs: false,
+        convertCaseFile: "pascal",
+        convertCaseEntity: "pascal",
+        convertCaseProperty: "camel",
+        propertyVisibility: "none",
+        lazy: false,
+        activeRecord: false,
+        generateConstructor: false,
+        customNamingStrategyPath: "",
+        relationIds: false,
+        strictMode: "none",
+        skipSchema: false,
+        indexFile: false,
+        exportType: "named"
+    };
+    return generationOptions;
 }

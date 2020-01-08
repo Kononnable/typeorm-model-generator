@@ -3,14 +3,15 @@ import {
     WithPrecisionColumnType,
     WithWidthColumnType
 } from "typeorm/driver/types/ColumnTypes";
+import { JoinColumnOptions, RelationOptions } from "typeorm";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as TomgUtils from "../Utils";
-import EntityInfo from "../models/EntityInfo";
-import RelationInfo from "../models/RelationInfo";
-import ColumnInfo from "../models/ColumnInfo";
 import IConnectionOptions from "../IConnectionOptions";
-import IndexInfo from "../models/IndexInfo";
-import RelationTempInfo from "../models/RelationTempInfo";
+import { Entity } from "../models/Entity";
+import { RelationInternal } from "../models/RelationInternal";
+import { Relation } from "../models/Relation";
+import IGenerationOptions from "../IGenerationOptions";
+import { Column } from "../models/Column";
 
 export default abstract class AbstractDriver {
     public abstract standardPort: number;
@@ -68,7 +69,8 @@ export default abstract class AbstractDriver {
 
     public abstract GetAllTablesQuery: (
         schema: string,
-        dbNames: string
+        dbNames: string,
+        tableNames: string[]
     ) => Promise<
         {
             TABLE_SCHEMA: string;
@@ -77,131 +79,136 @@ export default abstract class AbstractDriver {
         }[]
     >;
 
-    public static FindManyToManyRelations(dbModel: EntityInfo[]) {
-        let retval = dbModel;
-        const manyToManyEntities = retval.filter(
+    public static FindManyToManyRelations(dbModel: Entity[]) {
+        let retVal = dbModel;
+        const manyToManyEntities = retVal.filter(
             entity =>
-                entity.Columns.filter(column => {
-                    return (
-                        column.relations.length === 1 &&
-                        !column.relations[0].isOneToMany &&
-                        column.relations[0].isOwner
-                    );
-                }).length === entity.Columns.length
+                entity.relations.length === 2 &&
+                entity.relations.every(
+                    v => v.joinColumnOptions && v.relationType !== "ManyToMany"
+                ) &&
+                entity.relations[0].relatedTable !==
+                    entity.relations[1].relatedTable &&
+                entity.relations[0].joinColumnOptions!.length ===
+                    entity.relations[1].joinColumnOptions!.length &&
+                entity.columns.length ===
+                    entity.columns.filter(c => c.primary).length &&
+                entity.columns
+                    .map(v => v.tscName)
+                    .filter(
+                        v =>
+                            !entity.relations[0]
+                                .joinColumnOptions!.map(x => x.name)
+                                .some(jc => jc === v) &&
+                            !entity.relations[1]
+                                .joinColumnOptions!.map(x => x.name)
+                                .some(jc => jc === v)
+                    ).length === 0
         );
-        manyToManyEntities.forEach(entity => {
-            const relations: RelationInfo[] = [];
-            const joinColumnMap = new Map<string, string>();
+        manyToManyEntities.forEach(junctionEntity => {
+            const firstEntity = dbModel.find(
+                v => v.tscName === junctionEntity.relations[0].relatedTable
+            )!;
+            const secondEntity = dbModel.find(
+                v => v.tscName === junctionEntity.relations[1].relatedTable
+            )!;
 
-            entity.Columns.forEach(column => {
-                column.relations.forEach(relation => {
-                    joinColumnMap.set(relation.relatedTable, column.tsName);
-                    relations.push(relation);
-                });
-            });
+            const firstRelation = firstEntity.relations.find(
+                v => v.relatedTable === junctionEntity.tscName
+            )!;
+            const secondRelation = secondEntity.relations.find(
+                v => v.relatedTable === junctionEntity.tscName
+            )!;
 
-            const namesOfRelatedTables = relations
-                .map(v => v.relatedTable)
-                .filter((v, i, s) => s.indexOf(v) === i);
-            const [
-                firstRelatedTable,
-                secondRelatedTable
-            ] = namesOfRelatedTables;
+            firstRelation.relationType = "ManyToMany";
+            secondRelation.relationType = "ManyToMany";
+            firstRelation.relatedTable = secondEntity.tscName;
+            secondRelation.relatedTable = firstEntity.tscName;
 
-            if (namesOfRelatedTables.length === 2) {
-                const relatedTable1 = retval.find(
-                    v => v.tsEntityName === firstRelatedTable
-                )!;
-                relatedTable1.Columns = relatedTable1.Columns.filter(
-                    v =>
-                        !v.tsName
-                            .toLowerCase()
-                            .startsWith(entity.tsEntityName.toLowerCase())
-                );
-                const relatedTable2 = retval.find(
-                    v => v.tsEntityName === namesOfRelatedTables[1]
-                )!;
-                relatedTable2.Columns = relatedTable2.Columns.filter(
-                    v =>
-                        !v.tsName
-                            .toLowerCase()
-                            .startsWith(entity.tsEntityName.toLowerCase())
-                );
-                retval = retval.filter(ent => {
-                    return ent.tsEntityName !== entity.tsEntityName;
-                });
+            firstRelation.fieldName = TomgUtils.findNameForNewField(
+                secondEntity.tscName,
+                firstEntity
+            );
+            secondRelation.fieldName = TomgUtils.findNameForNewField(
+                firstEntity.tscName,
+                secondEntity
+            );
+            firstRelation.relatedField = secondRelation.fieldName;
+            secondRelation.relatedField = firstRelation.fieldName;
 
-                const column1 = new ColumnInfo();
-                column1.tsName = secondRelatedTable;
-                column1.options.name = entity.sqlEntityName;
-
-                const col1Rel = new RelationInfo();
-                col1Rel.relatedTable = secondRelatedTable;
-                col1Rel.relatedColumn = secondRelatedTable;
-
-                col1Rel.relationType = "ManyToMany";
-                col1Rel.isOwner = true;
-                col1Rel.ownerColumn = firstRelatedTable;
-
-                col1Rel.joinColumn = joinColumnMap.get(namesOfRelatedTables[0]);
-                col1Rel.inverseJoinColumn = joinColumnMap.get(
-                    namesOfRelatedTables[1]
-                );
-
-                column1.relations.push(col1Rel);
-                relatedTable1.Columns.push(column1);
-
-                const column2 = new ColumnInfo();
-                column2.tsName = firstRelatedTable;
-
-                const col2Rel = new RelationInfo();
-                col2Rel.relatedTable = firstRelatedTable;
-                col2Rel.relatedColumn = secondRelatedTable;
-
-                col2Rel.joinColumn = joinColumnMap.get(namesOfRelatedTables[1]);
-                col2Rel.inverseJoinColumn = joinColumnMap.get(
-                    namesOfRelatedTables[0]
-                );
-
-                col2Rel.relationType = "ManyToMany";
-                col2Rel.isOwner = false;
-                column2.relations.push(col2Rel);
-                relatedTable2.Columns.push(column2);
+            firstRelation.joinTableOptions = {
+                name: junctionEntity.sqlName,
+                joinColumns: junctionEntity.relations[0].joinColumnOptions!.map(
+                    (v, i) => {
+                        return {
+                            referencedColumnName: v.referencedColumnName,
+                            name: junctionEntity.relations[0]
+                                .joinColumnOptions![i].name
+                        };
+                    }
+                ),
+                inverseJoinColumns: junctionEntity.relations[1].joinColumnOptions!.map(
+                    (v, i) => {
+                        return {
+                            referencedColumnName: v.referencedColumnName,
+                            name: junctionEntity.relations[1]
+                                .joinColumnOptions![i].name
+                        };
+                    }
+                )
+            };
+            if (junctionEntity.database) {
+                firstRelation.joinTableOptions.database =
+                    junctionEntity.database;
             }
+            if (junctionEntity.schema) {
+                firstRelation.joinTableOptions.schema = junctionEntity.schema;
+            }
+
+            firstRelation.relationOptions = undefined;
+            secondRelation.relationOptions = undefined;
+            firstRelation.joinColumnOptions = undefined;
+            secondRelation.joinColumnOptions = undefined;
+            retVal = retVal.filter(ent => {
+                return ent.tscName !== junctionEntity.tscName;
+            });
         });
-        return retval;
+        return retVal;
     }
 
     public async GetDataFromServer(
-        connectionOptons: IConnectionOptions
-    ): Promise<EntityInfo[]> {
-        let dbModel = [] as EntityInfo[];
-        await this.ConnectToServer(connectionOptons);
+        connectionOptions: IConnectionOptions,
+        generationOptions: IGenerationOptions
+    ): Promise<Entity[]> {
+        let dbModel = [] as Entity[];
+        await this.ConnectToServer(connectionOptions);
         const sqlEscapedSchema = AbstractDriver.escapeCommaSeparatedList(
-            connectionOptons.schemaName
+            connectionOptions.schemaName
         );
         dbModel = await this.GetAllTables(
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName,
+            connectionOptions.skipTables
         );
         await this.GetCoulmnsFromEntity(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
         await this.GetIndexesFromEntity(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName
         );
+        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         dbModel = await this.GetRelations(
             dbModel,
             sqlEscapedSchema,
-            connectionOptons.databaseName
+            connectionOptions.databaseName,
+            generationOptions
         );
         await this.DisconnectFromServer();
         dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
-        AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         return dbModel;
     }
 
@@ -209,225 +216,227 @@ export default abstract class AbstractDriver {
 
     public async GetAllTables(
         schema: string,
-        dbNames: string
-    ): Promise<EntityInfo[]> {
-        const response = await this.GetAllTablesQuery(schema, dbNames);
-        const ret: EntityInfo[] = [] as EntityInfo[];
+        dbNames: string,
+        tableNames: string[]
+    ): Promise<Entity[]> {
+        const response = await this.GetAllTablesQuery(
+            schema,
+            dbNames,
+            tableNames
+        );
+        const ret: Entity[] = [] as Entity[];
         response.forEach(val => {
-            const ent: EntityInfo = new EntityInfo();
-            ent.tsEntityName = val.TABLE_NAME;
-            ent.sqlEntityName = val.TABLE_NAME;
-            ent.Schema = val.TABLE_SCHEMA;
-            ent.Columns = [] as ColumnInfo[];
-            ent.Indexes = [] as IndexInfo[];
-            ent.Database = dbNames.includes(",") ? val.DB_NAME : "";
-            ret.push(ent);
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.TABLE_NAME,
+                tscName: val.TABLE_NAME,
+                database: dbNames.includes(",") ? val.DB_NAME : "",
+                schema: val.TABLE_SCHEMA,
+                fileImports: []
+            });
         });
         return ret;
     }
 
     public static GetRelationsFromRelationTempInfo(
-        relationsTemp: RelationTempInfo[],
-        entities: EntityInfo[]
+        relationsTemp: RelationInternal[],
+        entities: Entity[],
+        generationOptions: IGenerationOptions
     ) {
         relationsTemp.forEach(relationTmp => {
-            if (relationTmp.ownerColumnsNames.length > 1) {
-                const relatedTable = entities.find(
-                    entity => entity.tsEntityName === relationTmp.ownerTable
-                )!;
-                if (
-                    relatedTable.Columns.length !==
-                    relationTmp.ownerColumnsNames.length * 2
-                ) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`,
-                        false
-                    );
-                    return;
-                }
-
-                const secondRelation = relationsTemp.find(
-                    relation =>
-                        relation.ownerTable === relatedTable.tsEntityName &&
-                        relation.referencedTable !== relationTmp.referencedTable
-                )!;
-                if (!secondRelation) {
-                    TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} wasn't generated correctly - complex relationships aren't supported yet.`,
-                        false
-                    );
-                    return;
-                }
-            }
-
             const ownerEntity = entities.find(
-                entitity => entitity.tsEntityName === relationTmp.ownerTable
+                entity => entity.tscName === relationTmp.ownerTable.tscName
             );
             if (!ownerEntity) {
                 TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.ownerTable}.`
+                    `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} didn't found entity model ${relationTmp.ownerTable.sqlName}.`
                 );
                 return;
             }
             const referencedEntity = entities.find(
-                entitity =>
-                    entitity.tsEntityName === relationTmp.referencedTable
+                entity => entity.tscName === relationTmp.relatedTable.tscName
             );
             if (!referencedEntity) {
                 TomgUtils.LogError(
-                    `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity model ${relationTmp.referencedTable}.`
+                    `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} didn't found entity model ${relationTmp.relatedTable.sqlName}.`
                 );
                 return;
             }
+
+            const ownerColumns: Column[] = [];
+            const relatedColumns: Column[] = [];
             for (
                 let relationColumnIndex = 0;
-                relationColumnIndex < relationTmp.ownerColumnsNames.length;
+                relationColumnIndex < relationTmp.ownerColumns.length;
                 relationColumnIndex++
             ) {
-                const ownerColumn = ownerEntity.Columns.find(
+                const ownerColumn = ownerEntity.columns.find(
                     column =>
-                        column.tsName ===
-                        relationTmp.ownerColumnsNames[relationColumnIndex]
+                        column.tscName ===
+                        relationTmp.ownerColumns[relationColumnIndex]
                 );
                 if (!ownerColumn) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.ownerTable}.${ownerColumn}.`
+                        `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} didn't found entity column ${relationTmp.ownerTable.sqlName}.${ownerColumn}.`
                     );
                     return;
                 }
-                const relatedColumn = referencedEntity.Columns.find(
+                const relatedColumn = referencedEntity.columns.find(
                     column =>
-                        column.tsName ===
-                        relationTmp.referencedColumnsNames[relationColumnIndex]
+                        column.tscName ===
+                        relationTmp.relatedColumns[relationColumnIndex]
                 );
                 if (!relatedColumn) {
                     TomgUtils.LogError(
-                        `Relation between tables ${relationTmp.ownerTable} and ${relationTmp.referencedTable} didn't found entity column ${relationTmp.referencedTable}.${relatedColumn}.`
+                        `Relation between tables ${relationTmp.ownerTable.sqlName} and ${relationTmp.relatedTable.sqlName} didn't found entity column ${relationTmp.relatedTable.sqlName}.${relatedColumn}.`
                     );
                     return;
                 }
-                let isOneToMany: boolean;
-                isOneToMany = false;
-                const index = ownerEntity.Indexes.find(
-                    ind =>
-                        ind.isUnique &&
-                        ind.columns.length === 1 &&
-                        ind.columns[0].name === ownerColumn!.tsName
+                ownerColumns.push(ownerColumn);
+                relatedColumns.push(relatedColumn);
+            }
+            let isOneToMany: boolean;
+            isOneToMany = false;
+            const index = ownerEntity.indices.find(
+                ind =>
+                    ind.options.unique &&
+                    ind.columns.length === ownerColumns.length &&
+                    ownerColumns.every(ownerColumn =>
+                        ind.columns.some(col => col === ownerColumn.tscName)
+                    )
+            );
+            isOneToMany = !index;
+
+            ownerColumns.forEach(column => {
+                column.isUsedInRelationAsOwner = true;
+            });
+            relatedColumns.forEach(column => {
+                column.isUsedInRelationAsReferenced = true;
+            });
+            let fieldName = "";
+            if (ownerColumns.length === 1) {
+                fieldName = TomgUtils.findNameForNewField(
+                    ownerColumns[0].tscName,
+                    ownerEntity
                 );
-                isOneToMany = !index;
+            } else {
+                fieldName = TomgUtils.findNameForNewField(
+                    relationTmp.relatedTable.tscName,
+                    ownerEntity
+                );
+            }
 
-                const ownerRelation = new RelationInfo();
-                ownerRelation.actionOnDelete = relationTmp.actionOnDelete;
-                ownerRelation.actionOnUpdate = relationTmp.actionOnUpdate;
-                ownerRelation.isOwner = true;
-                ownerRelation.relatedColumn = relatedColumn.tsName.toLowerCase();
-                ownerRelation.relatedTable = relationTmp.referencedTable;
-                ownerRelation.ownerTable = relationTmp.ownerTable;
-                ownerRelation.relationType = isOneToMany
-                    ? "ManyToOne"
-                    : "OneToOne";
+            const relationOptions: RelationOptions = {
+                onDelete: relationTmp.onDelete,
+                onUpdate: relationTmp.onUpdate
+            };
 
-                let columnName = ownerEntity.tsEntityName;
-                if (
-                    referencedEntity.Columns.some(v => v.tsName === columnName)
-                ) {
-                    columnName += "_";
-                    for (let i = 2; i <= referencedEntity.Columns.length; i++) {
-                        columnName =
-                            columnName.substring(
-                                0,
-                                columnName.length - i.toString().length
-                            ) + i.toString();
-                        if (
-                            referencedEntity.Columns.every(
-                                v => v.tsName !== columnName
-                            )
-                        ) {
-                            break;
-                        }
+            const ownerRelation: Relation = {
+                fieldName,
+                relatedField: TomgUtils.findNameForNewField(
+                    relationTmp.ownerTable.tscName,
+                    relationTmp.relatedTable
+                ),
+                joinColumnOptions: relationTmp.ownerColumns.map((v, idx) => {
+                    const retVal: Required<JoinColumnOptions> = {
+                        name: v,
+                        referencedColumnName: relationTmp.relatedColumns[idx]
+                    };
+                    return retVal;
+                }),
+                relatedTable: relationTmp.relatedTable.tscName,
+                relationType: isOneToMany ? "ManyToOne" : "OneToOne"
+            };
+            if (JSON.stringify(relationOptions) !== "{}") {
+                ownerRelation.relationOptions = relationOptions;
+            }
+            const relatedRelation: Relation = {
+                fieldName: ownerRelation.relatedField,
+                relatedField: ownerRelation.fieldName,
+                relatedTable: relationTmp.ownerTable.tscName,
+                relationType: isOneToMany ? "OneToMany" : "OneToOne"
+            };
+
+            ownerEntity.relations.push(ownerRelation);
+            relationTmp.relatedTable.relations.push(relatedRelation);
+
+            if (generationOptions.relationIds && ownerColumns.length === 1) {
+                let relationIdFieldName = "";
+                relationIdFieldName = TomgUtils.findNameForNewField(
+                    ownerColumns[0].tscName,
+                    ownerEntity
+                );
+
+                let fieldType = "";
+                if (isOneToMany) {
+                    fieldType = `${ownerColumns[0].tscType}[]`;
+                } else {
+                    fieldType = ownerColumns[0].tscType;
+                    if (ownerColumns[0].options.nullable) {
+                        fieldType += " | null";
                     }
                 }
 
-                ownerRelation.ownerColumn = columnName;
-                ownerColumn.relations.push(ownerRelation);
-                if (isOneToMany) {
-                    const col = new ColumnInfo();
-                    col.tsName = columnName;
-                    const referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionOnDelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actionOnUpdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.tsName;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.tsName;
-                    referencedRelation.relationType = "OneToMany";
-                    referencedEntity.Columns.push(col);
-                } else {
-                    const col = new ColumnInfo();
-                    col.tsName = columnName;
-                    const referencedRelation = new RelationInfo();
-                    col.relations.push(referencedRelation);
-                    referencedRelation.actionOnDelete =
-                        relationTmp.actionOnDelete;
-                    referencedRelation.actionOnUpdate =
-                        relationTmp.actionOnUpdate;
-                    referencedRelation.isOwner = false;
-                    referencedRelation.relatedColumn = ownerColumn.tsName;
-                    referencedRelation.relatedTable = relationTmp.ownerTable;
-                    referencedRelation.ownerTable = relationTmp.referencedTable;
-                    referencedRelation.ownerColumn = relatedColumn.tsName;
-                    referencedRelation.relationType = "OneToOne";
-                    referencedEntity.Columns.push(col);
-                }
+                ownerEntity.relationIds.push({
+                    fieldName: relationIdFieldName,
+                    fieldType,
+                    relationField: ownerRelation.fieldName
+                });
+                // TODO: RelationId on ManyToMany
             }
         });
         return entities;
     }
 
     public abstract async GetCoulmnsFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]>;
+    ): Promise<Entity[]>;
 
     public abstract async GetIndexesFromEntity(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
         dbNames: string
-    ): Promise<EntityInfo[]>;
+    ): Promise<Entity[]>;
 
     public abstract async GetRelations(
-        entities: EntityInfo[],
+        entities: Entity[],
         schema: string,
-        dbNames: string
-    ): Promise<EntityInfo[]>;
+        dbNames: string,
+        generationOptions: IGenerationOptions
+    ): Promise<Entity[]>;
 
-    public static FindPrimaryColumnsFromIndexes(dbModel: EntityInfo[]) {
+    public static FindPrimaryColumnsFromIndexes(dbModel: Entity[]) {
         dbModel.forEach(entity => {
-            const primaryIndex = entity.Indexes.find(v => v.isPrimaryKey);
-            entity.Columns.filter(
-                col =>
-                    primaryIndex &&
-                    primaryIndex.columns.some(
-                        cIndex => cIndex.name === col.tsName
-                    )
-            ).forEach(col => {
-                // eslint-disable-next-line no-param-reassign
-                col.options.primary = true;
-            });
+            const primaryIndex = entity.indices.find(v => v.primary);
+            entity.columns
+                .filter(
+                    col =>
+                        primaryIndex &&
+                        primaryIndex.columns.some(
+                            cIndex => cIndex === col.tscName
+                        )
+                )
+                .forEach(col => {
+                    // eslint-disable-next-line no-param-reassign
+                    col.primary = true;
+                    if (
+                        primaryIndex!.columns.length === 1 &&
+                        col.options.unique
+                    ) {
+                        delete col.options.unique;
+                    }
+                });
             if (
-                !entity.Columns.some(v => {
-                    return !!v.options.primary;
+                !entity.columns.some(v => {
+                    return !!v.primary;
                 })
             ) {
-                TomgUtils.LogError(
-                    `Table ${entity.tsEntityName} has no PK.`,
-                    false
-                );
+                TomgUtils.LogError(`Table ${entity.tscName} has no PK.`, false);
             }
         });
     }

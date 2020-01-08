@@ -1,48 +1,39 @@
 import "reflect-metadata";
-import { expect } from "chai";
+import * as chai from "chai";
 import * as ts from "typescript";
+import * as fs from "fs-extra";
+import * as path from "path";
+import * as chaiSubset from "chai-subset";
+import * as flatMap from "array.prototype.flatmap";
+import yn from "yn";
+import { CLIEngine } from "eslint";
 import EntityFileToJson from "../utils/EntityFileToJson";
-import {
-    createDriver,
-    dataCollectionPhase,
-    modelCustomizationPhase,
-    modelGenerationPhase
-} from "../../src/Engine";
+import { createDriver, dataCollectionPhase } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
-import EntityInfo from "../../src/models/EntityInfo";
+import { Entity } from "../../src/models/Entity";
 import IConnectionOptions from "../../src/IConnectionOptions";
-
-import fs = require("fs-extra");
-import path = require("path");
-import chaiSubset = require("chai-subset");
-import chai = require("chai");
-import yn = require("yn");
+import modelCustomizationPhase from "../../src/ModelCustomization";
+import modelGenerationPhase from "../../src/ModelGeneration";
 
 require("dotenv").config();
 
+flatMap.shim();
 chai.use(chaiSubset);
+const { expect } = chai;
 
-it("Column default values", async function() {
+it("Column default values", async () => {
     const testPartialPath = "test/integration/defaultValues";
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
     await runTestsFromPath(testPartialPath, true);
 });
-it("Platform specyfic types", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+it("Platform specific types", async () => {
     const testPartialPath = "test/integration/entityTypes";
     await runTestsFromPath(testPartialPath, true);
 });
-describe("GitHub issues", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+describe("GitHub issues", async () => {
     const testPartialPath = "test/integration/github-issues";
     await runTestsFromPath(testPartialPath, false);
 });
-describe("TypeOrm examples", async function() {
-    this.timeout(60000);
-    this.slow(10000); // compiling created models takes time
+describe("TypeOrm examples", async () => {
     const testPartialPath = "test/integration/examples";
     await runTestsFromPath(testPartialPath, false);
 });
@@ -77,8 +68,8 @@ function runTestForMultipleDrivers(
     dbDrivers: string[],
     testPartialPath: string
 ) {
-    it(testName, async function() {
-        const driversToRun = selectDriversForSpecyficTest();
+    it(testName, async () => {
+        const driversToRun = selectDriversForSpecificTest();
         const modelGenerationPromises = driversToRun.map(async dbDriver => {
             const {
                 generationOptions,
@@ -87,25 +78,26 @@ function runTestForMultipleDrivers(
                 resultsPath,
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, testName, dbDriver);
-            let dbModel: EntityInfo[] = [];
+            let dbModel: Entity[] = [];
             switch (testName) {
                 case "144":
                     dbModel = await dataCollectionPhase(
                         driver,
                         Object.assign(connectionOptions, {
                             databaseName: "db1,db2"
-                        })
+                        }),
+                        generationOptions
                     );
                     break;
 
                 default:
                     dbModel = await dataCollectionPhase(
                         driver,
-                        connectionOptions
+                        connectionOptions,
+                        generationOptions
                     );
                     break;
             }
-
             dbModel = modelCustomizationPhase(
                 dbModel,
                 generationOptions,
@@ -127,7 +119,7 @@ function runTestForMultipleDrivers(
         compileGeneratedModel(path.resolve(process.cwd(), `output`), dbDrivers);
     });
 
-    function selectDriversForSpecyficTest() {
+    function selectDriversForSpecificTest() {
         switch (testName) {
             case "39":
                 return dbDrivers.filter(
@@ -161,7 +153,11 @@ async function runTest(
                 resultsPath,
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, dbDriver, dbDriver);
-            let dbModel = await dataCollectionPhase(driver, connectionOptions);
+            let dbModel = await dataCollectionPhase(
+                driver,
+                connectionOptions,
+                generationOptions
+            );
             dbModel = modelCustomizationPhase(
                 dbModel,
                 generationOptions,
@@ -190,23 +186,74 @@ function compareGeneratedFiles(filesOrgPathTS: string, filesGenPath: string) {
     const filesGen = fs
         .readdirSync(filesGenPath)
         .filter(val => val.toString().endsWith(".ts"));
-    expect(filesOrg, "Errors detected in model comparision").to.be.deep.equal(
+    expect(filesOrg, "Errors detected in model comparison").to.be.deep.equal(
         filesGen
     );
-    filesOrg.forEach(file => {
-        const jsonEntityOrg = EntityFileToJson.convert(
-            fs.readFileSync(path.resolve(filesOrgPathTS, file))
-        );
-        const jsonEntityGen = EntityFileToJson.convert(
+    const generatedEntities = filesOrg.map(file =>
+        EntityFileToJson.convert(
             fs.readFileSync(path.resolve(filesGenPath, file))
-        );
-        expect(jsonEntityGen, `Error in file ${file}`).to.containSubset(
-            jsonEntityOrg
-        );
-    });
+        )
+    );
+    const originalEntities = filesGen.map(file =>
+        EntityFileToJson.convert(
+            fs.readFileSync(path.resolve(filesOrgPathTS, file))
+        )
+    );
+    generatedEntities
+        .flatMap(entity =>
+            entity.columns
+                .filter(
+                    column =>
+                        column.relationType === "ManyToMany" &&
+                        column.joinOptions.length > 0
+                )
+                .map(v => {
+                    return {
+                        ownerColumn: v,
+                        ownerEntity: entity
+                    };
+                })
+        )
+
+        .forEach(({ ownerColumn, ownerEntity }) => {
+            const childColumn = generatedEntities
+                .find(
+                    childEntity =>
+                        childEntity.entityName.toLowerCase() ===
+                        ownerColumn.columnTypes[0]
+                            .substring(0, ownerColumn.columnTypes[0].length - 2)
+                            .toLowerCase()
+                )!
+                .columns.find(
+                    column =>
+                        column.columnTypes[0].toLowerCase() ===
+                        `${ownerEntity.entityName}[]`.toLowerCase()
+                )!;
+            childColumn.joinOptions = ownerColumn.joinOptions.map(options => {
+                return {
+                    ...options,
+                    joinColumns: options.inverseJoinColumns,
+                    inverseJoinColumns: options.joinColumns
+                };
+            });
+        });
+    // TODO: set relation options on ManyToMany to both side of relation
+    generatedEntities
+        .map((ent, i) => [ent, originalEntities[i], filesOrg[i]])
+        .forEach(([generated, original, file]) => {
+            expect(generated, `Error in file ${file}`).to.containSubset(
+                original
+            );
+        });
 }
 
-function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
+// TODO: Move(?)
+// eslint-disable-next-line import/prefer-default-export
+export function compileGeneratedModel(
+    filesGenPath: string,
+    drivers: string[],
+    lintGeneratedFiles = true
+) {
     const currentDirectoryFiles: string[] = [];
     drivers.forEach(driver => {
         const entitiesPath = path.resolve(filesGenPath, driver, "entities");
@@ -223,7 +270,7 @@ function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
             );
         }
     });
-    const compileErrors = GTU.compileTsFiles(currentDirectoryFiles, {
+    const compiledWithoutErrors = GTU.compileTsFiles(currentDirectoryFiles, {
         experimentalDecorators: true,
         sourceMap: false,
         emitDecoratorMetadata: true,
@@ -231,8 +278,24 @@ function compileGeneratedModel(filesGenPath: string, drivers: string[]) {
         moduleResolution: ts.ModuleResolutionKind.NodeJs,
         module: ts.ModuleKind.CommonJS
     });
-    expect(compileErrors, "Errors detected while compiling generated model").to
-        .be.false;
+    expect(
+        compiledWithoutErrors,
+        "Errors detected while compiling generated model"
+    ).to.equal(true);
+
+    if (lintGeneratedFiles) {
+        const cli = new CLIEngine({ configFile: "test/configs/.eslintrc.js" });
+        const lintReport = cli.executeOnFiles(currentDirectoryFiles);
+        lintReport.results.forEach(result =>
+            result.messages.forEach(message => {
+                console.error(
+                    `${result.filePath}:${message.line} - ${message.message}`
+                );
+            })
+        );
+        expect(lintReport.errorCount).to.equal(0);
+        expect(lintReport.warningCount).to.equal(0);
+    }
 }
 
 async function prepareTestRuns(
@@ -276,7 +339,8 @@ async function prepareTestRuns(
                         password: String(process.env.MYSQL_Password),
                         databaseType: "mysql",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MYSQL_SSL)
+                        ssl: yn(process.env.MYSQL_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
                 case "mariadb":
@@ -288,7 +352,8 @@ async function prepareTestRuns(
                         password: String(process.env.MARIADB_Password),
                         databaseType: "mariadb",
                         schemaName: "ignored",
-                        ssl: yn(process.env.MARIADB_SSL)
+                        ssl: yn(process.env.MARIADB_SSL, { default: false }),
+                        skipTables: []
                     };
                     break;
 

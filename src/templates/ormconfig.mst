@@ -1,0 +1,16 @@
+[
+  {
+    "name": "default",
+    "type": "{{databaseType}}",
+    "host": "{{host}}",
+    "port": {{port}},
+    "username": "{{user}}",
+    "password": "{{password}}",
+    "database": "{{databaseName}}",{{#schemaName}}
+    "schema": "{{.}}",{{/schemaName}}
+    "synchronize": false,
+    "entities": [
+      "entities/*.js"
+    ]
+  }
+]

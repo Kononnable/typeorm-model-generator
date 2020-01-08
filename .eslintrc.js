@@ -28,8 +28,7 @@ module.exports = {
     "no-plusplus": ["error", { allowForLoopAfterthoughts: true }],
 
     "@typescript-eslint/no-non-null-assertion": ["off"],
-    "@typescript-eslint/no-object-literal-type-assertion": ["off"],
-
+    "import/extensions": ["off"],
     "no-param-reassign": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "no-loop-func": ["off"]
@@ -37,17 +36,8 @@ module.exports = {
   settings: {
     "import/resolver": {
       node: {
-        extensions: [".js", ".jsx", ".ts", ".tsx"]
+        extensions: [".ts"]
       }
     }
-  },
-  overrides: [
-    {
-      files: ["**/*.test.ts"],
-      rules: {
-        "no-unused-expressions": "off",
-        "func-names": "off"
-      }
-    }
-  ]
+  }
 };

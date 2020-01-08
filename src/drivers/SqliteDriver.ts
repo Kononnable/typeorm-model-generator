@@ -4,12 +4,12 @@ import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import * as sqliteLib from "sqlite3";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
-import EntityInfo from "../models/EntityInfo";
-import ColumnInfo from "../models/ColumnInfo";
-import IndexInfo from "../models/IndexInfo";
-import IndexColumnInfo from "../models/IndexColumnInfo";
-import RelationTempInfo from "../models/RelationTempInfo";
 import IConnectionOptions from "../IConnectionOptions";
+import { Entity } from "../models/Entity";
+import { Column } from "../models/Column";
+import { Index } from "../models/Index";
+import IGenerationOptions from "../IGenerationOptions";
+import { RelationInternal } from "../models/RelationInternal";
 
 export default class SqliteDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqliteDriver({
@@ -24,33 +24,43 @@ export default class SqliteDriver extends AbstractDriver {
 
     public sqlite = sqliteLib.verbose();
 
-    public db: any;
+    public db: sqliteLib.Database;
 
     public tablesWithGeneratedPrimaryKey: string[] = new Array<string>();
 
     public GetAllTablesQuery: any;
 
-    public async GetAllTables(): Promise<EntityInfo[]> {
-        const ret: EntityInfo[] = [] as EntityInfo[];
+    public async GetAllTables(
+        schema: string,
+        dbNames: string,
+        tableNames: string[]
+    ): Promise<Entity[]> {
+        const ret: Entity[] = [] as Entity[];
+        const tableCondition =
+            tableNames.length > 0
+                ? ` AND NOT tbl_name IN ('${tableNames.join("','")}')`
+                : "";
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
-            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
+            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%' ${tableCondition}`
         );
         rows.forEach(val => {
-            const ent: EntityInfo = new EntityInfo();
-            ent.tsEntityName = val.tbl_name;
-            ent.Columns = [] as ColumnInfo[];
-            ent.Indexes = [] as IndexInfo[];
             if (val.sql.includes("AUTOINCREMENT")) {
-                this.tablesWithGeneratedPrimaryKey.push(ent.tsEntityName);
+                this.tablesWithGeneratedPrimaryKey.push(val.tbl_name);
             }
-            ret.push(ent);
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.tbl_name,
+                tscName: val.tbl_name,
+                fileImports: []
+            });
         });
         return ret;
     }
 
-    public async GetCoulmnsFromEntity(
-        entities: EntityInfo[]
-    ): Promise<EntityInfo[]> {
+    public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
         await Promise.all(
             entities.map(async ent => {
                 const response = await this.ExecQuery<{
@@ -60,155 +70,172 @@ export default class SqliteDriver extends AbstractDriver {
                     notnull: number;
                     dflt_value: string;
                     pk: number;
-                }>(`PRAGMA table_info('${ent.tsEntityName}');`);
+                }>(`PRAGMA table_info('${ent.tscName}');`);
                 response.forEach(resp => {
-                    const colInfo: ColumnInfo = new ColumnInfo();
-                    colInfo.tsName = resp.name;
-                    colInfo.options.name = resp.name;
-                    colInfo.options.nullable = resp.notnull === 0;
-                    colInfo.options.primary = resp.pk > 0;
-                    colInfo.options.default = SqliteDriver.ReturnDefaultValueFunction(
+                    const tscName = resp.name;
+                    let tscType = "";
+                    const options: Column["options"] = { name: resp.name };
+                    if (resp.notnull === 0) options.nullable = true;
+                    const isPrimary = resp.pk > 0 ? true : undefined;
+                    const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
                         resp.dflt_value
                     );
-                    colInfo.options.type = resp.type
+                    const columnType = resp.type
                         .replace(/\([0-9 ,]+\)/g, "")
                         .toLowerCase()
-                        .trim() as any;
-                    colInfo.options.generated =
-                        colInfo.options.primary &&
-                        this.tablesWithGeneratedPrimaryKey.includes(
-                            ent.tsEntityName
-                        );
-                    switch (colInfo.options.type) {
+                        .trim();
+                    const generated =
+                        isPrimary &&
+                        this.tablesWithGeneratedPrimaryKey.includes(ent.tscName)
+                            ? true
+                            : undefined;
+                    switch (columnType) {
                         case "int":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "integer":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "int2":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "int8":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "tinyint":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "smallint":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "mediumint":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "bigint":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "unsigned big int":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "character":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "varchar":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "varying character":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "nchar":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "native character":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "nvarchar":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "text":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "blob":
-                            colInfo.tsType = "Buffer";
+                            tscType = "Buffer";
                             break;
                         case "clob":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "real":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "double":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "double precision":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "float":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "numeric":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "decimal":
-                            colInfo.tsType = "number";
+                            tscType = "number";
                             break;
                         case "boolean":
-                            colInfo.tsType = "boolean";
+                            tscType = "boolean";
                             break;
                         case "date":
-                            colInfo.tsType = "string";
+                            tscType = "string";
                             break;
                         case "datetime":
-                            colInfo.tsType = "Date";
+                            tscType = "Date";
                             break;
                         default:
+                            tscType = "NonNullable<unknown>";
                             TomgUtils.LogError(
-                                `Unknown column type: ${colInfo.options.type}  table name: ${ent.tsEntityName} column name: ${resp.name}`
+                                `Unknown column type: ${columnType}  table name: ${ent.tscName} column name: ${resp.name}`
                             );
                             break;
                     }
-                    const options = resp.type.match(/\([0-9 ,]+\)/g);
+                    const sqlOptions = resp.type.match(/\([0-9 ,]+\)/g);
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === colInfo.options.type
+                            v => v === columnType
                         ) &&
-                        options
+                        sqlOptions
                     ) {
-                        colInfo.options.precision = options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[0] as any;
-                        colInfo.options.scale = options[0]
-                            .substring(1, options[0].length - 1)
-                            .split(",")[1] as any;
+                        options.precision = Number.parseInt(
+                            sqlOptions[0]
+                                .substring(1, sqlOptions[0].length - 1)
+                                .split(",")[0],
+                            10
+                        );
+                        options.scale = Number.parseInt(
+                            sqlOptions[0]
+                                .substring(1, sqlOptions[0].length - 1)
+                                .split(",")[1],
+                            10
+                        );
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === colInfo.options.type
+                            v => v === columnType
                         ) &&
-                        options
+                        sqlOptions
                     ) {
-                        colInfo.options.length = options[0].substring(
-                            1,
-                            options[0].length - 1
-                        ) as any;
+                        options.length = Number.parseInt(
+                            sqlOptions[0].substring(
+                                1,
+                                sqlOptions[0].length - 1
+                            ),
+                            10
+                        );
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v =>
-                                v === colInfo.options.type &&
-                                colInfo.tsType !== "boolean"
+                            v => v === columnType && tscType !== "boolean"
                         ) &&
-                        options
+                        sqlOptions
                     ) {
-                        colInfo.options.width = options[0].substring(
-                            1,
-                            options[0].length - 1
-                        ) as any;
+                        options.width = Number.parseInt(
+                            sqlOptions[0].substring(
+                                1,
+                                sqlOptions[0].length - 1
+                            ),
+                            10
+                        );
                     }
 
-                    if (colInfo.options.type) {
-                        ent.Columns.push(colInfo);
-                    }
+                    ent.columns.push({
+                        generated,
+                        primary: isPrimary,
+                        type: columnType,
+                        default: defaultValue,
+                        options,
+                        tscName,
+                        tscType
+                    });
                 });
             })
         );
@@ -216,9 +243,7 @@ export default class SqliteDriver extends AbstractDriver {
         return entities;
     }
 
-    public async GetIndexesFromEntity(
-        entities: EntityInfo[]
-    ): Promise<EntityInfo[]> {
+    public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
         await Promise.all(
             entities.map(async ent => {
                 const response = await this.ExecQuery<{
@@ -227,7 +252,7 @@ export default class SqliteDriver extends AbstractDriver {
                     unique: number;
                     origin: string;
                     partial: number;
-                }>(`PRAGMA index_list('${ent.tsEntityName}');`);
+                }>(`PRAGMA index_list('${ent.tscName}');`);
                 await Promise.all(
                     response.map(async resp => {
                         const indexColumnsResponse = await this.ExecQuery<{
@@ -235,37 +260,29 @@ export default class SqliteDriver extends AbstractDriver {
                             cid: number;
                             name: string;
                         }>(`PRAGMA index_info('${resp.name}');`);
-                        indexColumnsResponse.forEach(element => {
-                            let indexInfo: IndexInfo = {} as IndexInfo;
-                            const indexColumnInfo: IndexColumnInfo = {} as IndexColumnInfo;
-                            if (
-                                ent.Indexes.filter(filterVal => {
-                                    return filterVal.name === resp.name;
-                                }).length > 0
-                            ) {
-                                indexInfo = ent.Indexes.find(
-                                    filterVal => filterVal.name === resp.name
-                                )!;
-                            } else {
-                                indexInfo.columns = [] as IndexColumnInfo[];
-                                indexInfo.name = resp.name;
-                                indexInfo.isUnique = resp.unique === 1;
-                                ent.Indexes.push(indexInfo);
-                            }
-                            indexColumnInfo.name = element.name;
-                            if (
-                                indexColumnsResponse.length === 1 &&
-                                indexInfo.isUnique
-                            ) {
-                                ent.Columns.filter(
-                                    v => v.tsName === indexColumnInfo.name
-                                ).forEach(v => {
+
+                        const indexInfo: Index = {
+                            name: resp.name,
+                            columns: [],
+                            options: {}
+                        };
+                        if (resp.unique === 1) indexInfo.options.unique = true;
+
+                        indexColumnsResponse.forEach(record => {
+                            indexInfo.columns.push(record.name);
+                        });
+                        if (
+                            indexColumnsResponse.length === 1 &&
+                            indexInfo.options.unique
+                        ) {
+                            ent.columns
+                                .filter(v => v.tscName === indexInfo.columns[0])
+                                .forEach(v => {
                                     // eslint-disable-next-line no-param-reassign
                                     v.options.unique = true;
                                 });
-                            }
-                            indexInfo.columns.push(indexColumnInfo);
-                        });
+                        }
+                        ent.indices.push(indexInfo);
                     })
                 );
             })
@@ -274,7 +291,12 @@ export default class SqliteDriver extends AbstractDriver {
         return entities;
     }
 
-    public async GetRelations(entities: EntityInfo[]): Promise<EntityInfo[]> {
+    public async GetRelations(
+        entities: Entity[],
+        schema: string,
+        dbNames: string,
+        generationOptions: IGenerationOptions
+    ): Promise<Entity[]> {
         let retVal = entities;
         await Promise.all(
             retVal.map(async entity => {
@@ -295,25 +317,49 @@ export default class SqliteDriver extends AbstractDriver {
                         | "SET NULL"
                         | "NO ACTION";
                     match: string;
-                }>(`PRAGMA foreign_key_list('${entity.tsEntityName}');`);
-                const relationsTemp: RelationTempInfo[] = [] as RelationTempInfo[];
-                response.forEach(resp => {
-                    const rels = {} as RelationTempInfo;
-                    rels.ownerColumnsNames = [];
-                    rels.referencedColumnsNames = [];
-                    rels.actionOnDelete =
-                        resp.on_delete === "NO ACTION" ? null : resp.on_delete;
-                    rels.actionOnUpdate =
-                        resp.on_update === "NO ACTION" ? null : resp.on_update;
-                    rels.ownerTable = entity.tsEntityName;
-                    rels.referencedTable = resp.table;
-                    relationsTemp.push(rels);
-                    rels.ownerColumnsNames.push(resp.from);
-                    rels.referencedColumnsNames.push(resp.to);
+                }>(`PRAGMA foreign_key_list('${entity.tscName}');`);
+
+                const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+                const relationKeys = new Set(response.map(v => v.id));
+
+                relationKeys.forEach(relationId => {
+                    const rows = response.filter(v => v.id === relationId);
+                    const ownerTable = entities.find(
+                        v => v.sqlName === entity.tscName
+                    );
+                    const relatedTable = entities.find(
+                        v => v.sqlName === rows[0].table
+                    );
+                    if (!ownerTable || !relatedTable) {
+                        TomgUtils.LogError(
+                            `Relation between tables ${entity.tscName} and ${rows[0].table} wasn't found in entity model.`,
+                            true
+                        );
+                        return;
+                    }
+                    const internal: RelationInternal = {
+                        ownerColumns: [],
+                        relatedColumns: [],
+                        ownerTable,
+                        relatedTable
+                    };
+                    if (rows[0].on_delete !== "NO ACTION") {
+                        internal.onDelete = rows[0].on_delete;
+                    }
+                    if (rows[0].on_update !== "NO ACTION") {
+                        internal.onUpdate = rows[0].on_update;
+                    }
+                    rows.forEach(row => {
+                        internal.ownerColumns.push(row.from);
+                        internal.relatedColumns.push(row.to);
+                    });
+                    relationsTemp.push(internal);
                 });
+
                 retVal = SqliteDriver.GetRelationsFromRelationTempInfo(
                     relationsTemp,
-                    retVal
+                    retVal,
+                    generationOptions
                 );
             })
         );
@@ -362,7 +408,7 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async ExecQuery<T>(sql: string): Promise<T[]> {
-        let ret: any;
+        let ret: T[] = [];
         const promise = new Promise<boolean>((resolve, reject) => {
             this.db.serialize(() => {
                 this.db.all(sql, [], (err, row) => {
@@ -386,9 +432,9 @@ export default class SqliteDriver extends AbstractDriver {
 
     private static ReturnDefaultValueFunction(
         defVal: string | null
-    ): string | null {
+    ): string | undefined {
         if (!defVal) {
-            return null;
+            return undefined;
         }
         if (defVal.startsWith(`'`)) {
             return `() => "${defVal}"`;

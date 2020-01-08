@@ -1,14 +1,23 @@
-import { PrimaryGeneratedColumn, Column, Entity, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable } from "typeorm";
-import {PostDetail} from "./PostDetail";
-import {PostCategory} from "./PostCategory";
-import {PostAuthor} from "./PostAuthor";
-import {PostInformation} from "./PostInformation";
-import {PostImage} from "./PostImage";
-import {PostMetadata} from "./PostMetadata";
+import {
+    PrimaryGeneratedColumn,
+    Column,
+    Entity,
+    OneToOne,
+    OneToMany,
+    ManyToOne,
+    ManyToMany,
+    JoinColumn,
+    JoinTable
+} from "typeorm";
+import { PostDetail } from "./PostDetail";
+import { PostCategory } from "./PostCategory";
+import { PostAuthor } from "./PostAuthor";
+import { PostInformation } from "./PostInformation";
+import { PostImage } from "./PostImage";
+import { PostMetadata } from "./PostMetadata";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -20,15 +29,15 @@ export class Post {
 
     // post has relation with category, however inverse relation is not set (category does not have relation with post set)
     @ManyToMany(type => PostCategory, {
-        cascade: true
+        // cascade: true
     })
     @JoinTable()
-    postCategorys: PostCategory[];
+    postCategories: PostCategory[];
 
     // post has relation with details. cascade inserts here means if new PostDetails instance will be set to this
     // relation it will be inserted automatically to the db when you save this Post entity
     @ManyToMany(type => PostDetail, details => details.posts, {
-        cascade: true
+        // cascade: true
     })
     @JoinTable()
     postDetails: PostDetail[];
@@ -36,7 +45,7 @@ export class Post {
     // post has relation with details. cascade update here means if new PostDetail instance will be set to this relation
     // it will be inserted automatically to the db when you save this Post entity
     @ManyToMany(type => PostImage, image => image.posts, {
-        cascade: true
+        // cascade: true
     })
     @JoinTable()
     postImages: PostImage[];
@@ -45,11 +54,11 @@ export class Post {
     // it will be inserted automatically to the db when you save this Post entity
     @ManyToMany(type => PostMetadata, metadata => metadata.posts)
     @JoinTable()
-    postMetadatas: PostMetadata[];
+    postMetadata: PostMetadata[];
 
     // post has relation with details. full cascades here
     @ManyToMany(type => PostInformation, information => information.posts, {
-        cascade: true
+        // cascade: true
     })
     @JoinTable()
     postInformations: PostInformation[];
@@ -58,5 +67,4 @@ export class Post {
     @ManyToMany(type => PostAuthor, author => author.posts)
     @JoinTable()
     postAuthors: PostAuthor[];
-
 }

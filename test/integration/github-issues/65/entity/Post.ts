@@ -1,24 +1,29 @@
-import {Index,Entity, PrimaryColumn, Column, OneToOne, OneToMany, ManyToOne, ManyToMany, JoinColumn, JoinTable} from "typeorm";
+import {
+    Index,
+    Entity,
+    PrimaryColumn,
+    Column,
+    OneToOne,
+    OneToMany,
+    ManyToOne,
+    ManyToMany,
+    JoinColumn,
+    JoinTable
+} from "typeorm";
 import { PostAuthor } from "./PostAuthor";
 import { PostReader } from "./PostReader";
 
-
 @Entity("Post")
 export class Post {
+    @Column("int", {
+        primary: true,
+        name: "id"
+    })
+    id: number;
 
-    @Column("int",{
-        nullable:false,
-        primary:true,
-        name:"Id"
-        })
-    Id:number;
-
-
-
-    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.Id)
+    @OneToOne(type => PostAuthor, PostAuthor => PostAuthor.id)
     postAuthor: PostAuthor;
 
-    @OneToMany(type => PostReader, PostReader => PostReader.Id)
+    @OneToMany(type => PostReader, PostReader => PostReader.id)
     postReaders: PostReader[];
-
 }

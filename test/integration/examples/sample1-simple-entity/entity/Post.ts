@@ -1,8 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn, Index, Generated } from "typeorm";
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    Index,
+    Generated
+} from "typeorm";
 
 @Entity("Post")
 export class Post {
-
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -13,8 +18,8 @@ export class Post {
     text: string;
 
     @Column("int", {
-        nullable: false
+        // Columns are non-nullable by default
+        // nullable: false
     })
     likesCount: number;
-
 }

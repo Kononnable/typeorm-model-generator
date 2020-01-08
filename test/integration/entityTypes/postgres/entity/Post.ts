@@ -81,7 +81,7 @@ export class Post {
     varbit: string;
 
     @Column("bit varying")
-    bit_varying: string;
+    bitVarying: string;
 
     @Column("timetz")
     timetz: string;
@@ -93,10 +93,10 @@ export class Post {
     timestamp: Date;
 
     @Column("timestamp without time zone")
-    timestamp_without_time_zone: Date;
+    timestampWithoutTimeZone: Date;
 
     @Column("timestamp with time zone")
-    timestamp_with_time_zone: Date;
+    timestampWithTimeZone: Date;
 
     @Column("date")
     date: string;
@@ -104,10 +104,10 @@ export class Post {
     @Column("time")
     time: string;
     @Column("time without time zone")
-    time_without_time_zone: string;
+    timeWithoutTimeZone: string;
 
     @Column("time with time zone")
-    time_with_time_zone: string;
+    timeWithTimeZone: string;
 
     @Column("interval")
     interval: any;

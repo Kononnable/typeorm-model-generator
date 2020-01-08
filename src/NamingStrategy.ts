@@ -1,74 +1,75 @@
-import AbstractNamingStrategy from "./AbstractNamingStrategy";
-import RelationInfo from "./models/RelationInfo";
-import EntityInfo from "./models/EntityInfo";
+import { plural } from "pluralize";
+import * as changeCase from "change-case";
+import { Relation } from "./models/Relation";
+import { RelationId } from "./models/RelationId";
 
-import changeCase = require("change-case");
+let pluralize: boolean;
 
-/* eslint-disable class-methods-use-this */
-export default class NamingStrategy extends AbstractNamingStrategy {
-    public relationName(
-        columnOldName: string,
-        relation: RelationInfo,
-        dbModel: EntityInfo[]
-    ): string {
-        const isRelationToMany = relation.isOneToMany || relation.isManyToMany;
-        const ownerEntity = dbModel.find(
-            v => v.tsEntityName === relation.ownerTable
-        )!;
-        let columnName = changeCase.camelCase(columnOldName);
-
-        if (
-            columnName.toLowerCase().endsWith("id") &&
-            !columnName.toLowerCase().endsWith("guid")
-        ) {
-            columnName = columnName.substring(
-                0,
-                columnName.toLowerCase().lastIndexOf("id")
-            );
-        }
-        if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
-            columnName = columnName.substring(0, columnName.length - 1);
-        }
-        if (!Number.isNaN(parseInt(columnName[columnName.length - 1], 10))) {
-            columnName = columnName.substring(0, columnName.length - 1);
-        }
-        columnName += isRelationToMany ? "s" : "";
-
-        if (
-            relation.relationType !== "ManyToMany" &&
-            columnOldName !== columnName
-        ) {
-            if (ownerEntity.Columns.some(v => v.tsName === columnName)) {
-                columnName += "_";
-                for (let i = 2; i <= ownerEntity.Columns.length; i++) {
-                    columnName =
-                        columnName.substring(
-                            0,
-                            columnName.length - i.toString().length
-                        ) + i.toString();
-                    if (
-                        ownerEntity.Columns.every(
-                            v =>
-                                v.tsName !== columnName ||
-                                columnName === columnOldName
-                        )
-                    ) {
-                        break;
-                    }
-                }
-            }
-        }
-
-        return columnName;
-    }
-
-    public entityName(entityName: string): string {
-        return entityName;
-    }
-
-    public columnName(columnName: string): string {
-        return columnName;
-    }
+export function enablePluralization(value: boolean) {
+    pluralize = value;
 }
 
-/* eslint-enable class-methods-use-this */
+export function relationIdName(
+    relationId: RelationId,
+    relation: Relation
+): string {
+    const columnOldName = relationId.fieldName;
+
+    const isRelationToMany =
+        relation.relationType === "OneToMany" ||
+        relation.relationType === "ManyToMany";
+    let newColumnName = changeCase.camelCase(
+        columnOldName.replace(/[0-9]$/, "")
+    );
+
+    if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
+        newColumnName = newColumnName.substring(0, newColumnName.length - 1);
+    }
+    if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
+        newColumnName = newColumnName.substring(0, newColumnName.length - 1);
+    }
+    if (isRelationToMany && pluralize) {
+        newColumnName = plural(newColumnName);
+    }
+
+    return newColumnName;
+}
+
+export function relationName(relation: Relation): string {
+    const columnOldName = relation.fieldName;
+
+    const isRelationToMany =
+        relation.relationType === "OneToMany" ||
+        relation.relationType === "ManyToMany";
+    let newColumnName = changeCase.camelCase(
+        columnOldName.replace(/[0-9]$/, "")
+    );
+
+    if (
+        newColumnName.toLowerCase().endsWith("id") &&
+        !newColumnName.toLowerCase().endsWith("guid")
+    ) {
+        newColumnName = newColumnName.substring(
+            0,
+            newColumnName.toLowerCase().lastIndexOf("id")
+        );
+    }
+    if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
+        newColumnName = newColumnName.substring(0, newColumnName.length - 1);
+    }
+    if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
+        newColumnName = newColumnName.substring(0, newColumnName.length - 1);
+    }
+    if (isRelationToMany && pluralize) {
+        newColumnName = plural(newColumnName);
+    }
+    return newColumnName;
+}
+
+export function entityName(oldEntityName: string): string {
+    return oldEntityName;
+}
+
+export function columnName(oldColumnName: string): string {
+    return oldColumnName;
+}
