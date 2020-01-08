@@ -1,5 +1,7 @@
 import * as TypeormDriver from "typeorm/driver/oracle/OracleDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as oracle from "oracledb";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
 import IConnectionOptions from "../IConnectionOptions";
@@ -8,6 +10,43 @@ import { Column } from "../models/Column";
 import { Index } from "../models/Index";
 import IGenerationOptions from "../IGenerationOptions";
 import { RelationInternal } from "../models/RelationInternal";
+
+interface TableResponse {
+    TABLE_SCHEMA: string;
+    TABLE_NAME: string;
+    DB_NAME: string;
+}
+
+interface ColumnResponse {
+    TABLE_NAME: string;
+    COLUMN_NAME: string;
+    DATA_DEFAULT: string;
+    NULLABLE: string;
+    DATA_TYPE: string;
+    DATA_LENGTH: number;
+    DATA_PRECISION: number;
+    DATA_SCALE: number;
+    IDENTITY_COLUMN: string; // doesn't exist in old oracle versions (#195)
+    IS_UNIQUE: number;
+}
+
+interface IndexResponse {
+    COLUMN_NAME: string;
+    TABLE_NAME: string;
+    INDEX_NAME: string;
+    UNIQUENESS: string;
+    ISPRIMARYKEY: number;
+}
+
+interface RelationResponse {
+    OWNER_TABLE_NAME: string;
+    OWNER_POSITION: string;
+    OWNER_COLUMN_NAME: string;
+    CHILD_TABLE_NAME: string;
+    CHILD_COLUMN_NAME: string;
+    DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+    CONSTRAINT_NAME: string;
+}
 
 export default class OracleDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.OracleDriver({
@@ -20,16 +59,15 @@ export default class OracleDriver extends AbstractDriver {
 
     public readonly standardSchema = "";
 
-    public Oracle: any;
+    public Oracle: typeof oracle;
 
-    private Connection: any /* Oracle.IConnection */;
+    private Connection: oracle.Connection /* Oracle.IConnection */;
 
     public constructor() {
         super();
         try {
-            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
-            this.Oracle = require("oracledb");
-            this.Oracle.outFormat = this.Oracle.OBJECT;
+            this.Oracle = oracle;
+            this.Oracle.outFormat = this.Oracle.OUT_FORMAT_OBJECT;
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;
@@ -45,12 +83,8 @@ export default class OracleDriver extends AbstractDriver {
             tableNames.length > 0
                 ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
                 : "";
-        const response: {
-            TABLE_SCHEMA: string;
-            TABLE_NAME: string;
-            DB_NAME: string;
-        }[] = (
-            await this.Connection.execute(
+        const response: TableResponse[] = (
+            await this.Connection.execute<TableResponse>(
                 `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE owner = (select user from dual) ${tableCondition}`
             )
         ).rows!;
@@ -58,20 +92,10 @@ export default class OracleDriver extends AbstractDriver {
     };
 
     public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
-        const response: {
-            TABLE_NAME: string;
-            COLUMN_NAME: string;
-            DATA_DEFAULT: string;
-            NULLABLE: string;
-            DATA_TYPE: string;
-            DATA_LENGTH: number;
-            DATA_PRECISION: number;
-            DATA_SCALE: number;
-            IDENTITY_COLUMN: string; // doesn't exist in old oracle versions (#195)
-            IS_UNIQUE: number;
-        }[] = (
-            await this.Connection
-                .execute(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
+        const response: ColumnResponse[] = (
+            await this.Connection.execute<
+                ColumnResponse
+            >(`SELECT utc.*, (select count(*) from USER_CONS_COLUMNS ucc
              JOIN USER_CONSTRAINTS uc ON  uc.CONSTRAINT_NAME = ucc.CONSTRAINT_NAME and uc.CONSTRAINT_TYPE='U'
             where ucc.column_name = utc.COLUMN_NAME AND ucc.table_name = utc.TABLE_NAME) IS_UNIQUE
            FROM USER_TAB_COLUMNS utc`)
@@ -226,15 +250,10 @@ export default class OracleDriver extends AbstractDriver {
     }
 
     public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
-        const response: {
-            COLUMN_NAME: string;
-            TABLE_NAME: string;
-            INDEX_NAME: string;
-            UNIQUENESS: string;
-            ISPRIMARYKEY: number;
-        }[] = (
-            await this.Connection
-                .execute(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
+        const response: IndexResponse[] = (
+            await this.Connection.execute<
+                IndexResponse
+            >(`SELECT ind.TABLE_NAME, ind.INDEX_NAME, col.COLUMN_NAME,ind.UNIQUENESS, CASE WHEN uc.CONSTRAINT_NAME IS NULL THEN 0 ELSE 1 END ISPRIMARYKEY
         FROM USER_INDEXES ind
         JOIN USER_IND_COLUMNS col ON ind.INDEX_NAME=col.INDEX_NAME
         LEFT JOIN USER_CONSTRAINTS uc ON  uc.INDEX_NAME = ind.INDEX_NAME
@@ -274,17 +293,10 @@ export default class OracleDriver extends AbstractDriver {
         dbNames: string,
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
-        const response: {
-            OWNER_TABLE_NAME: string;
-            OWNER_POSITION: string;
-            OWNER_COLUMN_NAME: string;
-            CHILD_TABLE_NAME: string;
-            CHILD_COLUMN_NAME: string;
-            DELETE_RULE: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
-            CONSTRAINT_NAME: string;
-        }[] = (
-            await this.Connection
-                .execute(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
+        const response: RelationResponse[] = (
+            await this.Connection.execute<
+                RelationResponse
+            >(`select owner.TABLE_NAME OWNER_TABLE_NAME,ownCol.POSITION OWNER_POSITION,ownCol.COLUMN_NAME OWNER_COLUMN_NAME,
         child.TABLE_NAME CHILD_TABLE_NAME ,childCol.COLUMN_NAME CHILD_COLUMN_NAME,
         owner.DELETE_RULE,
         owner.CONSTRAINT_NAME
@@ -400,10 +412,10 @@ export default class OracleDriver extends AbstractDriver {
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
-        const x = await this.Connection.execute(
+        const x = await this.Connection.execute<{ CNT: number }>(
             `select count(*) as CNT from dba_users where username='${dbName.toUpperCase()}'`
         );
-        return x.rows[0][0] > 0 || x.rows[0].CNT;
+        return x.rows![0][0] > 0 || x.rows![0].CNT > 0;
     }
 
     private static ReturnDefaultValueFunction(

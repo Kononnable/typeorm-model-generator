@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as PG from "pg";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";

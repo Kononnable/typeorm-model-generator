@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as MYSQL from "mysql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";

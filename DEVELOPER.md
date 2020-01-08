@@ -10,10 +10,7 @@ It might come handy if you want to build full pipeline workflow with model gener
 ## Running Tests Locally
 To run tests you need to have docker and docker-compose installed. You may also use non-dockerized database servers but it's not recommended - they might use non-default database engine settings.
 ### Oracle Database
-If you want to run oracle tests locally you must have [oracle client](https://oracle.github.io/node-oracledb/INSTALL.html#quickstart) configured for your machine and accepted oracle license on [DockerHub](https://hub.docker.com/_/oracle-database-enterprise-edition). Because of oracle client limitations  i.e. it's not distributed for 32bit environments you have to install oracledb manually:
-```
-npm install oracledb --no-save
-```
+If you want to run oracle tests locally you must have [oracle client](https://oracle.github.io/node-oracledb/INSTALL.html#quickstart) configured for your machine and accepted oracle license on [DockerHub](https://hub.docker.com/_/oracle-database-enterprise-edition). Because of oracle client limitations (i.e. it's not distributed for 32bit environments), you can only run Oracle tests on 64bit environments.
 ### Configuration
 Tests use environment values to provide credentials for connecting to multiple database engines. For developer convenience there is prepared env file with default connection settings(for connecting to dockerized db engines). After cloning the repo you just need to rename the env file:
 ```

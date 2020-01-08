@@ -1,13 +1,7 @@
 import * as TomgUtils from "./Utils";
 import AbstractDriver from "./drivers/AbstractDriver";
-import MssqlDriver from "./drivers/MssqlDriver";
-import MariaDbDriver from "./drivers/MariaDbDriver";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions from "./IGenerationOptions";
-import PostgresDriver from "./drivers/PostgresDriver";
-import MysqlDriver from "./drivers/MysqlDriver";
-import OracleDriver from "./drivers/OracleDriver";
-import SqliteDriver from "./drivers/SqliteDriver";
 import modelCustomizationPhase from "./ModelCustomization";
 import modelGenerationPhase from "./ModelGeneration";
 import { Entity } from "./models/Entity";
@@ -15,17 +9,77 @@ import { Entity } from "./models/Entity";
 export function createDriver(driverName: string): AbstractDriver {
     switch (driverName) {
         case "mssql":
-            return new MssqlDriver();
+            try {
+                require.resolve("mssql");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'MSSQL client not found. Please install the "mssql" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/MssqlDriver").default)();
         case "postgres":
-            return new PostgresDriver();
+            try {
+                require.resolve("pg");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'PostgreSQL client not found. Please install the "pg" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/PostgresDriver").default)();
         case "mysql":
-            return new MysqlDriver();
+            try {
+                require.resolve("mysql");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'MySQL client not found. Please install the "mysql" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/MysqlDriver").default)();
         case "mariadb":
-            return new MariaDbDriver();
+            try {
+                require.resolve("mysql");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'MariaDB client not found. Please install the "mysql" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/MariaDbDriver").default)();
         case "oracle":
-            return new OracleDriver();
+            try {
+                require.resolve("oracledb");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'Oracle client not found. Please install the "oracledb" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/OracleDriver").default)();
         case "sqlite":
-            return new SqliteDriver();
+            try {
+                require.resolve("sqlite3");
+            } catch (e) {
+                TomgUtils.LogError(
+                    'SQLite client not found. Please install the "sqlite3" package.',
+                    false
+                );
+                throw e;
+            }
+            // eslint-disable-next-line global-require, new-cap
+            return new (require("./drivers/SqliteDriver").default)();
         default:
             TomgUtils.LogError("Database engine not recognized.", false);
             throw new Error("Database engine not recognized.");

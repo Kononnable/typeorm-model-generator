@@ -1,6 +1,7 @@
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/sqlite/SqliteDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as sqliteLib from "sqlite3";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
