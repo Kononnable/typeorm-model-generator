@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2017",
+    "target": "es2019",
     "noImplicitAny": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -13,19 +13,15 @@
     "strictNullChecks": true,
     "moduleResolution": "node",
     "newLine": "LF",
-    "outDir": "dist",
-    "lib": [
-      "es2019",
-      "es2019.array"
-    ],
+    "rootDir": "./src",
+    "outDir": "./dist",
     "typeRoots": [
       "./node_modules/@types"
     ],
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
   "include": [
-    "src",
-    "test",
+    "./src"
   ],
   "exclude": ["**/node_modules", "node_modules"]
 }

@@ -11,3 +11,4 @@ coverage/
 dist
 *.tgz
 .tomg-config
+install_env.json

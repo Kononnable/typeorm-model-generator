@@ -21,15 +21,17 @@ To install module globally simply type `npm i -g typeorm-model-generator` in you
 Thanks to npx you can use npm modules without polluting global installs. So nothing to do here :)
 >To use `npx` you need to use npm at version at least 5.2.0. Try updating your npm by `npm i -g npm`
 ### Database drivers
-Database drivers must be installed separately, either as global dependencies (if using this module globally), or as project dependencies (if using the npx way).
+Database drivers must be installed separately if installed as a project dependency.
 
-Depending on your engine(s), you must install the appropriate npm package(s). Supported packages:
+Depending on the engine(s) you are using, you must install the appropriate npm package(s). Supported packages:
 
 * [mssql](https://www.npmjs.com/package/mssql)
 * [pg](https://www.npmjs.com/package/pg)
 * [oracledb](https://www.npmjs.com/package/oracledb) (also requires you to configure [oracle install client](http://www.oracle.com/technetwork/database/database-technologies/instant-client/overview/index.html) on your machine)
 * [mysql](https://www.npmjs.com/package/mysql) (also used for MariaDB)
 * [sqlite3](https://www.npmjs.com/package/sqlite3)
+
+If this project is installed as a global dependency, the npm packages above are automatically installed on first use from the command line.
 
 ## Usage 
 There are two way to use this utility:

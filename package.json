@@ -3,17 +3,18 @@
   "version": "0.4.0",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
-  "main": "./dist/src/library.js",
-  "types": "./dist/src/library.d.ts",
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "build": "npm run clean && tsc && ncp src/templates/ dist/src/templates/ && ncp package.json dist/package.json",
+    "postinstall": "node ./postinstall.js",
+    "start": "ts-node src/lib/cli.ts",
+    "build": "npm run clean && tsc",
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
-    "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha test/**/*.test.ts  -- --bail",
-    "posttest": "eslint ./src/**/*.ts  ./test/**/*.ts",
+    "test": "nyc --reporter=lcov ts-node ./node_modules/mocha/bin/_mocha src/test/**/*.test.ts  -- --bail",
+    "posttest": "eslint ./src/**/*.ts",
     "clean": "rimraf coverage output dist",
-    "prettier": "prettier --write ./src/*.ts ./src/**/*.ts"
+    "prettier": "prettier --write ./src/**/*.ts"
   },
   "repository": {
     "type": "git",
@@ -76,7 +77,6 @@
     "mocha": "^7.0.0",
     "mssql": "^6.0.1",
     "mysql": "^2.17.1",
-    "ncp": "^2.0.0",
     "nyc": "^15.0.0",
     "oracledb": "^4.1.0",
     "pg": "^7.17.0",

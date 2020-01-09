@@ -1,6 +1,6 @@
 
-test/integration/defaultValues/**/*.ts
-test/integration/entityTypes/**/*.ts
-test/integration/examples/**/*.ts
-test/integration/github-issues/**/*.ts
+src/test/integration/defaultValues/**/*.ts
+src/test/integration/entityTypes/**/*.ts
+src/test/integration/examples/**/*.ts
+src/test/integration/github-issues/**/*.ts
 dist/**/*.d.ts

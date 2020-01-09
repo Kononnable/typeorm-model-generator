@@ -1,6 +1,4 @@
 #!/usr/bin/env node
 'use strict';
 
-
-
-require('../dist/src/index');
+require('../dist/lib/cli');
