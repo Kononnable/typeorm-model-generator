@@ -12,17 +12,16 @@ import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
 
+const eolConverter = {
+    LF: "\n",
+    CRLF: "\r\n"
+};
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 
 type options = {
     connectionOptions: IConnectionOptions;
     generationOptions: IGenerationOptions;
-};
-
-const eolConverter = {
-    LF: "\n",
-    CRLF: "\r\n"
 };
 
 async function CliLogic() {
