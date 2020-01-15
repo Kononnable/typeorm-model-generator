@@ -32,7 +32,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         convertCaseFile: "pascal",
         convertCaseEntity: "pascal",
         convertCaseProperty: "camel",
-        convertEol: EOL,
+        convertEol: EOL === "\n" ? "LF" : "CRLF",
         propertyVisibility: "none",
         lazy: false,
         activeRecord: false,
