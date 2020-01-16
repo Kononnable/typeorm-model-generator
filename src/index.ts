@@ -11,11 +11,6 @@ import IGenerationOptions, {
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
-
-const eolConverter = {
-    LF: "\n",
-    CRLF: "\r\n"
-};
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 
@@ -311,8 +306,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
     options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
     options.generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
-    options.generationOptions.convertEol = (eolConverter[argv.eol] ||
-        argv.eol) as IGenerationOptions["convertEol"];
+    options.generationOptions.convertEol = argv.eol as IGenerationOptions["convertEol"];
     options.generationOptions.lazy = argv.lazy;
     options.generationOptions.customNamingStrategyPath = argv.namingStrategy;
     options.generationOptions.noConfigs = argv.noConfig;
@@ -685,7 +679,7 @@ async function useInquirer(options: options): Promise<options> {
                     type: "list"
                 }
             ]);
-            options.generationOptions.convertEol = eolConverter[eolChoice.eol];
+            options.generationOptions.convertEol = eolChoice.eol;
         }
     }
     const { saveConfig } = await inquirer.prompt([

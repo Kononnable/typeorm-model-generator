@@ -24,6 +24,12 @@ export default interface IGenerationOptions {
     indexFile: boolean;
     exportType: "named" | "default";
 }
+
+export const eolConverter = {
+    LF: "\n",
+    CRLF: "\r\n"
+};
+
 export function getDefaultGenerationOptions(): IGenerationOptions {
     const generationOptions: IGenerationOptions = {
         resultsPath: path.resolve(process.cwd(), "output"),
