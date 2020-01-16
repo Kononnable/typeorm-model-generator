@@ -288,7 +288,7 @@ describe("Model customization phase", async () => {
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             clearGenerationDir();
-            generationOptions.convertEol = "\n";
+            generationOptions.convertEol = "LF";
             const customizedModel = modelCustomizationPhase(
                 data,
                 generationOptions,
@@ -300,18 +300,18 @@ describe("Model customization phase", async () => {
                 customizedModel
             );
             const filesGenPath = path.resolve(resultsPath, "entities");
-            const posterContent = fs
+            const postContent = fs
                 .readFileSync(path.resolve(filesGenPath, "Post.ts"))
                 .toString();
-            expect(posterContent).to.not.contain("\r\n");
-            expect(posterContent).to.contain("\n");
+            expect(postContent).to.not.contain("\r\n");
+            expect(postContent).to.contain("\n");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         });
         it("CRLF", () => {
             const data = generateSampleData();
             const generationOptions = generateGenerationOptions();
             clearGenerationDir();
-            generationOptions.convertEol = "\r\n";
+            generationOptions.convertEol = "CRLF";
             const customizedModel = modelCustomizationPhase(
                 data,
                 generationOptions,
@@ -323,10 +323,10 @@ describe("Model customization phase", async () => {
                 customizedModel
             );
             const filesGenPath = path.resolve(resultsPath, "entities");
-            const posterContent = fs
+            const postContent = fs
                 .readFileSync(path.resolve(filesGenPath, "Post.ts"))
                 .toString();
-            expect(posterContent).to.contain("\r\n");
+            expect(postContent).to.contain("\r\n");
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         });
     });
