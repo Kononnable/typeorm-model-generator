@@ -5,7 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { EOL } from "os";
 import IConnectionOptions from "./IConnectionOptions";
-import IGenerationOptions from "./IGenerationOptions";
+import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
 
@@ -73,10 +73,10 @@ function generateModels(
         );
         const rendered = entityCompliedTemplate(element);
         const withImportStatements = removeUnusedImports(
-            EOL !== generationOptions.convertEol
+            EOL !== eolConverter[generationOptions.convertEol]
                 ? rendered.replace(
                       /(\r\n|\n|\r)/gm,
-                      generationOptions.convertEol
+                      eolConverter[generationOptions.convertEol]
                   )
                 : rendered
         );
