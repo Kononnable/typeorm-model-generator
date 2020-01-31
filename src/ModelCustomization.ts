@@ -224,7 +224,9 @@ function addImportsAndGenerationOptions(
                 if (!relation.relationOptions) {
                     relation.relationOptions = {};
                 }
-                relation.relationOptions.lazy = true;
+                if (typeof relation.relationOptions.lazy === "undefined") {
+                    relation.relationOptions.lazy = true;
+                }
             }
         });
         if (generationOptions.skipSchema) {
