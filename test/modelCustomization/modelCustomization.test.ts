@@ -283,6 +283,53 @@ describe("Model customization phase", async () => {
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         });
     });
+    describe("EOL", async () => {
+        it("LF", () => {
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            clearGenerationDir();
+            generationOptions.convertEol = "LF";
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const postContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Post.ts"))
+                .toString();
+            expect(postContent).to.not.contain("\r\n");
+            expect(postContent).to.contain("\n");
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        });
+        it("CRLF", () => {
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            clearGenerationDir();
+            generationOptions.convertEol = "CRLF";
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const postContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Post.ts"))
+                .toString();
+            expect(postContent).to.contain("\r\n");
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        });
+    });
     describe("property-visibility", () => {
         it("public", () => {
             const data = generateSampleData();

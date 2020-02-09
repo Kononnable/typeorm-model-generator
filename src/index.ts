@@ -11,7 +11,6 @@ import IGenerationOptions, {
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
-
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 
@@ -215,6 +214,11 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.convertCaseProperty,
             describe: "Convert property names to specified case"
         },
+        eol: {
+            choices: ["LF", "CRLF"],
+            default: options.generationOptions.convertEol,
+            describe: "Force EOL to be LF or CRLF"
+        },
         pv: {
             alias: "property-visibility",
             choices: ["public", "protected", "private", "none"],
@@ -302,6 +306,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
     options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
     options.generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
+    options.generationOptions.convertEol = argv.eol as IGenerationOptions["convertEol"];
     options.generationOptions.lazy = argv.lazy;
     options.generationOptions.customNamingStrategyPath = argv.namingStrategy;
     options.generationOptions.noConfigs = argv.noConfig;
@@ -526,6 +531,11 @@ async function useInquirer(options: options): Promise<options> {
                                     defaultGenerationOptions.convertCaseFile
                         },
                         {
+                            name: "Use specific EOL character",
+                            value: "converteol",
+                            checked: false
+                        },
+                        {
                             name:
                                 "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
@@ -658,6 +668,18 @@ async function useInquirer(options: options): Promise<options> {
                 namingConventions.propertyCase;
             options.generationOptions.convertCaseEntity =
                 namingConventions.entityCase;
+        }
+        if (customizations.includes("converteol")) {
+            const eolChoice = await inquirer.prompt([
+                {
+                    choices: ["LF", "CRLF"],
+                    default: options.generationOptions.convertEol,
+                    message: "Force EOL to be:",
+                    name: "eol",
+                    type: "list"
+                }
+            ]);
+            options.generationOptions.convertEol = eolChoice.eol;
         }
     }
     const { saveConfig } = await inquirer.prompt([
