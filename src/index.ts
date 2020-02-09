@@ -531,7 +531,7 @@ async function useInquirer(options: options): Promise<options> {
                                     defaultGenerationOptions.convertCaseFile
                         },
                         {
-                            name: "Change EOL to be \\n or \\r\\n",
+                            name: "Use specific EOL character",
                             value: "converteol",
                             checked: false
                         },

@@ -12,7 +12,7 @@ export default interface IGenerationOptions {
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "none";
-    convertEol: string;
+    convertEol: "LF" | "CRLF";
     propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
     activeRecord: boolean;
