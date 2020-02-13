@@ -88,7 +88,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
-                    return filterVal.TABLE_NAME === ent.tscName;
+                    return filterVal.TABLE_NAME === ent.tscName && ent.schema === schema;
                 })
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
