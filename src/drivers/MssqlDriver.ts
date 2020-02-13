@@ -58,6 +58,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         const response: {
             TABLE_NAME: string;
             COLUMN_NAME: string;
+            TABLE_SCHEMA: string;
             COLUMN_DEFAULT: string;
             IS_NULLABLE: string;
             DATA_TYPE: string;
@@ -67,7 +68,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             IsIdentity: number;
             IsUnique: number;
         }[] = (
-            await request.query(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
+            await request.query(`SELECT TABLE_NAME,TABLE_SCHEMA,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
         DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
         COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
         (SELECT count(*)
@@ -88,7 +89,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         entities.forEach(ent => {
             response
                 .filter(filterVal => {
-                    return filterVal.TABLE_NAME === ent.tscName && ent.schema === schema;
+                    return filterVal.TABLE_NAME === ent.tscName && filterVal.TABLE_SCHEMA === ent.schema;
                 })
                 .forEach(resp => {
                     const tscName = resp.COLUMN_NAME;
@@ -252,6 +253,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         const request = new MSSQL.Request(this.Connection);
         const response: {
             TableName: string;
+            TableSchema: string;
             IndexName: string;
             ColumnName: string;
             is_unique: boolean;
@@ -262,6 +264,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 await this.UseDB(dbName);
                 const resp: {
                     TableName: string;
+                    TableSchema: string;
                     IndexName: string;
                     ColumnName: string;
                     is_unique: boolean;
@@ -269,6 +272,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 }[] = (
                     await request.query(`SELECT
              TableName = t.name,
+             TableSchema = s.name,
              IndexName = ind.name,
              ColumnName = col.name,
              ind.is_unique,
@@ -294,7 +298,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
         entities.forEach(ent => {
             const entityIndices = response.filter(
-                filterVal => filterVal.TableName === ent.tscName
+                filterVal => filterVal.TableName === ent.tscName && filterVal.TableSchema === ent.schema
             );
             const indexNames = new Set(entityIndices.map(v => v.IndexName));
             indexNames.forEach(indexName => {
