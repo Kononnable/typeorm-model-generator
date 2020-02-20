@@ -4,20 +4,13 @@ import { Entity } from "./models/Entity";
 import IGenerationOptions from "./IGenerationOptions";
 import * as NamingStrategy from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
-import { Relation } from "./models/Relation";
-import { RelationId } from "./models/RelationId";
-import { Column } from "./models/Column";
 
 type NamingStrategy = {
-    enablePluralization: (value: boolean) => void;
-    relationIdName: (
-        relationId: RelationId,
-        relation: Relation,
-        owner: Entity
-    ) => string;
-    relationName: (relation: Relation, owner: Entity) => string;
-    columnName: (columnName: string, column?: Column) => string;
-    entityName: (entityName: string, entity?: Entity) => string;
+    enablePluralization: typeof NamingStrategy.enablePluralization;
+    relationIdName: typeof NamingStrategy.relationIdName;
+    relationName: typeof NamingStrategy.relationName;
+    columnName: typeof NamingStrategy.columnName;
+    entityName: typeof NamingStrategy.entityName;
 };
 
 export default function modelCustomizationPhase(
