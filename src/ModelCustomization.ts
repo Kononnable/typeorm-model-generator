@@ -5,20 +5,12 @@ import IGenerationOptions from "./IGenerationOptions";
 import * as NamingStrategy from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
-type NamingStrategy = {
-    enablePluralization: typeof NamingStrategy.enablePluralization;
-    relationIdName: typeof NamingStrategy.relationIdName;
-    relationName: typeof NamingStrategy.relationName;
-    columnName: typeof NamingStrategy.columnName;
-    entityName: typeof NamingStrategy.entityName;
-};
-
 export default function modelCustomizationPhase(
     dbModel: Entity[],
     generationOptions: IGenerationOptions,
     defaultValues: DataTypeDefaults
 ): Entity[] {
-    const namingStrategy: NamingStrategy = {
+    const namingStrategy: typeof NamingStrategy = {
         enablePluralization: NamingStrategy.enablePluralization,
         columnName: NamingStrategy.columnName,
         entityName: NamingStrategy.entityName,
@@ -32,7 +24,7 @@ export default function modelCustomizationPhase(
         // TODO: change form of logging
         const req = TomgUtils.requireLocalFile(
             generationOptions.customNamingStrategyPath
-        ) as Partial<NamingStrategy>;
+        ) as Partial<typeof NamingStrategy>;
         if (req.columnName) {
             console.log(
                 `[${new Date().toLocaleTimeString()}] Using custom naming strategy for column names.`
@@ -235,7 +227,7 @@ function addImportsAndGenerationOptions(
 }
 
 function applyNamingStrategy(
-    namingStrategy: NamingStrategy,
+    namingStrategy: typeof NamingStrategy,
     dbModel: Entity[]
 ): Entity[] {
     let retVal = changeRelationNames(dbModel);
