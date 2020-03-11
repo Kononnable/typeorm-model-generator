@@ -300,7 +300,11 @@ function checkYargsParameters(options: options): options {
         : standardSchema;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
-    options.connectionOptions.skipTables = argv.skipTables.split(",");
+    let skipTables = argv.skipTables.split(",");
+    if (skipTables.length === 1 && skipTables[0] === "") {
+        skipTables = []; // #252
+    }
+    options.connectionOptions.skipTables = skipTables;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];

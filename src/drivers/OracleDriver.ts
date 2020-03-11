@@ -409,7 +409,7 @@ export default class OracleDriver extends AbstractDriver {
     private static ReturnDefaultValueFunction(
         defVal: string | null
     ): string | undefined {
-        let defaultVal = defVal;
+        let defaultVal = defVal?.trim();
         if (!defaultVal) {
             return undefined;
         }
