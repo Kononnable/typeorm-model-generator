@@ -1,4 +1,4 @@
-import * as PG from "pg";
+import type *  as PG from "pg";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -22,7 +22,21 @@ export default class PostgresDriver extends AbstractDriver {
 
     public readonly standardSchema = "public";
 
+    private PG: typeof PG;
+
     private Connection: PG.Client;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.PG = require("pg");
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
+
 
     public GetAllTablesQuery = async (
         schema: string,
@@ -599,7 +613,7 @@ export default class PostgresDriver extends AbstractDriver {
     }
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
-        this.Connection = new PG.Client({
+        this.Connection = new this.PG.Client({
             database: connectionOptons.databaseName,
             host: connectionOptons.host,
             password: connectionOptons.password,

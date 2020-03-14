@@ -1,3 +1,4 @@
+// TODO: Enable prettier once import type syntax is supported
 import * as Yargs from "yargs";
 import { createDriver, createModelFromDatabase } from "./Engine";
 import * as TomgUtils from "./Utils";
@@ -11,6 +12,7 @@ import IGenerationOptions, {
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
+
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
 

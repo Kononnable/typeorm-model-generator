@@ -1,4 +1,4 @@
-import * as MYSQL from "mysql";
+import type * as MYSQL from "mysql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -24,7 +24,20 @@ export default class MysqlDriver extends AbstractDriver {
 
     public readonly standardSchema = "";
 
+    private MYSQL: typeof MYSQL;
+
     private Connection: MYSQL.Connection;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.MYSQL = require("mysql");
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
 
     public GetAllTablesQuery = async (
         schema: string,
@@ -458,7 +471,7 @@ export default class MysqlDriver extends AbstractDriver {
         }
 
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection = MYSQL.createConnection(config);
+            this.Connection = this.MYSQL.createConnection(config);
 
             this.Connection.connect(err => {
                 if (!err) {

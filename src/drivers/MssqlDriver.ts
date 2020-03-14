@@ -1,4 +1,4 @@
-import * as MSSQL from "mssql";
+import type  * as MSSQL from "mssql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/sqlserver/SqlServerDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -22,14 +22,27 @@ export default class MssqlDriver extends AbstractDriver {
 
     public readonly standardUser = "sa";
 
+    private MSSQL: typeof MSSQL;
+
     private Connection: MSSQL.ConnectionPool;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.MSSQL = require("mssql");
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
 
     public GetAllTablesQuery = async (
         schema: string,
         dbNames: string,
         tableNames: string[]
     ) => {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const tableCondition =
             tableNames.length > 0
                 ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
@@ -54,7 +67,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         schema: string,
         dbNames: string
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TABLE_NAME: string;
             COLUMN_NAME: string;
@@ -253,7 +266,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         schema: string,
         dbNames: string
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableName: string;
             TableSchema: string;
@@ -333,7 +346,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         dbNames: string,
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableWithForeignKey: string;
             FK_PartNo: number;
@@ -469,7 +482,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         };
 
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection = new MSSQL.ConnectionPool(config, err => {
+            this.Connection = new this.MSSQL.ConnectionPool(config, err => {
                 if (!err) {
                     resolve(true);
                 } else {
@@ -487,22 +500,22 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     }
 
     public async CreateDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`CREATE DATABASE ${dbName}; `);
     }
 
     public async UseDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`USE ${dbName}; `);
     }
 
     public async DropDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`DROP DATABASE ${dbName}; `);
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const resp = await request.query(
             `SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `
         );

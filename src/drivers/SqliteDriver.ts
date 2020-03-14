@@ -1,7 +1,7 @@
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/sqlite/SqliteDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
-import * as sqliteLib from "sqlite3";
+import type * as sqliteLib from "sqlite3";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
 import IConnectionOptions from "../IConnectionOptions";
@@ -22,13 +22,27 @@ export default class SqliteDriver extends AbstractDriver {
 
     public readonly standardSchema = "";
 
-    public sqlite = sqliteLib.verbose();
+    private sqliteLib:typeof sqliteLib;
 
-    public db: sqliteLib.Database;
+    private sqlite:sqliteLib.sqlite3;
 
-    public tablesWithGeneratedPrimaryKey: string[] = new Array<string>();
+    private db: sqliteLib.Database;
+
+    private tablesWithGeneratedPrimaryKey: string[] = new Array<string>();
 
     public GetAllTablesQuery: any;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.sqliteLib = require("sqlite3");
+            this.sqlite= this.sqliteLib.verbose()
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
 
     public async GetAllTables(
         schema: string,
