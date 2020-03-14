@@ -20,7 +20,7 @@ module.exports = {
     "@typescript-eslint/prefer-interface": ["off"],
     "import/no-extraneous-dependencies": [
       "error",
-      { devDependencies: ["**/*.test.ts"] }
+      { devDependencies: ["test/**/*.ts"] }
     ],
     "@typescript-eslint/no-floating-promises": ["error"],
     "no-use-before-define": ["error", "nofunc"],

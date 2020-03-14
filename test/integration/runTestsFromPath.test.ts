@@ -5,7 +5,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import * as chaiSubset from "chai-subset";
 import * as flatMap from "array.prototype.flatmap";
-import yn from "yn";
+import * as yn from "yn";
 import { CLIEngine } from "eslint";
 import EntityFileToJson from "../utils/EntityFileToJson";
 import { createDriver, dataCollectionPhase } from "../../src/Engine";
