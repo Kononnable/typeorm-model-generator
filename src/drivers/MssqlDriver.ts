@@ -277,7 +277,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         }[] = [];
         await Promise.all(
             dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+                if (dbNames.length>1) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableName: string;
                     TableSchema: string;
@@ -359,7 +361,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         }[] = [];
         await Promise.all(
             dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+                if (dbNames.length>1) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableWithForeignKey: string;
                     FK_PartNo: number;
