@@ -251,7 +251,8 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     public async GetIndexesFromEntity(
         entities: Entity[],
         schema: string,
-        dbNames: string
+        dbNames: string,
+        isAzureDB: boolean
     ): Promise<Entity[]> {
         const request = new MSSQL.Request(this.Connection);
         const response: {
@@ -264,7 +265,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         }[] = [];
         await Promise.all(
             dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+                if (!isAzureDB) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableName: string;
                     TableSchema: string;
@@ -331,7 +334,8 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         entities: Entity[],
         schema: string,
         dbNames: string,
-        generationOptions: IGenerationOptions
+        generationOptions: IGenerationOptions,
+        isAzureDB?: boolean
     ): Promise<Entity[]> {
         const request = new MSSQL.Request(this.Connection);
         const response: {
@@ -346,7 +350,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         }[] = [];
         await Promise.all(
             dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+                if (!isAzureDB) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableWithForeignKey: string;
                     FK_PartNo: number;

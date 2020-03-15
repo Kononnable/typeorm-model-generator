@@ -127,7 +127,7 @@ function readTOMLConfig(
 }
 function checkYargsParameters(options: options): options {
     const { argv } = Yargs.usage(
-        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine]\nYou can also run program without specifying any parameters."
+        "Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x [password] -e [engine] -az [azure] \nYou can also run program without specifying any parameters."
     ).options({
         h: {
             alias: "host",
@@ -186,6 +186,12 @@ function checkYargsParameters(options: options): options {
             default: options.connectionOptions.schemaName,
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3"
+        },
+        az: {
+            alias: "az",
+            boolean: true,
+            default: options.connectionOptions.azureDatabase,
+            describe: "Using azure database"
         },
         ssl: {
             boolean: true,
@@ -285,7 +291,7 @@ function checkYargsParameters(options: options): options {
             describe: "Generate index file"
         }
     });
-
+    options.connectionOptions.azureDatabase = argv.az;
     options.connectionOptions.databaseName = argv.d;
     options.connectionOptions.databaseType = argv.e;
 
@@ -357,6 +363,12 @@ async function useInquirer(options: options): Promise<options> {
     if (options.connectionOptions.databaseType !== "sqlite") {
         const answ = await inquirer.prompt([
             {
+                default: options.connectionOptions.azureDatabase,
+                message: "Use azure database:",
+                name: "azureDatabase",
+                type: "confirm"
+            },
+            {
                 default: options.connectionOptions.host,
                 message: "Database address:",
                 name: "host",
@@ -413,6 +425,7 @@ async function useInquirer(options: options): Promise<options> {
                 ])
             ).schema;
         }
+        options.connectionOptions.azureDatabase = answ.azureDatabase;
         options.connectionOptions.port = parseInt(answ.port, 10);
         options.connectionOptions.host = answ.host;
         options.connectionOptions.user = answ.login;

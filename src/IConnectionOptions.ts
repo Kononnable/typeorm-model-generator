@@ -16,6 +16,7 @@ export default interface IConnectionOptions {
         | "sqlite";
     schemaName: string;
     ssl: boolean;
+    azureDatabase: boolean;
     skipTables: string[];
 }
 
@@ -29,6 +30,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         databaseType: undefined as any,
         schemaName: "",
         ssl: false,
+        azureDatabase: false,
         skipTables: []
     };
     return connectionOptions;

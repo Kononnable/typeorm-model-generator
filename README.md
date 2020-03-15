@@ -34,7 +34,7 @@ There are two way to use this utility:
 Use `npx typeorm-model-generator --help` to see all available parameters with their descriptions. Some basic parameters below:
 ```shell
 Usage: typeorm-model-generator -h <host> -d <database> -p [port] -u <user> -x
-[password] -e [engine]
+[password] -e [engine] -az [azure]
 
 Options:
   --help                 Show help                                     [boolean]
@@ -48,6 +48,7 @@ Options:
   -e, --engine           Database engine
           [choices: "mssql", "postgres", "mysql", "mariadb", "oracle", "sqlite"]
                                                               [default: "mssql"]
+  -az                    Use Microsoft Azure Sql      [boolean] [default: false]
   -o, --output           Where to place generated models
                             [default: "./output"]
   -s, --schema           Schema name to create model from. Only for mssql
@@ -60,11 +61,11 @@ Options:
 * Creating model from local MSSQL database
    * Global module
       ```
-      typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .
+      typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -az true -o .
       ````
    * Npx Way
       ```
-      npx typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -o .
+      npx typeorm-model-generator -h localhost -d tempdb -u sa -x !Passw0rd -e mssql -az true -o .
       ````
 * Creating model from local Postgres database, public schema with ssl connection
    * Global module

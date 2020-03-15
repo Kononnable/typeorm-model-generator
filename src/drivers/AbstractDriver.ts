@@ -198,14 +198,16 @@ export default abstract class AbstractDriver {
         await this.GetIndexesFromEntity(
             dbModel,
             sqlEscapedSchema,
-            connectionOptions.databaseName
+            connectionOptions.databaseName,
+            connectionOptions.azureDatabase
         );
         AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         dbModel = await this.GetRelations(
             dbModel,
             sqlEscapedSchema,
             connectionOptions.databaseName,
-            generationOptions
+            generationOptions,
+            connectionOptions.azureDatabase
         );
         await this.DisconnectFromServer();
         dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
@@ -400,14 +402,16 @@ export default abstract class AbstractDriver {
     public abstract async GetIndexesFromEntity(
         entities: Entity[],
         schema: string,
-        dbNames: string
+        dbNames: string,
+        isAzureDB: boolean
     ): Promise<Entity[]>;
 
     public abstract async GetRelations(
         entities: Entity[],
         schema: string,
         dbNames: string,
-        generationOptions: IGenerationOptions
+        generationOptions: IGenerationOptions,
+        isAzureDB?: boolean
     ): Promise<Entity[]>;
 
     public static FindPrimaryColumnsFromIndexes(dbModel: Entity[]) {
