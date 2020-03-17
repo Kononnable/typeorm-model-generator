@@ -80,13 +80,18 @@ function generateModels(
                   )
                 : rendered
         );
-        const formatted = Prettier.format(withImportStatements, {
-            parser: "typescript"
-        });
-        fs.writeFileSync(resultFilePath, formatted, {
-            encoding: "UTF-8",
-            flag: "w"
-        });
+        try {
+            const formatted = Prettier.format(withImportStatements, {
+                parser: 'typescript',
+            });
+            fs.writeFileSync(resultFilePath, formatted, {
+                encoding: 'UTF-8',
+                flag: 'w',
+            });
+        } catch (error) {
+            console.log('Trouble when generate for table: ', element.sqlName);
+            console.log(error);
+        }
     });
 }
 
