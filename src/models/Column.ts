@@ -21,5 +21,6 @@ export type Column = {
         unsigned?: boolean;
         enum?: string[];
         array?: boolean; // ?
+        comment?: string;
     };
 };
