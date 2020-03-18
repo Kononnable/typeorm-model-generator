@@ -46,6 +46,6 @@ script:
 - travis_retry sh -c 'sleep 90 && npm t -- --colors'
 after_success:
 - codecov
-after_failure:
-- docker ps
-- docker-compose logs
+# after_failure:
+# - docker ps
+# - docker-compose logs
