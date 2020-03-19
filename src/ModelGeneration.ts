@@ -86,11 +86,12 @@ function generateModels(
                 parser: "typescript"
             });
         } catch (error) {
-            console.log(
+            console.error(
                 "There were some problems with model generation for table: ",
                 element.sqlName
             );
-            console.log(error);
+            console.error(error);
+            formatted = withImportStatements;
         }
         fs.writeFileSync(resultFilePath, formatted, {
             encoding: "UTF-8",
