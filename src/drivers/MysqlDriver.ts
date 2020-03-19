@@ -78,9 +78,10 @@ export default class MysqlDriver extends AbstractDriver {
             IsIdentity: number;
             COLUMN_TYPE: string;
             COLUMN_KEY: string;
+            COLUMN_COMMENT: string;
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY, COLUMN_COMMENT
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
             )})
@@ -102,6 +103,7 @@ export default class MysqlDriver extends AbstractDriver {
                     let columnType = resp.DATA_TYPE;
                     if (resp.IS_NULLABLE === "YES") options.nullable = true;
                     if (resp.COLUMN_KEY === "UNI") options.unique = true;
+                    if (resp.COLUMN_COMMENT) options.comment = resp.COLUMN_COMMENT;
                     if (resp.COLUMN_TYPE.endsWith(" unsigned"))
                         options.unsigned = true;
                     switch (resp.DATA_TYPE) {
