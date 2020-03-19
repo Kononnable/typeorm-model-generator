@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies, import/no-unresolved
 import type * as Oracle from "oracledb"
 import * as TypeormDriver from "typeorm/driver/oracle/OracleDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
