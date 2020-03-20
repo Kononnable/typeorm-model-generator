@@ -56,8 +56,8 @@ export default class MysqlDriver extends AbstractDriver {
             FROM information_schema.tables
             WHERE table_type='BASE TABLE'
             AND table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
-                dbNames
-            )}) ${tableCondition}`);
+            dbNames
+        )}) ${tableCondition}`);
         return response;
     };
 
@@ -83,8 +83,8 @@ export default class MysqlDriver extends AbstractDriver {
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY, COLUMN_COMMENT
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(
-                dbNames
-            )})
+            dbNames
+        )})
 			order by ordinal_position`);
         entities.forEach(ent => {
             response
@@ -317,8 +317,8 @@ export default class MysqlDriver extends AbstractDriver {
             CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
             FROM information_schema.statistics sta
             WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
-                dbNames
-            )})`);
+            dbNames
+        )})`);
         entities.forEach(ent => {
             const entityIndices = response.filter(
                 filterVal => filterVal.TableName === ent.tscName
@@ -433,7 +433,7 @@ export default class MysqlDriver extends AbstractDriver {
                     resolve(true);
                 } else {
                     TomgUtils.LogError(
-                        `Error disconnecting to ${this.EngineName} Server.`,
+                        `Error disconnecting from ${this.EngineName} Server.`,
                         false,
                         err.message
                     );

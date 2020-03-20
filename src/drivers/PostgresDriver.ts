@@ -117,8 +117,8 @@ export default class PostgresDriver extends AbstractDriver {
                     const defaultValue = generated
                         ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
-                              resp.column_default
-                          );
+                            resp.column_default
+                        );
 
                     const columnTypes = this.MatchColumnTypes(
                         resp.data_type,
@@ -600,7 +600,7 @@ export default class PostgresDriver extends AbstractDriver {
                         resolve(true);
                     } else {
                         TomgUtils.LogError(
-                            "Error connecting to Postgres Server.",
+                            "Error disconnecting from to Postgres Server.",
                             false,
                             err.message
                         );
