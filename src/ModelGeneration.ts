@@ -9,6 +9,11 @@ import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
 
+const prettierOptions: Prettier.Options = {
+    parser: "typescript",
+    endOfLine: "auto",
+};
+
 export default function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
     generationOptions: IGenerationOptions,
@@ -47,9 +52,9 @@ function generateModels(
     );
     const entityTemplate = fs.readFileSync(entityTemplatePath, "UTF-8");
     const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
-        noEscape: true
+        noEscape: true,
     });
-    databaseModel.forEach(element => {
+    databaseModel.forEach((element) => {
         let casedFileName = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
@@ -82,9 +87,7 @@ function generateModels(
         );
         let formatted = "";
         try {
-            formatted = Prettier.format(withImportStatements, {
-                parser: "typescript"
-            });
+            formatted = Prettier.format(withImportStatements, prettierOptions);
         } catch (error) {
             console.error(
                 "There were some problems with model generation for table: ",
@@ -95,7 +98,7 @@ function generateModels(
         }
         fs.writeFileSync(resultFilePath, formatted, {
             encoding: "UTF-8",
-            flag: "w"
+            flag: "w",
         });
     });
 }
@@ -108,12 +111,10 @@ function createIndexFile(
     const templatePath = path.resolve(__dirname, "templates", "index.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const compliedTemplate = Handlebars.compile(template, {
-        noEscape: true
+        noEscape: true,
     });
     const rendered = compliedTemplate({ entities: databaseModel });
-    const formatted = Prettier.format(rendered, {
-        parser: "typescript"
-    });
+    const formatted = Prettier.format(rendered, prettierOptions);
     let fileName = "index";
     switch (generationOptions.convertCaseFile) {
         case "camel":
@@ -130,7 +131,7 @@ function createIndexFile(
     const resultFilePath = path.resolve(entitiesPath, `${fileName}.ts`);
     fs.writeFileSync(resultFilePath, formatted, {
         encoding: "UTF-8",
-        flag: "w"
+        flag: "w",
     });
 }
 
@@ -142,7 +143,7 @@ function removeUnusedImports(rendered: string) {
         .split(",");
     const restOfEntityDefinition = rendered.substring(closeBracketIndex);
     const distinctImports = imports.filter(
-        v =>
+        (v) =>
             restOfEntityDefinition.indexOf(`@${v}(`) !== -1 ||
             (v === "BaseEntity" && restOfEntityDefinition.indexOf(v) !== -1)
     );
@@ -152,12 +153,12 @@ function removeUnusedImports(rendered: string) {
 }
 
 function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
-    Handlebars.registerHelper("json", context => {
+    Handlebars.registerHelper("json", (context) => {
         const json = JSON.stringify(context);
         const withoutQuotes = json.replace(/"([^(")"]+)":/g, "$1:");
         return withoutQuotes.slice(1, withoutQuotes.length - 1);
     });
-    Handlebars.registerHelper("toEntityName", str => {
+    Handlebars.registerHelper("toEntityName", (str) => {
         let retStr = "";
         switch (generationOptions.convertCaseEntity) {
             case "camel":
@@ -174,7 +175,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         }
         return retStr;
     });
-    Handlebars.registerHelper("toFileName", str => {
+    Handlebars.registerHelper("toFileName", (str) => {
         let retStr = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
@@ -199,7 +200,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             ? `${generationOptions.propertyVisibility} `
             : ""
     );
-    Handlebars.registerHelper("toPropertyName", str => {
+    Handlebars.registerHelper("toPropertyName", (str) => {
         let retStr = "";
         switch (generationOptions.convertCaseProperty) {
             case "camel":
@@ -250,7 +251,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         lt: (v1, v2) => v1 < v2,
         lte: (v1, v2) => v1 <= v2,
         ne: (v1, v2) => v1 !== v2,
-        or: (v1, v2) => v1 || v2
+        or: (v1, v2) => v1 || v2,
     });
 }
 
@@ -258,14 +259,14 @@ function createTsConfigFile(outputPath: string): void {
     const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const compliedTemplate = Handlebars.compile(template, {
-        noEscape: true
+        noEscape: true,
     });
     const rendered = compliedTemplate({});
     const formatted = Prettier.format(rendered, { parser: "json" });
     const resultFilePath = path.resolve(outputPath, "tsconfig.json");
     fs.writeFileSync(resultFilePath, formatted, {
         encoding: "UTF-8",
-        flag: "w"
+        flag: "w",
     });
 }
 function createTypeOrmConfig(
@@ -275,13 +276,13 @@ function createTypeOrmConfig(
     const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "UTF-8");
     const compliedTemplate = Handlebars.compile(template, {
-        noEscape: true
+        noEscape: true,
     });
     const rendered = compliedTemplate(connectionOptions);
     const formatted = Prettier.format(rendered, { parser: "json" });
     const resultFilePath = path.resolve(outputPath, "ormconfig.json");
     fs.writeFileSync(resultFilePath, formatted, {
         encoding: "UTF-8",
-        flag: "w"
+        flag: "w",
     });
 }

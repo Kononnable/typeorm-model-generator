@@ -13,7 +13,7 @@ import { RelationInternal } from "../models/RelationInternal";
 
 export default class SqliteDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqliteDriver({
-        options: { database: "true" } as ConnectionOptions
+        options: { database: "true" } as ConnectionOptions,
     } as any).dataTypeDefaults;
 
     public readonly standardPort = 0;
@@ -22,9 +22,9 @@ export default class SqliteDriver extends AbstractDriver {
 
     public readonly standardSchema = "";
 
-    private sqliteLib:typeof sqliteLib;
+    private sqliteLib: typeof sqliteLib;
 
-    private sqlite:sqliteLib.sqlite3;
+    private sqlite: sqliteLib.sqlite3;
 
     private db: sqliteLib.Database;
 
@@ -37,7 +37,7 @@ export default class SqliteDriver extends AbstractDriver {
         try {
             // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
             this.sqliteLib = require("sqlite3");
-            this.sqlite= this.sqliteLib.verbose()
+            this.sqlite = this.sqliteLib.verbose();
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;
@@ -57,7 +57,7 @@ export default class SqliteDriver extends AbstractDriver {
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
             `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%' ${tableCondition}`
         );
-        rows.forEach(val => {
+        rows.forEach((val) => {
             if (val.sql.includes("AUTOINCREMENT")) {
                 this.tablesWithGeneratedPrimaryKey.push(val.tbl_name);
             }
@@ -68,7 +68,7 @@ export default class SqliteDriver extends AbstractDriver {
                 relationIds: [],
                 sqlName: val.tbl_name,
                 tscName: val.tbl_name,
-                fileImports: []
+                fileImports: [],
             });
         });
         return ret;
@@ -76,7 +76,7 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
         await Promise.all(
-            entities.map(async ent => {
+            entities.map(async (ent) => {
                 const response = await this.ExecQuery<{
                     cid: number;
                     name: string;
@@ -85,7 +85,7 @@ export default class SqliteDriver extends AbstractDriver {
                     dflt_value: string;
                     pk: number;
                 }>(`PRAGMA table_info('${ent.tscName}');`);
-                response.forEach(resp => {
+                response.forEach((resp) => {
                     const tscName = resp.name;
                     let tscType = "";
                     const options: Column["options"] = { name: resp.name };
@@ -195,7 +195,7 @@ export default class SqliteDriver extends AbstractDriver {
                     const sqlOptions = resp.type.match(/\([0-9 ,]+\)/g);
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === columnType
+                            (v) => v === columnType
                         ) &&
                         sqlOptions
                     ) {
@@ -214,7 +214,7 @@ export default class SqliteDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithLength.some(
-                            v => v === columnType
+                            (v) => v === columnType
                         ) &&
                         sqlOptions
                     ) {
@@ -228,7 +228,7 @@ export default class SqliteDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v === columnType && tscType !== "boolean"
+                            (v) => v === columnType && tscType !== "boolean"
                         ) &&
                         sqlOptions
                     ) {
@@ -248,7 +248,7 @@ export default class SqliteDriver extends AbstractDriver {
                         default: defaultValue,
                         options,
                         tscName,
-                        tscType
+                        tscType,
                     });
                 });
             })
@@ -259,7 +259,7 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetIndexesFromEntity(entities: Entity[]): Promise<Entity[]> {
         await Promise.all(
-            entities.map(async ent => {
+            entities.map(async (ent) => {
                 const response = await this.ExecQuery<{
                     seq: number;
                     name: string;
@@ -268,7 +268,7 @@ export default class SqliteDriver extends AbstractDriver {
                     partial: number;
                 }>(`PRAGMA index_list('${ent.tscName}');`);
                 await Promise.all(
-                    response.map(async resp => {
+                    response.map(async (resp) => {
                         const indexColumnsResponse = await this.ExecQuery<{
                             seqno: number;
                             cid: number;
@@ -278,11 +278,11 @@ export default class SqliteDriver extends AbstractDriver {
                         const indexInfo: Index = {
                             name: resp.name,
                             columns: [],
-                            options: {}
+                            options: {},
                         };
                         if (resp.unique === 1) indexInfo.options.unique = true;
 
-                        indexColumnsResponse.forEach(record => {
+                        indexColumnsResponse.forEach((record) => {
                             indexInfo.columns.push(record.name);
                         });
                         if (
@@ -290,8 +290,10 @@ export default class SqliteDriver extends AbstractDriver {
                             indexInfo.options.unique
                         ) {
                             ent.columns
-                                .filter(v => v.tscName === indexInfo.columns[0])
-                                .forEach(v => {
+                                .filter(
+                                    (v) => v.tscName === indexInfo.columns[0]
+                                )
+                                .forEach((v) => {
                                     // eslint-disable-next-line no-param-reassign
                                     v.options.unique = true;
                                 });
@@ -313,7 +315,7 @@ export default class SqliteDriver extends AbstractDriver {
     ): Promise<Entity[]> {
         let retVal = entities;
         await Promise.all(
-            retVal.map(async entity => {
+            retVal.map(async (entity) => {
                 const response = await this.ExecQuery<{
                     id: number;
                     seq: number;
@@ -334,15 +336,15 @@ export default class SqliteDriver extends AbstractDriver {
                 }>(`PRAGMA foreign_key_list('${entity.tscName}');`);
 
                 const relationsTemp: RelationInternal[] = [] as RelationInternal[];
-                const relationKeys = new Set(response.map(v => v.id));
+                const relationKeys = new Set(response.map((v) => v.id));
 
-                relationKeys.forEach(relationId => {
-                    const rows = response.filter(v => v.id === relationId);
+                relationKeys.forEach((relationId) => {
+                    const rows = response.filter((v) => v.id === relationId);
                     const ownerTable = entities.find(
-                        v => v.sqlName === entity.tscName
+                        (v) => v.sqlName === entity.tscName
                     );
                     const relatedTable = entities.find(
-                        v => v.sqlName === rows[0].table
+                        (v) => v.sqlName === rows[0].table
                     );
                     if (!ownerTable || !relatedTable) {
                         TomgUtils.LogError(
@@ -355,7 +357,7 @@ export default class SqliteDriver extends AbstractDriver {
                         ownerColumns: [],
                         relatedColumns: [],
                         ownerTable,
-                        relatedTable
+                        relatedTable,
                     };
                     if (rows[0].on_delete !== "NO ACTION") {
                         internal.onDelete = rows[0].on_delete;
@@ -363,7 +365,7 @@ export default class SqliteDriver extends AbstractDriver {
                     if (rows[0].on_update !== "NO ACTION") {
                         internal.onUpdate = rows[0].on_update;
                     }
-                    rows.forEach(row => {
+                    rows.forEach((row) => {
                         internal.ownerColumns.push(row.from);
                         internal.relatedColumns.push(row.to);
                     });
@@ -395,7 +397,7 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async UseDB(dbName: string) {
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.db = new this.sqlite.Database(dbName, err => {
+            this.db = new this.sqlite.Database(dbName, (err) => {
                 if (err) {
                     TomgUtils.LogError(
                         "Error connecting to SQLite database.",

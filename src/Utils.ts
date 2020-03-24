@@ -33,17 +33,17 @@ export function findNameForNewField(
     let fieldName = _fieldName;
     const validNameCondition = () =>
         (entity.columns.every(
-            v =>
+            (v) =>
                 changeCase.camelCase(v.tscName) !==
                 changeCase.camelCase(fieldName)
         ) &&
             entity.relations.every(
-                v =>
+                (v) =>
                     changeCase.camelCase(v.fieldName) !==
                     changeCase.camelCase(fieldName)
             ) &&
             entity.relationIds.every(
-                v =>
+                (v) =>
                     changeCase.camelCase(v.fieldName) !==
                     changeCase.camelCase(fieldName)
             )) ||

@@ -27,7 +27,7 @@ export default interface IGenerationOptions {
 
 export const eolConverter = {
     LF: "\n",
-    CRLF: "\r\n"
+    CRLF: "\r\n",
 };
 
 export function getDefaultGenerationOptions(): IGenerationOptions {
@@ -48,7 +48,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         strictMode: "none",
         skipSchema: false,
         indexFile: false,
-        exportType: "named"
+        exportType: "named",
     };
     return generationOptions;
 }

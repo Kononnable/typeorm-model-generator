@@ -1,12 +1,11 @@
-// TODO: Enable prettier once import type syntax is supported
 import * as Yargs from "yargs";
 import { createDriver, createModelFromDatabase } from "./Engine";
 import * as TomgUtils from "./Utils";
 import IConnectionOptions, {
-    getDefaultConnectionOptions
+    getDefaultConnectionOptions,
 } from "./IConnectionOptions";
 import IGenerationOptions, {
-    getDefaultGenerationOptions
+    getDefaultGenerationOptions,
 } from "./IGenerationOptions";
 
 import fs = require("fs-extra");
@@ -63,7 +62,7 @@ function makeDefaultConfigs() {
     const connectionOptions = getDefaultConnectionOptions();
     return {
         generationOptions,
-        connectionOptions
+        connectionOptions,
     };
 }
 function readTOMLConfig(
@@ -83,7 +82,7 @@ function readTOMLConfig(
 
     let hasUnknownProperties = false;
     if (loadedConnectionOptions) {
-        Object.keys(loadedConnectionOptions).forEach(key => {
+        Object.keys(loadedConnectionOptions).forEach((key) => {
             if (
                 Object.prototype.hasOwnProperty.call(
                     options.connectionOptions,
@@ -98,7 +97,7 @@ function readTOMLConfig(
         });
     }
     if (loadedGenerationOptions) {
-        Object.keys(loadedGenerationOptions).forEach(key => {
+        Object.keys(loadedGenerationOptions).forEach((key) => {
             if (
                 Object.prototype.hasOwnProperty.call(
                     options.generationOptions,
@@ -124,7 +123,7 @@ function readTOMLConfig(
 
     return {
         options,
-        fullConfigFile
+        fullConfigFile,
     };
 }
 function checkYargsParameters(options: options): options {
@@ -135,7 +134,7 @@ function checkYargsParameters(options: options): options {
             alias: "host",
             string: true,
             default: options.connectionOptions.host,
-            describe: "IP address/Hostname for database server"
+            describe: "IP address/Hostname for database server",
         },
         d: {
             alias: "database",
@@ -143,25 +142,25 @@ function checkYargsParameters(options: options): options {
             demand: true,
             default: options.connectionOptions.databaseName,
             describe:
-                "Database name(or path for sqlite). You can pass multiple values separated by comma."
+                "Database name(or path for sqlite). You can pass multiple values separated by comma.",
         },
         u: {
             alias: "user",
             string: true,
             default: options.connectionOptions.user,
-            describe: "Username for database server"
+            describe: "Username for database server",
         },
         x: {
             alias: "pass",
             string: true,
             default: options.connectionOptions.password,
-            describe: "Password for database server"
+            describe: "Password for database server",
         },
         p: {
             number: true,
             alias: "port",
             default: options.connectionOptions.port,
-            describe: "Port number for database server"
+            describe: "Port number for database server",
         },
         e: {
             alias: "engine",
@@ -171,121 +170,121 @@ function checkYargsParameters(options: options): options {
                 "mysql",
                 "mariadb",
                 "oracle",
-                "sqlite"
+                "sqlite",
             ],
             demand: true,
             default: options.connectionOptions.databaseType,
-            describe: "Database engine"
+            describe: "Database engine",
         },
         o: {
             alias: "output",
             default: options.generationOptions.resultsPath,
-            describe: "Where to place generated models"
+            describe: "Where to place generated models",
         },
         s: {
             alias: "schema",
             string: true,
             default: options.connectionOptions.schemaName,
             describe:
-                "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3"
+                "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3",
         },
         ssl: {
             boolean: true,
-            default: options.connectionOptions.ssl
+            default: options.connectionOptions.ssl,
         },
         noConfig: {
             boolean: true,
             default: options.generationOptions.noConfigs,
-            describe: `Doesn't create tsconfig.json and ormconfig.json`
+            describe: `Doesn't create tsconfig.json and ormconfig.json`,
         },
         cf: {
             alias: "case-file",
             choices: ["pascal", "param", "camel", "none"],
             default: options.generationOptions.convertCaseFile,
-            describe: "Convert file names to specified case"
+            describe: "Convert file names to specified case",
         },
         ce: {
             alias: "case-entity",
             choices: ["pascal", "camel", "none"],
             default: options.generationOptions.convertCaseEntity,
-            describe: "Convert class names to specified case"
+            describe: "Convert class names to specified case",
         },
         cp: {
             alias: "case-property",
             choices: ["pascal", "camel", "none"],
             default: options.generationOptions.convertCaseProperty,
-            describe: "Convert property names to specified case"
+            describe: "Convert property names to specified case",
         },
         eol: {
             choices: ["LF", "CRLF"],
             default: options.generationOptions.convertEol,
-            describe: "Force EOL to be LF or CRLF"
+            describe: "Force EOL to be LF or CRLF",
         },
         pv: {
             alias: "property-visibility",
             choices: ["public", "protected", "private", "none"],
             default: options.generationOptions.propertyVisibility,
             describe:
-                "Defines which visibility should have the generated property"
+                "Defines which visibility should have the generated property",
         },
         lazy: {
             boolean: true,
             default: options.generationOptions.lazy,
-            describe: "Generate lazy relations"
+            describe: "Generate lazy relations",
         },
         a: {
             alias: "active-record",
             boolean: true,
             default: options.generationOptions.activeRecord,
-            describe: "Use ActiveRecord syntax for generated models"
+            describe: "Use ActiveRecord syntax for generated models",
         },
         namingStrategy: {
             describe: "Use custom naming strategy",
             default: options.generationOptions.customNamingStrategyPath,
-            string: true
+            string: true,
         },
         relationIds: {
             boolean: true,
             default: options.generationOptions.relationIds,
-            describe: "Generate RelationId fields"
+            describe: "Generate RelationId fields",
         },
         skipSchema: {
             boolean: true,
             default: options.generationOptions.skipSchema,
-            describe: "Omits schema identifier in generated entities"
+            describe: "Omits schema identifier in generated entities",
         },
         generateConstructor: {
             boolean: true,
             default: options.generationOptions.generateConstructor,
-            describe: "Generate constructor allowing partial initialization"
+            describe: "Generate constructor allowing partial initialization",
         },
         disablePluralization: {
             boolean: true,
             default: !options.generationOptions.pluralizeNames,
             describe:
-                "Disable pluralization of OneToMany, ManyToMany relation names"
+                "Disable pluralization of OneToMany, ManyToMany relation names",
         },
         skipTables: {
             string: true,
             default: options.connectionOptions.skipTables.join(","),
             describe:
-                "Skip schema generation for specific tables. You can pass multiple values separated by comma"
+                "Skip schema generation for specific tables. You can pass multiple values separated by comma",
         },
         strictMode: {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
-            describe: "Mark fields as optional(?) or non-null(!)"
+            describe: "Mark fields as optional(?) or non-null(!)",
         },
         index: {
             boolean: true,
             default: options.generationOptions.indexFile,
-            describe: "Generate index file"
+            describe: "Generate index file",
         },
         defaultExport: {
             boolean: true,
             default: options.generationOptions.exportType === "default",
-            describe: "Generate index file"
-        }
+            describe: "Generate index file",
+        },
     });
 
     options.connectionOptions.databaseName = argv.d;
@@ -341,13 +340,13 @@ async function useInquirer(options: options): Promise<options> {
                     "mysql",
                     "mariadb",
                     "oracle",
-                    "sqlite"
+                    "sqlite",
                 ],
                 default: options.connectionOptions.databaseType,
                 message: "Choose database engine",
                 name: "engine",
-                type: "list"
-            }
+                type: "list",
+            },
         ])
     ).engine;
     const driver = createDriver(options.connectionOptions.databaseType);
@@ -362,7 +361,7 @@ async function useInquirer(options: options): Promise<options> {
                 default: options.connectionOptions.host,
                 message: "Database address:",
                 name: "host",
-                type: "input"
+                type: "input",
             },
             {
                 message: "Database port:",
@@ -372,32 +371,32 @@ async function useInquirer(options: options): Promise<options> {
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid port number";
-                }
+                },
             },
             {
                 default: options.connectionOptions.ssl,
                 message: "Use SSL:",
                 name: "ssl",
-                type: "confirm"
+                type: "confirm",
             },
             {
                 message: "Database user name:",
                 name: "login",
                 type: "input",
-                default: options.connectionOptions.user
+                default: options.connectionOptions.user,
             },
             {
                 message: "Database user password:",
                 name: "password",
-                type: "password"
+                type: "password",
             },
             {
                 default: options.connectionOptions.databaseName,
                 message:
                     "Database name: (You can pass multiple values separated by comma)",
                 name: "dbName",
-                type: "input"
-            }
+                type: "input",
+            },
         ]);
         if (
             options.connectionOptions.databaseType === "mssql" ||
@@ -410,8 +409,8 @@ async function useInquirer(options: options): Promise<options> {
                         message:
                             "Database schema: (You can pass multiple values separated by comma)",
                         name: "schema",
-                        type: "input"
-                    }
+                        type: "input",
+                    },
                 ])
             ).schema;
         }
@@ -428,8 +427,8 @@ async function useInquirer(options: options): Promise<options> {
                     default: options.connectionOptions.databaseName,
                     message: "Path to database file:",
                     name: "dbName",
-                    type: "input"
-                }
+                    type: "input",
+                },
             ])
         ).dbName;
     }
@@ -444,8 +443,8 @@ async function useInquirer(options: options): Promise<options> {
                 message: "Generate schema for tables:",
                 choices: ["All of them", "Ignore specific tables"],
                 name: "specyficTables",
-                type: "list"
-            }
+                type: "list",
+            },
         ])
     ).specyficTables;
     if (ignoreSpecyficTables === "Ignore specific tables") {
@@ -453,7 +452,7 @@ async function useInquirer(options: options): Promise<options> {
             default: options.connectionOptions.skipTables.join(","),
             message: "Table names(separated by comma)",
             name: "tableNames",
-            type: "input"
+            type: "input",
         });
         options.connectionOptions.skipTables = tableNames.split(",");
     } else {
@@ -466,8 +465,8 @@ async function useInquirer(options: options): Promise<options> {
                 default: options.generationOptions.resultsPath,
                 message: "Path where generated models should be stored:",
                 name: "output",
-                type: "input"
-            }
+                type: "input",
+            },
         ])
     ).output;
     const { customizeGeneration } = await inquirer.prompt([
@@ -475,8 +474,8 @@ async function useInquirer(options: options): Promise<options> {
             default: false,
             message: "Do you want to customize generated model?",
             name: "customizeGeneration",
-            type: "confirm"
-        }
+            type: "confirm",
+        },
     ]);
     if (customizeGeneration) {
         const defaultGenerationOptions = getDefaultGenerationOptions();
@@ -487,42 +486,42 @@ async function useInquirer(options: options): Promise<options> {
                         {
                             checked: !options.generationOptions.noConfigs,
                             name: "Generate config files",
-                            value: "config"
+                            value: "config",
                         },
                         {
                             name: "Generate lazy relations",
                             value: "lazy",
-                            checked: options.generationOptions.lazy
+                            checked: options.generationOptions.lazy,
                         },
                         {
                             name:
                                 "Use ActiveRecord syntax for generated models",
                             value: "activeRecord",
-                            checked: options.generationOptions.activeRecord
+                            checked: options.generationOptions.activeRecord,
                         },
                         {
                             name: "Use custom naming strategy",
                             value: "namingStrategy",
                             checked: !!options.generationOptions
-                                .customNamingStrategyPath
+                                .customNamingStrategyPath,
                         },
                         {
                             name: "Generate RelationId fields",
                             value: "relationId",
-                            checked: options.generationOptions.relationIds
+                            checked: options.generationOptions.relationIds,
                         },
                         {
                             name:
                                 "Omits schema identifier in generated entities",
                             value: "skipSchema",
-                            checked: options.generationOptions.skipSchema
+                            checked: options.generationOptions.skipSchema,
                         },
                         {
                             name:
                                 "Generate constructor allowing partial initialization",
                             value: "constructor",
                             checked:
-                                options.generationOptions.generateConstructor
+                                options.generationOptions.generateConstructor,
                         },
                         {
                             name: "Use specific naming convention",
@@ -534,36 +533,36 @@ async function useInquirer(options: options): Promise<options> {
                                     .convertCaseProperty !==
                                     defaultGenerationOptions.convertCaseProperty ||
                                 options.generationOptions.convertCaseFile !==
-                                    defaultGenerationOptions.convertCaseFile
+                                    defaultGenerationOptions.convertCaseFile,
                         },
                         {
                             name: "Use specific EOL character",
                             value: "converteol",
-                            checked: false
+                            checked: false,
                         },
                         {
                             name:
                                 "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
-                            checked: options.generationOptions.pluralizeNames
+                            checked: options.generationOptions.pluralizeNames,
                         },
                         {
                             name: "Generate index file",
                             value: "index",
-                            checked: options.generationOptions.indexFile
+                            checked: options.generationOptions.indexFile,
                         },
                         {
                             name: "Prefer default exports",
                             value: "defaultExport",
                             checked:
                                 options.generationOptions.exportType ===
-                                "default"
-                        }
+                                "default",
+                        },
                     ],
                     message: "Available customizations",
                     name: "selected",
-                    type: "checkbox"
-                }
+                    type: "checkbox",
+                },
             ])
         ).selected;
 
@@ -575,8 +574,8 @@ async function useInquirer(options: options): Promise<options> {
                         "Defines which visibility should have the generated property",
                     name: "propertyVisibility",
                     default: options.generationOptions.propertyVisibility,
-                    type: "list"
-                }
+                    type: "list",
+                },
             ])
         ).propertyVisibility;
 
@@ -587,8 +586,8 @@ async function useInquirer(options: options): Promise<options> {
                     message: "Mark fields as optional(?) or non-null(!)",
                     name: "strictMode",
                     default: options.generationOptions.strictMode,
-                    type: "list"
-                }
+                    type: "list",
+                },
             ])
         ).strictMode;
 
@@ -633,8 +632,8 @@ async function useInquirer(options: options): Promise<options> {
                                 valid ||
                                 "Please enter a a valid path to custom naming strategy file"
                             );
-                        }
-                    }
+                        },
+                    },
                 ])
             ).namingStrategy;
 
@@ -651,22 +650,22 @@ async function useInquirer(options: options): Promise<options> {
                     default: options.generationOptions.convertCaseFile,
                     message: "Convert file names to specified case:",
                     name: "fileCase",
-                    type: "list"
+                    type: "list",
                 },
                 {
                     choices: ["pascal", "camel", "none"],
                     default: options.generationOptions.convertCaseEntity,
                     message: "Convert class names to specified case:",
                     name: "entityCase",
-                    type: "list"
+                    type: "list",
                 },
                 {
                     choices: ["pascal", "camel", "none"],
                     default: options.generationOptions.convertCaseProperty,
                     message: "Convert property names to specified case:",
                     name: "propertyCase",
-                    type: "list"
-                }
+                    type: "list",
+                },
             ]);
             options.generationOptions.convertCaseFile =
                 namingConventions.fileCase;
@@ -682,8 +681,8 @@ async function useInquirer(options: options): Promise<options> {
                     default: options.generationOptions.convertEol,
                     message: "Force EOL to be:",
                     name: "eol",
-                    type: "list"
-                }
+                    type: "list",
+                },
             ]);
             options.generationOptions.convertEol = eolChoice.eol;
         }
@@ -693,13 +692,13 @@ async function useInquirer(options: options): Promise<options> {
             choices: [
                 "Yes, only model customization options",
                 "Yes, with connection details",
-                "No"
+                "No",
             ],
             default: "No",
             message: "Save configuration to config file?",
             name: "saveConfig",
-            type: "list"
-        }
+            type: "list",
+        },
     ]);
     if (saveConfig === "Yes, with connection details") {
         await fs.writeJson(

@@ -29,7 +29,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         databaseType: undefined as any,
         schemaName: "",
         ssl: false,
-        skipTables: []
+        skipTables: [],
     };
     return connectionOptions;
 }

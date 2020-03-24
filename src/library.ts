@@ -14,5 +14,5 @@ export {
     IConnectionOptions,
     IGenerationOptions,
     NamingStrategy,
-    Utils
+    Utils,
 };

@@ -1,7 +1,7 @@
 import {
     WithLengthColumnType,
     WithPrecisionColumnType,
-    WithWidthColumnType
+    WithWidthColumnType,
 } from "typeorm/driver/types/ColumnTypes";
 import { JoinColumnOptions, RelationOptions } from "typeorm";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -27,7 +27,7 @@ export default abstract class AbstractDriver {
         "smallint",
         "mediumint",
         "int",
-        "bigint"
+        "bigint",
     ];
 
     public ColumnTypesWithPrecision: WithPrecisionColumnType[] = [
@@ -48,7 +48,7 @@ export default abstract class AbstractDriver {
         "timestamp",
         "timestamp without time zone",
         "timestamp with time zone",
-        "timestamp with local time zone"
+        "timestamp with local time zone",
     ];
 
     public ColumnTypesWithLength: WithLengthColumnType[] = [
@@ -64,7 +64,7 @@ export default abstract class AbstractDriver {
         "nvarchar2",
         "raw",
         "binary",
-        "varbinary"
+        "varbinary",
     ];
 
     public abstract GetAllTablesQuery: (
@@ -82,42 +82,43 @@ export default abstract class AbstractDriver {
     public static FindManyToManyRelations(dbModel: Entity[]) {
         let retVal = dbModel;
         const manyToManyEntities = retVal.filter(
-            entity =>
+            (entity) =>
                 entity.relations.length === 2 &&
                 entity.relations.every(
-                    v => v.joinColumnOptions && v.relationType !== "ManyToMany"
+                    (v) =>
+                        v.joinColumnOptions && v.relationType !== "ManyToMany"
                 ) &&
                 entity.relations[0].relatedTable !==
                     entity.relations[1].relatedTable &&
                 entity.relations[0].joinColumnOptions!.length ===
                     entity.relations[1].joinColumnOptions!.length &&
                 entity.columns.length ===
-                    entity.columns.filter(c => c.primary).length &&
+                    entity.columns.filter((c) => c.primary).length &&
                 entity.columns
-                    .map(v => v.tscName)
+                    .map((v) => v.tscName)
                     .filter(
-                        v =>
+                        (v) =>
                             !entity.relations[0]
-                                .joinColumnOptions!.map(x => x.name)
-                                .some(jc => jc === v) &&
+                                .joinColumnOptions!.map((x) => x.name)
+                                .some((jc) => jc === v) &&
                             !entity.relations[1]
-                                .joinColumnOptions!.map(x => x.name)
-                                .some(jc => jc === v)
+                                .joinColumnOptions!.map((x) => x.name)
+                                .some((jc) => jc === v)
                     ).length === 0
         );
-        manyToManyEntities.forEach(junctionEntity => {
+        manyToManyEntities.forEach((junctionEntity) => {
             const firstEntity = dbModel.find(
-                v => v.tscName === junctionEntity.relations[0].relatedTable
+                (v) => v.tscName === junctionEntity.relations[0].relatedTable
             )!;
             const secondEntity = dbModel.find(
-                v => v.tscName === junctionEntity.relations[1].relatedTable
+                (v) => v.tscName === junctionEntity.relations[1].relatedTable
             )!;
 
             const firstRelation = firstEntity.relations.find(
-                v => v.relatedTable === junctionEntity.tscName
+                (v) => v.relatedTable === junctionEntity.tscName
             )!;
             const secondRelation = secondEntity.relations.find(
-                v => v.relatedTable === junctionEntity.tscName
+                (v) => v.relatedTable === junctionEntity.tscName
             )!;
 
             firstRelation.relationType = "ManyToMany";
@@ -143,7 +144,7 @@ export default abstract class AbstractDriver {
                         return {
                             referencedColumnName: v.referencedColumnName,
                             name: junctionEntity.relations[0]
-                                .joinColumnOptions![i].name
+                                .joinColumnOptions![i].name,
                         };
                     }
                 ),
@@ -152,10 +153,10 @@ export default abstract class AbstractDriver {
                         return {
                             referencedColumnName: v.referencedColumnName,
                             name: junctionEntity.relations[1]
-                                .joinColumnOptions![i].name
+                                .joinColumnOptions![i].name,
                         };
                     }
-                )
+                ),
             };
             if (junctionEntity.database) {
                 firstRelation.joinTableOptions.database =
@@ -169,7 +170,7 @@ export default abstract class AbstractDriver {
             secondRelation.relationOptions = undefined;
             firstRelation.joinColumnOptions = undefined;
             secondRelation.joinColumnOptions = undefined;
-            retVal = retVal.filter(ent => {
+            retVal = retVal.filter((ent) => {
                 return ent.tscName !== junctionEntity.tscName;
             });
         });
@@ -225,7 +226,7 @@ export default abstract class AbstractDriver {
             tableNames
         );
         const ret: Entity[] = [] as Entity[];
-        response.forEach(val => {
+        response.forEach((val) => {
             ret.push({
                 columns: [],
                 indices: [],
@@ -235,7 +236,7 @@ export default abstract class AbstractDriver {
                 tscName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
                 schema: val.TABLE_SCHEMA,
-                fileImports: []
+                fileImports: [],
             });
         });
         return ret;
@@ -246,9 +247,9 @@ export default abstract class AbstractDriver {
         entities: Entity[],
         generationOptions: IGenerationOptions
     ) {
-        relationsTemp.forEach(relationTmp => {
+        relationsTemp.forEach((relationTmp) => {
             const ownerEntity = entities.find(
-                entity => entity.tscName === relationTmp.ownerTable.tscName
+                (entity) => entity.tscName === relationTmp.ownerTable.tscName
             );
             if (!ownerEntity) {
                 TomgUtils.LogError(
@@ -257,7 +258,7 @@ export default abstract class AbstractDriver {
                 return;
             }
             const referencedEntity = entities.find(
-                entity => entity.tscName === relationTmp.relatedTable.tscName
+                (entity) => entity.tscName === relationTmp.relatedTable.tscName
             );
             if (!referencedEntity) {
                 TomgUtils.LogError(
@@ -274,7 +275,7 @@ export default abstract class AbstractDriver {
                 relationColumnIndex++
             ) {
                 const ownerColumn = ownerEntity.columns.find(
-                    column =>
+                    (column) =>
                         column.tscName ===
                         relationTmp.ownerColumns[relationColumnIndex]
                 );
@@ -285,7 +286,7 @@ export default abstract class AbstractDriver {
                     return;
                 }
                 const relatedColumn = referencedEntity.columns.find(
-                    column =>
+                    (column) =>
                         column.tscName ===
                         relationTmp.relatedColumns[relationColumnIndex]
                 );
@@ -301,19 +302,19 @@ export default abstract class AbstractDriver {
             let isOneToMany: boolean;
             isOneToMany = false;
             const index = ownerEntity.indices.find(
-                ind =>
+                (ind) =>
                     ind.options.unique &&
                     ind.columns.length === ownerColumns.length &&
-                    ownerColumns.every(ownerColumn =>
-                        ind.columns.some(col => col === ownerColumn.tscName)
+                    ownerColumns.every((ownerColumn) =>
+                        ind.columns.some((col) => col === ownerColumn.tscName)
                     )
             );
             isOneToMany = !index;
 
-            ownerColumns.forEach(column => {
+            ownerColumns.forEach((column) => {
                 column.isUsedInRelationAsOwner = true;
             });
-            relatedColumns.forEach(column => {
+            relatedColumns.forEach((column) => {
                 column.isUsedInRelationAsReferenced = true;
             });
             let fieldName = "";
@@ -331,7 +332,7 @@ export default abstract class AbstractDriver {
 
             const relationOptions: RelationOptions = {
                 onDelete: relationTmp.onDelete,
-                onUpdate: relationTmp.onUpdate
+                onUpdate: relationTmp.onUpdate,
             };
 
             const ownerRelation: Relation = {
@@ -343,12 +344,12 @@ export default abstract class AbstractDriver {
                 joinColumnOptions: relationTmp.ownerColumns.map((v, idx) => {
                     const retVal: Required<JoinColumnOptions> = {
                         name: v,
-                        referencedColumnName: relationTmp.relatedColumns[idx]
+                        referencedColumnName: relationTmp.relatedColumns[idx],
                     };
                     return retVal;
                 }),
                 relatedTable: relationTmp.relatedTable.tscName,
-                relationType: isOneToMany ? "ManyToOne" : "OneToOne"
+                relationType: isOneToMany ? "ManyToOne" : "OneToOne",
             };
             if (JSON.stringify(relationOptions) !== "{}") {
                 ownerRelation.relationOptions = relationOptions;
@@ -357,7 +358,7 @@ export default abstract class AbstractDriver {
                 fieldName: ownerRelation.relatedField,
                 relatedField: ownerRelation.fieldName,
                 relatedTable: relationTmp.ownerTable.tscName,
-                relationType: isOneToMany ? "OneToMany" : "OneToOne"
+                relationType: isOneToMany ? "OneToMany" : "OneToOne",
             };
 
             ownerEntity.relations.push(ownerRelation);
@@ -383,7 +384,7 @@ export default abstract class AbstractDriver {
                 ownerEntity.relationIds.push({
                     fieldName: relationIdFieldName,
                     fieldType,
-                    relationField: ownerRelation.fieldName
+                    relationField: ownerRelation.fieldName,
                 });
                 // TODO: RelationId on ManyToMany
             }
@@ -411,17 +412,17 @@ export default abstract class AbstractDriver {
     ): Promise<Entity[]>;
 
     public static FindPrimaryColumnsFromIndexes(dbModel: Entity[]) {
-        dbModel.forEach(entity => {
-            const primaryIndex = entity.indices.find(v => v.primary);
+        dbModel.forEach((entity) => {
+            const primaryIndex = entity.indices.find((v) => v.primary);
             entity.columns
                 .filter(
-                    col =>
+                    (col) =>
                         primaryIndex &&
                         primaryIndex.columns.some(
-                            cIndex => cIndex === col.tscName
+                            (cIndex) => cIndex === col.tscName
                         )
                 )
-                .forEach(col => {
+                .forEach((col) => {
                     // eslint-disable-next-line no-param-reassign
                     col.primary = true;
                     if (
@@ -432,7 +433,7 @@ export default abstract class AbstractDriver {
                     }
                 });
             if (
-                !entity.columns.some(v => {
+                !entity.columns.some((v) => {
                     return !!v.primary;
                 })
             ) {

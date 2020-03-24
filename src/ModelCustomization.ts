@@ -15,7 +15,7 @@ export default function modelCustomizationPhase(
         columnName: NamingStrategy.columnName,
         entityName: NamingStrategy.entityName,
         relationIdName: NamingStrategy.relationIdName,
-        relationName: NamingStrategy.relationName
+        relationName: NamingStrategy.relationName,
     };
     if (
         generationOptions.customNamingStrategyPath &&
@@ -87,19 +87,19 @@ export default function modelCustomizationPhase(
 function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
     // TODO: Support typeorm CustomNamingStrategy
     const namingStrategy = new DefaultNamingStrategy();
-    dbModel.forEach(entity => {
+    dbModel.forEach((entity) => {
         entity.indices = entity.indices.filter(
-            v =>
+            (v) =>
                 !(
                     v.name.startsWith(`sqlite_autoindex_`) ||
                     (v.primary && v.name === "PRIMARY")
                 )
         );
         const primaryColumns = entity.columns
-            .filter(v => v.primary)
-            .map(v => v.tscName);
+            .filter((v) => v.primary)
+            .map((v) => v.tscName);
         entity.indices = entity.indices.filter(
-            v =>
+            (v) =>
                 !(
                     v.primary &&
                     v.name ===
@@ -110,9 +110,9 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
                 )
         );
         entity.relations
-            .filter(v => v.joinColumnOptions)
-            .forEach(rel => {
-                const columnNames = rel.joinColumnOptions!.map(v => v.name);
+            .filter((v) => v.joinColumnOptions)
+            .forEach((rel) => {
+                const columnNames = rel.joinColumnOptions!.map((v) => v.name);
                 const idxName = namingStrategy.relationConstraintName(
                     entity.tscName,
                     columnNames
@@ -122,20 +122,20 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
                     columnNames
                 );
                 entity.indices = entity.indices.filter(
-                    v => v.name !== idxName && v.name !== fkName
+                    (v) => v.name !== idxName && v.name !== fkName
                 );
             });
     });
     return dbModel;
 }
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
-    dbModel.forEach(entity => {
+    dbModel.forEach((entity) => {
         entity.columns = entity.columns.filter(
-            col =>
+            (col) =>
                 !col.isUsedInRelationAsOwner ||
                 col.isUsedInRelationAsReferenced ||
-                entity.indices.some(idx =>
-                    idx.columns.some(v => v === col.tscName)
+                entity.indices.some((idx) =>
+                    idx.columns.some((v) => v === col.tscName)
                 ) ||
                 col.primary
         );
@@ -149,8 +149,8 @@ function removeColumnDefaultProperties(
     if (!defaultValues) {
         return dbModel;
     }
-    dbModel.forEach(entity => {
-        entity.columns.forEach(column => {
+    dbModel.forEach((entity) => {
+        entity.columns.forEach((column) => {
             const defVal = defaultValues[column.tscType];
             if (defVal) {
                 if (
@@ -185,11 +185,11 @@ function removeColumnDefaultProperties(
 }
 
 function findFileImports(dbModel: Entity[]) {
-    dbModel.forEach(entity => {
-        entity.relations.forEach(relation => {
+    dbModel.forEach((entity) => {
+        entity.relations.forEach((relation) => {
             if (
                 relation.relatedTable !== entity.tscName &&
-                !entity.fileImports.some(v => v === relation.relatedTable)
+                !entity.fileImports.some((v) => v === relation.relatedTable)
             ) {
                 entity.fileImports.push(relation.relatedTable);
             }
@@ -203,8 +203,8 @@ function addImportsAndGenerationOptions(
     generationOptions: IGenerationOptions
 ): Entity[] {
     dbModel = findFileImports(dbModel);
-    dbModel.forEach(entity => {
-        entity.relations.forEach(relation => {
+    dbModel.forEach((entity) => {
+        entity.relations.forEach((relation) => {
             if (generationOptions.lazy) {
                 if (!relation.relationOptions) {
                     relation.relationOptions = {};
@@ -237,11 +237,11 @@ function applyNamingStrategy(
     return retVal;
 
     function changeRelationIdNames(model: Entity[]): Entity[] {
-        model.forEach(entity => {
-            entity.relationIds.forEach(relationId => {
+        model.forEach((entity) => {
+            entity.relationIds.forEach((relationId) => {
                 const oldName = relationId.fieldName;
                 const relation = entity.relations.find(
-                    v => v.fieldName === relationId.relationField
+                    (v) => v.fieldName === relationId.relationField
                 )!;
                 let newName = namingStrategy.relationIdName(
                     relationId,
@@ -253,8 +253,8 @@ function applyNamingStrategy(
                     entity,
                     oldName
                 );
-                entity.indices.forEach(index => {
-                    index.columns = index.columns.map(column2 =>
+                entity.indices.forEach((index) => {
+                    index.columns = index.columns.map((column2) =>
                         column2 === oldName ? newName : column2
                     );
                 });
@@ -266,8 +266,8 @@ function applyNamingStrategy(
     }
 
     function changeRelationNames(model: Entity[]): Entity[] {
-        model.forEach(entity => {
-            entity.relations.forEach(relation => {
+        model.forEach((entity) => {
+            entity.relations.forEach((relation) => {
                 const oldName = relation.fieldName;
                 let newName = namingStrategy.relationName(relation, entity);
                 newName = TomgUtils.findNameForNewField(
@@ -277,15 +277,15 @@ function applyNamingStrategy(
                 );
 
                 const relatedEntity = model.find(
-                    v => v.tscName === relation.relatedTable
+                    (v) => v.tscName === relation.relatedTable
                 )!;
                 const relation2 = relatedEntity.relations.find(
-                    v => v.fieldName === relation.relatedField
+                    (v) => v.fieldName === relation.relatedField
                 )!;
 
                 entity.relationIds
-                    .filter(v => v.relationField === oldName)
-                    .forEach(v => {
+                    .filter((v) => v.relationField === oldName)
+                    .forEach((v) => {
                         v.relationField = newName;
                     });
 
@@ -293,8 +293,8 @@ function applyNamingStrategy(
                 relation2.relatedField = newName;
 
                 if (relation.relationOptions) {
-                    entity.indices.forEach(ind => {
-                        ind.columns.map(column2 =>
+                    entity.indices.forEach((ind) => {
+                        ind.columns.map((column2) =>
                             column2 === oldName ? newName : column2
                         );
                     });
@@ -305,8 +305,8 @@ function applyNamingStrategy(
     }
 
     function changeColumnNames(model: Entity[]): Entity[] {
-        model.forEach(entity => {
-            entity.columns.forEach(column => {
+        model.forEach((entity) => {
+            entity.columns.forEach((column) => {
                 const oldName = column.tscName;
                 let newName = namingStrategy.columnName(column.tscName, column);
                 newName = TomgUtils.findNameForNewField(
@@ -314,8 +314,8 @@ function applyNamingStrategy(
                     entity,
                     oldName
                 );
-                entity.indices.forEach(index => {
-                    index.columns = index.columns.map(column2 =>
+                entity.indices.forEach((index) => {
+                    index.columns = index.columns.map((column2) =>
                         column2 === oldName ? newName : column2
                     );
                 });
@@ -326,10 +326,10 @@ function applyNamingStrategy(
         return model;
     }
     function changeEntityNames(entities: Entity[]): Entity[] {
-        entities.forEach(entity => {
+        entities.forEach((entity) => {
             const newName = namingStrategy.entityName(entity.tscName, entity);
-            entities.forEach(entity2 => {
-                entity2.relations.forEach(relation => {
+            entities.forEach((entity2) => {
+                entity2.relations.forEach((relation) => {
                     if (relation.relatedTable === entity.tscName) {
                         relation.relatedTable = newName;
                     }
