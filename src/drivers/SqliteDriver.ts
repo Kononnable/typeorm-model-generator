@@ -437,6 +437,6 @@ export default class SqliteDriver extends AbstractDriver {
             return undefined;
         }
 
-        return `() => \`${defVal}\``;
+        return `() => "${defVal}"`;
     }
 }

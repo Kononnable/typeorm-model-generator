@@ -417,6 +417,6 @@ export default class OracleDriver extends AbstractDriver {
             defaultVal = defaultVal.slice(0, -1);
         }
 
-        return `() => \`${defaultVal}\``;
+        return `() => "${defaultVal}"`;
     }
 }

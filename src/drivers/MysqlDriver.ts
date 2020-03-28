@@ -530,6 +530,6 @@ export default class MysqlDriver extends AbstractDriver {
             return `() => ['${defaultValue.split(",").join("','")}']`;
         }
 
-        return `() => \`${defaultValue}\``;
+        return `() => "'${defaultValue}'"`;
     }
 }

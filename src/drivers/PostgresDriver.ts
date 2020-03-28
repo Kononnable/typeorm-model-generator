@@ -103,7 +103,8 @@ export default class PostgresDriver extends AbstractDriver {
                     const defaultValue = generated
                         ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
-                              resp.column_default
+                              resp.column_default,
+                              resp.data_type
                           );
 
                     const columnTypes = this.MatchColumnTypes(
@@ -648,7 +649,8 @@ export default class PostgresDriver extends AbstractDriver {
     }
 
     private static ReturnDefaultValueFunction(
-        defVal: string | null
+        defVal: string | null,
+        dataType: string
     ): string | undefined {
         let defaultValue = defVal;
         if (!defaultValue) {
@@ -656,6 +658,9 @@ export default class PostgresDriver extends AbstractDriver {
         }
         defaultValue = defaultValue.replace(/'::[\w ]*/, "'");
 
-        return `() => \`${defaultValue}\``;
+        if (["json", "jsonb"].some(x => x === dataType)) {
+            return `${defaultValue.slice(1, defaultValue.length - 1)}`;
+        }
+        return `() => "${defaultValue}"`;
     }
 }
