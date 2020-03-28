@@ -15,6 +15,8 @@ Supported db engines:
 
 
 ## Installation
+### Versions
+Typeorm-model-generator comes with preinstalled driver for each supported db(except for oracle). However if you want to use it as a dev-dependency you may want to install your db driver manually to reduce dependency footprint, reduce time spent in the CI. In such case you can use version without preinstalled db drivers - `npm i typeorm-model-generator@no-engines`.  
 ### Global module
 To install module globally simply type `npm i -g typeorm-model-generator` in your console.
 ### Npx way

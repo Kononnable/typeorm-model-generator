@@ -1,4 +1,4 @@
-import * as MYSQL from "mysql";
+import type * as MYSQL from "mysql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -13,7 +13,7 @@ import IGenerationOptions from "../IGenerationOptions";
 
 export default class MysqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.MysqlDriver({
-        options: { replication: undefined } as ConnectionOptions
+        options: { replication: undefined } as ConnectionOptions,
     } as any).dataTypeDefaults;
 
     public readonly EngineName: string = "MySQL";
@@ -24,7 +24,20 @@ export default class MysqlDriver extends AbstractDriver {
 
     public readonly standardSchema = "";
 
+    private MYSQL: typeof MYSQL;
+
     private Connection: MYSQL.Connection;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.MYSQL = require("mysql");
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
 
     public GetAllTablesQuery = async (
         schema: string,
@@ -65,21 +78,22 @@ export default class MysqlDriver extends AbstractDriver {
             IsIdentity: number;
             COLUMN_TYPE: string;
             COLUMN_KEY: string;
+            COLUMN_COMMENT: string;
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY
+            CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY, COLUMN_COMMENT
             FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
             )})
 			order by ordinal_position`);
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             response
-                .filter(filterVal => filterVal.TABLE_NAME === ent.tscName)
-                .forEach(resp => {
+                .filter((filterVal) => filterVal.TABLE_NAME === ent.tscName)
+                .forEach((resp) => {
                     const tscName = resp.COLUMN_NAME;
                     let tscType = "";
                     const options: Column["options"] = {
-                        name: resp.COLUMN_NAME
+                        name: resp.COLUMN_NAME,
                     };
                     const generated = resp.IsIdentity === 1 ? true : undefined;
                     const defaultValue = MysqlDriver.ReturnDefaultValueFunction(
@@ -89,6 +103,8 @@ export default class MysqlDriver extends AbstractDriver {
                     let columnType = resp.DATA_TYPE;
                     if (resp.IS_NULLABLE === "YES") options.nullable = true;
                     if (resp.COLUMN_KEY === "UNI") options.unique = true;
+                    if (resp.COLUMN_COMMENT)
+                        options.comment = resp.COLUMN_COMMENT;
                     if (resp.COLUMN_TYPE.endsWith(" unsigned"))
                         options.unsigned = true;
                     switch (resp.DATA_TYPE) {
@@ -245,7 +261,7 @@ export default class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === columnType
+                            (v) => v === columnType
                         )
                     ) {
                         if (resp.NUMERIC_PRECISION !== null) {
@@ -256,7 +272,7 @@ export default class MysqlDriver extends AbstractDriver {
                         }
                     }
                     if (
-                        this.ColumnTypesWithLength.some(v => v === columnType)
+                        this.ColumnTypesWithLength.some((v) => v === columnType)
                     ) {
                         options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
@@ -265,7 +281,7 @@ export default class MysqlDriver extends AbstractDriver {
                     }
                     if (
                         this.ColumnTypesWithWidth.some(
-                            v => v === columnType && tscType !== "boolean"
+                            (v) => v === columnType && tscType !== "boolean"
                         )
                     ) {
                         options.width =
@@ -280,7 +296,7 @@ export default class MysqlDriver extends AbstractDriver {
                         default: defaultValue,
                         options,
                         tscName,
-                        tscType
+                        tscType,
                     });
                 });
         });
@@ -304,25 +320,25 @@ export default class MysqlDriver extends AbstractDriver {
             WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
             )})`);
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             const entityIndices = response.filter(
-                filterVal => filterVal.TableName === ent.tscName
+                (filterVal) => filterVal.TableName === ent.tscName
             );
-            const indexNames = new Set(entityIndices.map(v => v.IndexName));
-            indexNames.forEach(indexName => {
+            const indexNames = new Set(entityIndices.map((v) => v.IndexName));
+            indexNames.forEach((indexName) => {
                 const records = entityIndices.filter(
-                    v => v.IndexName === indexName
+                    (v) => v.IndexName === indexName
                 );
 
                 const indexInfo: Index = {
                     name: indexName,
                     columns: [],
-                    options: {}
+                    options: {},
                 };
                 if (records[0].is_primary_key === 1) indexInfo.primary = true;
                 if (records[0].is_unique === 1) indexInfo.options.unique = true;
 
-                records.forEach(record => {
+                records.forEach((record) => {
                     indexInfo.columns.push(record.ColumnName);
                 });
                 ent.indices.push(indexInfo);
@@ -366,15 +382,15 @@ export default class MysqlDriver extends AbstractDriver {
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
-        const relationKeys = new Set(response.map(v => v.object_id));
+        const relationKeys = new Set(response.map((v) => v.object_id));
 
-        relationKeys.forEach(relationId => {
-            const rows = response.filter(v => v.object_id === relationId);
+        relationKeys.forEach((relationId) => {
+            const rows = response.filter((v) => v.object_id === relationId);
             const ownerTable = entities.find(
-                v => v.sqlName === rows[0].TableWithForeignKey
+                (v) => v.sqlName === rows[0].TableWithForeignKey
             );
             const relatedTable = entities.find(
-                v => v.sqlName === rows[0].TableReferenced
+                (v) => v.sqlName === rows[0].TableReferenced
             );
 
             if (!ownerTable || !relatedTable) {
@@ -388,7 +404,7 @@ export default class MysqlDriver extends AbstractDriver {
                 ownerColumns: [],
                 relatedColumns: [],
                 ownerTable,
-                relatedTable
+                relatedTable,
             };
             if (rows[0].onDelete !== "NO_ACTION") {
                 internal.onDelete = rows[0].onDelete;
@@ -396,7 +412,7 @@ export default class MysqlDriver extends AbstractDriver {
             if (rows[0].onUpdate !== "NO_ACTION") {
                 internal.onUpdate = rows[0].onUpdate;
             }
-            rows.forEach(row => {
+            rows.forEach((row) => {
                 internal.ownerColumns.push(row.ForeignKeyColumn);
                 internal.relatedColumns.push(row.ForeignKeyColumnReferenced);
             });
@@ -413,12 +429,12 @@ export default class MysqlDriver extends AbstractDriver {
 
     public async DisconnectFromServer() {
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection.end(err => {
+            this.Connection.end((err) => {
                 if (!err) {
                     resolve(true);
                 } else {
                     TomgUtils.LogError(
-                        `Error disconnecting to ${this.EngineName} Server.`,
+                        `Error disconnecting from ${this.EngineName} Server.`,
                         false,
                         err.message
                     );
@@ -441,10 +457,10 @@ export default class MysqlDriver extends AbstractDriver {
                 password: connectionOptons.password,
                 port: connectionOptons.port,
                 ssl: {
-                    rejectUnauthorized: false
+                    rejectUnauthorized: false,
                 },
                 timeout: 60 * 60 * 1000,
-                user: connectionOptons.user
+                user: connectionOptons.user,
             };
         } else {
             config = {
@@ -453,14 +469,14 @@ export default class MysqlDriver extends AbstractDriver {
                 password: connectionOptons.password,
                 port: connectionOptons.port,
                 timeout: 60 * 60 * 1000,
-                user: connectionOptons.user
+                user: connectionOptons.user,
             };
         }
 
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection = MYSQL.createConnection(config);
+            this.Connection = this.MYSQL.createConnection(config);
 
-            this.Connection.connect(err => {
+            this.Connection.connect((err) => {
                 if (!err) {
                     resolve(true);
                 } else {
@@ -499,10 +515,10 @@ export default class MysqlDriver extends AbstractDriver {
         const query = this.Connection.query(sql);
         const stream = query.stream({});
         const promise = new Promise<boolean>((resolve, reject) => {
-            stream.on("data", chunk => {
+            stream.on("data", (chunk) => {
                 ret.push((chunk as unknown) as T);
             });
-            stream.on("error", err => reject(err));
+            stream.on("error", (err) => reject(err));
             stream.on("end", () => resolve(true));
         });
         await promise;

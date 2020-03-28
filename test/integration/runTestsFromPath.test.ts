@@ -5,7 +5,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import * as chaiSubset from "chai-subset";
 import * as flatMap from "array.prototype.flatmap";
-import yn from "yn";
+import * as yn from "yn";
 import { CLIEngine } from "eslint";
 import EntityFileToJson from "../utils/EntityFileToJson";
 import { createDriver, dataCollectionPhase } from "../../src/Engine";
@@ -127,6 +127,11 @@ function runTestForMultipleDrivers(
                         !["mysql", "mariadb", "oracle", "sqlite"].includes(
                             dbDriver
                         )
+                );
+            case "93":
+                return dbDrivers.filter(
+                    dbDriver =>
+                        ["mysql", "mariadb"].includes(dbDriver) // Only db engines supported by typeorm at the time of writing
                 );
             case "144":
                 return dbDrivers.filter(dbDriver =>

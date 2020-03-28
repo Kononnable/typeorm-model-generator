@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1
+
+* Fixed model generation on oracle database (#252)
+* New option to define line ending character (#241)
+* Fixed  model generation for two table with same name, different schema on mssql (#246)
+* Proper naming strategy typings (#249)
+* Release version without installed db drivers
+
 ## 0.4.0
 
 ### BREAKING CHANGES

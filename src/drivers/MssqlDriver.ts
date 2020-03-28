@@ -1,4 +1,4 @@
-import * as MSSQL from "mssql";
+import type * as MSSQL from "mssql";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/sqlserver/SqlServerDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -13,7 +13,7 @@ import { RelationInternal } from "../models/RelationInternal";
 
 export default class MssqlDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.SqlServerDriver({
-        options: { replication: undefined } as ConnectionOptions
+        options: { replication: undefined } as ConnectionOptions,
     } as any).dataTypeDefaults;
 
     public readonly standardPort = 1433;
@@ -22,14 +22,27 @@ export default class MssqlDriver extends AbstractDriver {
 
     public readonly standardUser = "sa";
 
+    private MSSQL: typeof MSSQL;
+
     private Connection: MSSQL.ConnectionPool;
+
+    public constructor() {
+        super();
+        try {
+            // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
+            this.MSSQL = require("mssql");
+        } catch (error) {
+            TomgUtils.LogError("", false, error);
+            throw error;
+        }
+    }
 
     public GetAllTablesQuery = async (
         schema: string,
         dbNames: string,
         tableNames: string[]
     ) => {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const tableCondition =
             tableNames.length > 0
                 ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
@@ -54,7 +67,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         schema: string,
         dbNames: string
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TABLE_NAME: string;
             COLUMN_NAME: string;
@@ -86,18 +99,18 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             )})
              order by ordinal_position`)
         ).recordset;
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             response
-                .filter(filterVal => {
+                .filter((filterVal) => {
                     return (
                         filterVal.TABLE_NAME === ent.tscName &&
                         filterVal.TABLE_SCHEMA === ent.schema
                     );
                 })
-                .forEach(resp => {
+                .forEach((resp) => {
                     const tscName = resp.COLUMN_NAME;
                     const options: Column["options"] = {
-                        name: resp.COLUMN_NAME
+                        name: resp.COLUMN_NAME,
                     };
                     if (resp.IS_NULLABLE === "YES") options.nullable = true;
                     if (resp.IsUnique === 1) options.unique = true;
@@ -217,7 +230,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === columnType
+                            (v) => v === columnType
                         )
                     ) {
                         if (resp.NUMERIC_PRECISION !== null) {
@@ -228,7 +241,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                         }
                     }
                     if (
-                        this.ColumnTypesWithLength.some(v => v === columnType)
+                        this.ColumnTypesWithLength.some((v) => v === columnType)
                     ) {
                         options.length =
                             resp.CHARACTER_MAXIMUM_LENGTH > 0
@@ -241,7 +254,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                         default: defaultValue,
                         options,
                         tscName,
-                        tscType
+                        tscType,
                     });
                 });
         });
@@ -253,7 +266,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         schema: string,
         dbNames: string
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableName: string;
             TableSchema: string;
@@ -263,8 +276,10 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             is_primary_key: boolean;
         }[] = [];
         await Promise.all(
-            dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+            dbNames.split(",").map(async (dbName) => {
+                if (dbNames.length > 1) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableName: string;
                     TableSchema: string;
@@ -299,25 +314,25 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             })
         );
 
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             const entityIndices = response.filter(
-                filterVal =>
+                (filterVal) =>
                     filterVal.TableName === ent.tscName &&
                     filterVal.TableSchema === ent.schema
             );
-            const indexNames = new Set(entityIndices.map(v => v.IndexName));
-            indexNames.forEach(indexName => {
+            const indexNames = new Set(entityIndices.map((v) => v.IndexName));
+            indexNames.forEach((indexName) => {
                 const records = entityIndices.filter(
-                    v => v.IndexName === indexName
+                    (v) => v.IndexName === indexName
                 );
                 const indexInfo: Index = {
                     columns: [],
                     options: {},
-                    name: records[0].IndexName
+                    name: records[0].IndexName,
                 };
                 if (records[0].is_primary_key) indexInfo.primary = true;
                 if (records[0].is_unique) indexInfo.options.unique = true;
-                records.forEach(record => {
+                records.forEach((record) => {
                     indexInfo.columns.push(record.ColumnName);
                 });
                 ent.indices.push(indexInfo);
@@ -333,7 +348,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         dbNames: string,
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableWithForeignKey: string;
             FK_PartNo: number;
@@ -345,8 +360,10 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             objectId: number;
         }[] = [];
         await Promise.all(
-            dbNames.split(",").map(async dbName => {
-                await this.UseDB(dbName);
+            dbNames.split(",").map(async (dbName) => {
+                if (dbNames.length > 1) {
+                    await this.UseDB(dbName);
+                }
                 const resp: {
                     TableWithForeignKey: string;
                     FK_PartNo: number;
@@ -389,15 +406,15 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             })
         );
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
-        const relationKeys = new Set(response.map(v => v.objectId));
+        const relationKeys = new Set(response.map((v) => v.objectId));
 
-        relationKeys.forEach(relationId => {
-            const rows = response.filter(v => v.objectId === relationId);
+        relationKeys.forEach((relationId) => {
+            const rows = response.filter((v) => v.objectId === relationId);
             const ownerTable = entities.find(
-                v => v.sqlName === rows[0].TableWithForeignKey
+                (v) => v.sqlName === rows[0].TableWithForeignKey
             );
             const relatedTable = entities.find(
-                v => v.sqlName === rows[0].TableReferenced
+                (v) => v.sqlName === rows[0].TableReferenced
             );
             if (!ownerTable || !relatedTable) {
                 TomgUtils.LogError(
@@ -410,7 +427,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 ownerColumns: [],
                 relatedColumns: [],
                 ownerTable,
-                relatedTable
+                relatedTable,
             };
             switch (rows[0].onDelete) {
                 case "NO_ACTION":
@@ -432,7 +449,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                     internal.onUpdate = rows[0].onUpdate;
                     break;
             }
-            rows.forEach(row => {
+            rows.forEach((row) => {
                 internal.ownerColumns.push(row.ForeignKeyColumn);
                 internal.relatedColumns.push(row.ForeignKeyColumnReferenced);
             });
@@ -459,17 +476,17 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             database: databaseName,
             options: {
                 appName: "typeorm-model-generator",
-                encrypt: connectionOptons.ssl
+                encrypt: connectionOptons.ssl,
             },
             password: connectionOptons.password,
             port: connectionOptons.port,
             requestTimeout: 60 * 60 * 1000,
             server: connectionOptons.host,
-            user: connectionOptons.user
+            user: connectionOptons.user,
         };
 
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection = new MSSQL.ConnectionPool(config, err => {
+            this.Connection = new this.MSSQL.ConnectionPool(config, (err) => {
                 if (!err) {
                     resolve(true);
                 } else {
@@ -487,22 +504,22 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     }
 
     public async CreateDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`CREATE DATABASE ${dbName}; `);
     }
 
     public async UseDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`USE ${dbName}; `);
     }
 
     public async DropDB(dbName: string) {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         await request.query(`DROP DATABASE ${dbName}; `);
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
-        const request = new MSSQL.Request(this.Connection);
+        const request = new this.MSSQL.Request(this.Connection);
         const resp = await request.query(
             `SELECT name FROM master.sys.databases WHERE name = N'${dbName}' `
         );
