@@ -128,9 +128,18 @@ function runTestForMultipleDrivers(
                             dbDriver
                         )
                 );
+            case "93":
+                return dbDrivers.filter(
+                    dbDriver =>
+                        ["mysql", "mariadb"].includes(dbDriver) // Only db engines supported by typeorm at the time of writing
+                );
             case "144":
                 return dbDrivers.filter(dbDriver =>
                     ["mysql", "mariadb"].includes(dbDriver)
+                );
+            case "248":
+                return dbDrivers.filter(dbDriver =>
+                    dbDriver === "postgres"
                 );
             default:
                 return dbDrivers;

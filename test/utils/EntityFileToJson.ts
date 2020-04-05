@@ -29,6 +29,10 @@ class EntityIndex {
     public isUnique = false;
 }
 
+function removeTrailingComas(input: string) {
+    return input.replace(/,(?=\s*?[}\]])/g, "");
+}
+
 export default class EntityFileToJson {
     public static getEntityOptions(trimmedLine: string, ent: EntityJson): void {
         const decoratorParameters = trimmedLine.slice(
@@ -50,7 +54,7 @@ export default class EntityFileToJson {
                         badJSON[badJSON.length - 1];
                 }
                 ent.entityOptions = JSON.parse(
-                    badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+                    removeTrailingComas(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 );
             }
         }
@@ -90,7 +94,7 @@ export default class EntityFileToJson {
                     `default: $1`
                 );
                 col.columnOptions = JSON.parse(
-                    badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+                    removeTrailingComas(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 );
             } else if (
                 decoratorParameters[0] === '"' &&
@@ -102,8 +106,8 @@ export default class EntityFileToJson {
             } else {
                 let badJSON = !primaryGeneratedColumn
                     ? decoratorParameters.substring(
-                          decoratorParameters.indexOf(",") + 1
-                      )
+                        decoratorParameters.indexOf(",") + 1
+                    )
                     : decoratorParameters;
                 badJSON = badJSON.trim();
                 if (badJSON.lastIndexOf(",") === badJSON.length - 3) {
@@ -113,7 +117,7 @@ export default class EntityFileToJson {
                         badJSON[badJSON.length - 1];
                 }
                 col.columnOptions = JSON.parse(
-                    badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+                    removeTrailingComas(badJSON.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 );
             }
         }
@@ -143,9 +147,9 @@ export default class EntityFileToJson {
                         badJSON[badJSON.length - 1];
                 }
                 col.columnOptions = JSON.parse(
-                    badJSON
+                    removeTrailingComas(badJSON
                         .replace(/(')/g, `"`)
-                        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ')
+                        .replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": '))
                 );
             }
         }
@@ -411,7 +415,7 @@ export default class EntityFileToJson {
                     if (decoratorParameters.length > 0) {
                         const column =
                             retVal.columns[retVal.columns.length - 1];
-                        const options = JSON.parse(decoratorParameters);
+                        const options = JSON.parse(removeTrailingComas(decoratorParameters));
                         if (Array.isArray(options)) {
                             column.joinOptions = options as any;
                         } else {
@@ -437,7 +441,7 @@ export default class EntityFileToJson {
                     if (decoratorParameters.length > 0) {
                         const column =
                             retVal.columns[retVal.columns.length - 1];
-                        const options = JSON.parse(decoratorParameters);
+                        const options = JSON.parse(removeTrailingComas(decoratorParameters));
                         if (
                             options.inverseJoinColumn &&
                             !Array.isArray(options.inverseJoinColumn)

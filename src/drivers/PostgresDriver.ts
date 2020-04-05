@@ -1,4 +1,4 @@
-import type *  as PG from "pg";
+import type * as PG from "pg";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -13,7 +13,7 @@ import { RelationInternal } from "../models/RelationInternal";
 
 export default class PostgresDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
-        options: { replication: undefined } as ConnectionOptions
+        options: { replication: undefined } as ConnectionOptions,
     } as any).dataTypeDefaults;
 
     public readonly standardPort = 5432;
@@ -36,7 +36,6 @@ export default class PostgresDriver extends AbstractDriver {
             throw error;
         }
     }
-
 
     public GetAllTablesQuery = async (
         schema: string,
@@ -101,13 +100,13 @@ export default class PostgresDriver extends AbstractDriver {
                     where table_schema in (${schema})
         			order by ordinal_position`)
         ).rows;
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             response
-                .filter(filterVal => filterVal.table_name === ent.tscName)
-                .forEach(resp => {
+                .filter((filterVal) => filterVal.table_name === ent.tscName)
+                .forEach((resp) => {
                     const tscName = resp.column_name;
                     const options: Column["options"] = {
-                        name: resp.column_name
+                        name: resp.column_name,
                     };
                     if (resp.is_nullable === "YES") options.nullable = true;
                     if (resp.isunique === "1") options.unique = true;
@@ -117,7 +116,8 @@ export default class PostgresDriver extends AbstractDriver {
                     const defaultValue = generated
                         ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
-                              resp.column_default
+                              resp.column_default,
+                              resp.data_type
                           );
 
                     const columnTypes = this.MatchColumnTypes(
@@ -149,13 +149,13 @@ export default class PostgresDriver extends AbstractDriver {
                     if (options.array) {
                         tscType = tscType
                             .split("|")
-                            .map(x => `${x.replace("|", "").trim()}[]`)
+                            .map((x) => `${x.replace("|", "").trim()}[]`)
                             .join(" | ");
                     }
 
                     if (
                         this.ColumnTypesWithPrecision.some(
-                            v => v === columnType
+                            (v) => v === columnType
                         )
                     ) {
                         if (resp.numeric_precision !== null) {
@@ -166,14 +166,16 @@ export default class PostgresDriver extends AbstractDriver {
                         }
                     }
                     if (
-                        this.ColumnTypesWithLength.some(v => v === columnType)
+                        this.ColumnTypesWithLength.some((v) => v === columnType)
                     ) {
                         options.length =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
                                 : undefined;
                     }
-                    if (this.ColumnTypesWithWidth.some(v => v === columnType)) {
+                    if (
+                        this.ColumnTypesWithWidth.some((v) => v === columnType)
+                    ) {
                         options.width =
                             resp.character_maximum_length > 0
                                 ? resp.character_maximum_length
@@ -186,7 +188,7 @@ export default class PostgresDriver extends AbstractDriver {
                         default: defaultValue,
                         options,
                         tscName,
-                        tscType
+                        tscType,
                     });
                 });
         });
@@ -207,7 +209,7 @@ export default class PostgresDriver extends AbstractDriver {
             tsType: "",
             sqlType: dataType,
             isArray: false,
-            enumValues: []
+            enumValues: [],
         };
         switch (dataType) {
             case "int2":
@@ -462,23 +464,23 @@ export default class PostgresDriver extends AbstractDriver {
         AND i.oid<>0
         ORDER BY c.relname,f.attname;`)
         ).rows;
-        entities.forEach(ent => {
+        entities.forEach((ent) => {
             const entityIndices = response.filter(
-                filterVal => filterVal.tablename === ent.tscName
+                (filterVal) => filterVal.tablename === ent.tscName
             );
-            const indexNames = new Set(entityIndices.map(v => v.indexname));
-            indexNames.forEach(indexName => {
+            const indexNames = new Set(entityIndices.map((v) => v.indexname));
+            indexNames.forEach((indexName) => {
                 const records = entityIndices.filter(
-                    v => v.indexname === indexName
+                    (v) => v.indexname === indexName
                 );
                 const indexInfo: Index = {
                     columns: [],
                     options: {},
-                    name: records[0].indexname
+                    name: records[0].indexname,
                 };
                 if (records[0].is_primary_key === 1) indexInfo.primary = true;
                 if (records[0].is_unique === 1) indexInfo.options.unique = true;
-                records.forEach(record => {
+                records.forEach((record) => {
                     indexInfo.columns.push(record.columnname);
                 });
                 ent.indices.push(indexInfo);
@@ -548,15 +550,15 @@ export default class PostgresDriver extends AbstractDriver {
         ).rows;
 
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
-        const relationKeys = new Set(response.map(v => v.object_id));
+        const relationKeys = new Set(response.map((v) => v.object_id));
 
-        relationKeys.forEach(relationId => {
-            const rows = response.filter(v => v.object_id === relationId);
+        relationKeys.forEach((relationId) => {
+            const rows = response.filter((v) => v.object_id === relationId);
             const ownerTable = entities.find(
-                v => v.sqlName === rows[0].tablewithforeignkey
+                (v) => v.sqlName === rows[0].tablewithforeignkey
             );
             const relatedTable = entities.find(
-                v => v.sqlName === rows[0].tablereferenced
+                (v) => v.sqlName === rows[0].tablereferenced
             );
             if (!ownerTable || !relatedTable) {
                 TomgUtils.LogError(
@@ -569,7 +571,7 @@ export default class PostgresDriver extends AbstractDriver {
                 ownerColumns: [],
                 relatedColumns: [],
                 ownerTable,
-                relatedTable
+                relatedTable,
             };
             if (rows[0].ondelete !== "NO ACTION") {
                 internal.onDelete = rows[0].ondelete;
@@ -577,7 +579,7 @@ export default class PostgresDriver extends AbstractDriver {
             if (rows[0].onupdate !== "NO ACTION") {
                 internal.onUpdate = rows[0].onupdate;
             }
-            rows.forEach(row => {
+            rows.forEach((row) => {
                 internal.ownerColumns.push(row.foreignkeycolumn);
                 internal.relatedColumns.push(row.foreignkeycolumnreferenced);
             });
@@ -595,12 +597,12 @@ export default class PostgresDriver extends AbstractDriver {
     public async DisconnectFromServer() {
         if (this.Connection) {
             const promise = new Promise<boolean>((resolve, reject) => {
-                this.Connection.end(err => {
+                this.Connection.end((err) => {
                     if (!err) {
                         resolve(true);
                     } else {
                         TomgUtils.LogError(
-                            "Error connecting to Postgres Server.",
+                            "Error disconnecting from to Postgres Server.",
                             false,
                             err.message
                         );
@@ -621,11 +623,11 @@ export default class PostgresDriver extends AbstractDriver {
             ssl: connectionOptons.ssl,
             // eslint-disable-next-line @typescript-eslint/camelcase
             statement_timeout: 60 * 60 * 1000,
-            user: connectionOptons.user
+            user: connectionOptons.user,
         });
 
         const promise = new Promise<boolean>((resolve, reject) => {
-            this.Connection.connect(err => {
+            this.Connection.connect((err) => {
                 if (!err) {
                     resolve(true);
                 } else {
@@ -662,15 +664,17 @@ export default class PostgresDriver extends AbstractDriver {
     }
 
     private static ReturnDefaultValueFunction(
-        defVal: string | null
+        defVal: string | null,
+        dataType: string
     ): string | undefined {
         let defaultValue = defVal;
         if (!defaultValue) {
             return undefined;
         }
         defaultValue = defaultValue.replace(/'::[\w ]*/, "'");
-        if (defaultValue.startsWith(`'`)) {
-            return `() => "${defaultValue}"`;
+
+        if (["json", "jsonb"].some((x) => x === dataType)) {
+            return `${defaultValue.slice(1, defaultValue.length - 1)}`;
         }
         return `() => "${defaultValue}"`;
     }
