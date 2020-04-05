@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2
+
+* Use statement not available on Azure SQL (#243)
+* Allow models which don't generate properly to be saved (#259)
+* MySQL and MariaDB column comments (#260)
+* JSON default values (#248,#256)
+
 ## 0.4.1
 
 * Fixed model generation on oracle database (#252)
