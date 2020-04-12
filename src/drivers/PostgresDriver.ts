@@ -671,11 +671,13 @@ export default class PostgresDriver extends AbstractDriver {
         if (!defaultValue) {
             return undefined;
         }
-        defaultValue = defaultValue.replace(/'::[\w ]*/, "'");
+        defaultValue = defaultValue.replace(/'::[\w" ]*/, "'");
 
         if (["json", "jsonb"].some((x) => x === dataType)) {
             return `${defaultValue.slice(1, defaultValue.length - 1)}`;
         }
-        return `() => "${defaultValue}"`;
+        return /^'(.*)?'|[-].?[\d]+$/.test(defaultValue)
+            ? defaultValue
+            : `() => "${defaultValue}"`;
     }
 }
