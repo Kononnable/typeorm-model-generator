@@ -464,6 +464,31 @@ export default class PostgresDriver extends AbstractDriver {
         AND i.oid<>0
         ORDER BY c.relname,f.attname;`)
         ).rows;
+
+        const indexesOrder: {
+            indexname: string;
+            columnname: string;
+            ordernum: number;
+        }[] = (
+            await this.Connection.query(`SELECT c.relname AS indexname,
+                 a.attname AS columnname,
+                 a.attnum AS ordernum
+                 FROM pg_attribute a
+                 INNER JOIN pg_class c on c.oid = a.attrelid
+                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+                 WHERE c.relkind = 'i'::char
+                 AND a.attnum > 0
+                 AND n.nspname in ('public')
+                 ORDER BY c.relname, a.attnum;
+            `)
+        ).rows;
+
+        const order = {};
+        indexesOrder.forEach((ind) => {
+            if (!(ind.indexname in order)) order[ind.indexname] = {};
+            order[ind.indexname][ind.columnname] = ind.ordernum - 1;
+        });
+
         entities.forEach((ent) => {
             const entityIndices = response.filter(
                 (filterVal) => filterVal.tablename === ent.tscName
@@ -480,8 +505,14 @@ export default class PostgresDriver extends AbstractDriver {
                 };
                 if (records[0].is_primary_key === 1) indexInfo.primary = true;
                 if (records[0].is_unique === 1) indexInfo.options.unique = true;
+
+                indexInfo.columns = new Array(
+                    Object.keys(order[records[0].indexname]).length
+                );
                 records.forEach((record) => {
-                    indexInfo.columns.push(record.columnname);
+                    indexInfo.columns[
+                        order[records[0].indexname][record.columnname]
+                    ] = record.columnname;
                 });
                 ent.indices.push(indexInfo);
             });
