@@ -676,7 +676,7 @@ export default class PostgresDriver extends AbstractDriver {
         if (["json", "jsonb"].some((x) => x === dataType)) {
             return `${defaultValue.slice(1, defaultValue.length - 1)}`;
         }
-        return /^'(.*)?'|[-].?[\d]+$/.test(defaultValue)
+        return /^'(.*)?'|[-]?[\d.]+$/.test(defaultValue)
             ? defaultValue
             : `() => "${defaultValue}"`;
     }
