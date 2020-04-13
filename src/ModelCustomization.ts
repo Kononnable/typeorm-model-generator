@@ -98,13 +98,18 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
         const primaryColumns = entity.columns
             .filter((v) => v.primary)
             .map((v) => v.tscName);
+
+        const ormTableName = entity?.schema
+            ? `${entity.schema}.${entity.tscName}`
+            : entity.tscName;
+
         entity.indices = entity.indices.filter(
             (v) =>
                 !(
                     v.primary &&
                     v.name ===
                         namingStrategy.primaryKeyName(
-                            entity.tscName,
+                            ormTableName,
                             primaryColumns
                         )
                 )
@@ -114,11 +119,11 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
             .forEach((rel) => {
                 const columnNames = rel.joinColumnOptions!.map((v) => v.name);
                 const idxName = namingStrategy.relationConstraintName(
-                    entity.tscName,
+                    ormTableName,
                     columnNames
                 );
                 const fkName = namingStrategy.foreignKeyName(
-                    entity.tscName,
+                    ormTableName,
                     columnNames
                 );
                 entity.indices = entity.indices.filter(
@@ -126,6 +131,7 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
                 );
             });
     });
+
     return dbModel;
 }
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
