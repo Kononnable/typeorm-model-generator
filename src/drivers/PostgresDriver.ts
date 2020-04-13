@@ -470,7 +470,8 @@ export default class PostgresDriver extends AbstractDriver {
             columnname: string;
             ordernum: number;
         }[] = (
-            await this.Connection.query(`SELECT c.relname AS indexname,
+            await this.Connection.query(`SELECT
+                 c.relname AS indexname,
                  a.attname AS columnname,
                  a.attnum AS ordernum
                  FROM pg_attribute a
@@ -478,7 +479,7 @@ export default class PostgresDriver extends AbstractDriver {
                  LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                  WHERE c.relkind = 'i'::char
                  AND a.attnum > 0
-                 AND n.nspname in ('public')
+                 AND n.nspname in (${schema})
                  ORDER BY c.relname, a.attnum;
             `)
         ).rows;
