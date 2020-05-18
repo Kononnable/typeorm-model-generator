@@ -2,14 +2,14 @@ import type * as PG from "pg";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/postgres/PostgresDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
+import IConnectionOptions from "../IConnectionOptions";
+import IGenerationOptions from "../IGenerationOptions";
+import { Column } from "../models/Column";
+import { Entity } from "../models/Entity";
+import { Index } from "../models/Index";
+import { RelationInternal } from "../models/RelationInternal";
 import * as TomgUtils from "../Utils";
 import AbstractDriver from "./AbstractDriver";
-import IConnectionOptions from "../IConnectionOptions";
-import { Entity } from "../models/Entity";
-import { Column } from "../models/Column";
-import { Index } from "../models/Index";
-import IGenerationOptions from "../IGenerationOptions";
-import { RelationInternal } from "../models/RelationInternal";
 
 export default class PostgresDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.PostgresDriver({
@@ -182,14 +182,20 @@ export default class PostgresDriver extends AbstractDriver {
                                 : undefined;
                     }
 
-                    ent.columns.push({
+                    const column: Column = {
                         generated,
                         type: columnType,
                         default: defaultValue,
                         options,
                         tscName,
                         tscType,
-                    });
+                    };
+
+                    column.graphqlType = generated
+                        ? "ID"
+                        : columnTypes.graphqlType;
+
+                    ent.columns.push(column);
                 });
         });
         return entities;
@@ -202,6 +208,7 @@ export default class PostgresDriver extends AbstractDriver {
     ) {
         let ret: {
             tsType: Column["tscType"];
+            graphqlType?: Column["graphqlType"];
             sqlType: string;
             isArray: boolean;
             enumValues: string[];
@@ -214,184 +221,244 @@ export default class PostgresDriver extends AbstractDriver {
         switch (dataType) {
             case "int2":
                 ret.tsType = "number";
+                ret.graphqlType = "Int";
                 break;
             case "int4":
                 ret.tsType = "number";
+                ret.graphqlType = "Int";
                 break;
             case "int8":
                 ret.tsType = "string";
+                ret.graphqlType = "Int";
                 break;
             case "smallint":
                 ret.tsType = "number";
+                ret.graphqlType = "Int";
                 break;
             case "integer":
                 ret.tsType = "number";
+                ret.graphqlType = "Int";
                 break;
             case "bigint":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "decimal":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "numeric":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "real":
                 ret.tsType = "number";
+                ret.graphqlType = "Float";
                 break;
             case "float":
                 ret.tsType = "number";
+                ret.graphqlType = "Float";
                 break;
             case "float4":
                 ret.tsType = "number";
+                ret.graphqlType = "Float";
                 break;
             case "float8":
                 ret.tsType = "number";
+                ret.graphqlType = "Float";
                 break;
             case "double precision":
                 ret.tsType = "number";
+                ret.graphqlType = "Float";
                 break;
             case "money":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "character varying":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "varchar":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "character":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "char":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "bpchar":
                 ret.sqlType = "char";
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "text":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "citext":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "hstore":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "bytea":
                 ret.tsType = "Buffer";
+                ret.graphqlType = "String";
                 break;
             case "bit":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "varbit":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "bit varying":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "timetz":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "timestamptz":
                 ret.tsType = "Date";
+                ret.graphqlType = "String";
                 break;
             case "timestamp":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "timestamp without time zone":
                 ret.tsType = "Date";
+                ret.graphqlType = "String";
                 break;
             case "timestamp with time zone":
                 ret.tsType = "Date";
+                ret.graphqlType = "String";
                 break;
             case "date":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "time":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "time without time zone":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "time with time zone":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "interval":
                 ret.tsType = "any";
+                ret.graphqlType = "String";
                 break;
             case "bool":
                 ret.tsType = "boolean";
+                ret.graphqlType = "Boolean";
                 break;
             case "boolean":
                 ret.tsType = "boolean";
+                ret.graphqlType = "Boolean";
                 break;
             case "point":
                 ret.tsType = "string | object";
+                ret.graphqlType = "String";
                 break;
             case "line":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "lseg":
                 ret.tsType = "string | string[]";
+                ret.graphqlType = "String";
                 break;
             case "box":
                 ret.tsType = "string | object";
+                ret.graphqlType = "String";
                 break;
             case "path":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "polygon":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "circle":
                 ret.tsType = "string | object";
+                ret.graphqlType = "String";
                 break;
             case "cidr":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "inet":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "macaddr":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "tsvector":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "tsquery":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "uuid":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "xml":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "json":
                 ret.tsType = "object";
+                ret.graphqlType = "JSON";
                 break;
             case "jsonb":
                 ret.tsType = "object";
+                ret.graphqlType = "JSON";
                 break;
             case "int4range":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "int8range":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "numrange":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "tsrange":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "tstzrange":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "daterange":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
                 break;
             case "ARRAY":
                 ret = this.MatchColumnTypes(
@@ -403,6 +470,8 @@ export default class PostgresDriver extends AbstractDriver {
                 break;
             case "USER-DEFINED":
                 ret.tsType = "string";
+                ret.graphqlType = "String";
+
                 switch (udtName) {
                     case "citext":
                     case "hstore":
@@ -423,6 +492,7 @@ export default class PostgresDriver extends AbstractDriver {
                 break;
             default:
                 ret.tsType = "NonNullable<unknown>";
+                ret.graphqlType = "String";
                 break;
         }
         return ret;

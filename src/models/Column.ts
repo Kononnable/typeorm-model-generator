@@ -7,6 +7,9 @@ export type Column = {
     isUsedInRelationAsOwner?: true; // TODO: move to separate object/calulate when us
     isUsedInRelationAsReferenced?: true; // TODO: move to separate object/calulate when us
 
+    // The GraphQL schema language supports the scalar types of
+    // String, Int, Float, Boolean, and ID, so you can use these directly in the schema you pass to buildSchema.
+    graphqlType?: "String" | "Int" | "Float" | "Boolean" | "ID" | "JSON";
     primary?: boolean;
     generated?: true | "increment" | "uuid";
     default?: string; // ?

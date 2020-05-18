@@ -1,12 +1,12 @@
 import * as Yargs from "yargs";
 import { createDriver, createModelFromDatabase } from "./Engine";
-import * as TomgUtils from "./Utils";
 import IConnectionOptions, {
     getDefaultConnectionOptions,
 } from "./IConnectionOptions";
 import IGenerationOptions, {
     getDefaultGenerationOptions,
 } from "./IGenerationOptions";
+import * as TomgUtils from "./Utils";
 
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
@@ -237,6 +237,12 @@ function checkYargsParameters(options: options): options {
             boolean: true,
             default: options.generationOptions.activeRecord,
             describe: "Use ActiveRecord syntax for generated models",
+        },
+        gql: {
+            alias: "graphql",
+            boolean: true,
+            default: options.generationOptions.graphql,
+            describe: "Generate graphql annotations",
         },
         namingStrategy: {
             describe: "Use custom naming strategy",

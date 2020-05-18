@@ -16,6 +16,7 @@ export default interface IGenerationOptions {
     propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
     activeRecord: boolean;
+    graphql: boolean;
     generateConstructor: boolean;
     customNamingStrategyPath: string;
     relationIds: boolean;
@@ -42,6 +43,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         propertyVisibility: "none",
         lazy: false,
         activeRecord: false,
+        graphql: true,
         generateConstructor: false,
         customNamingStrategyPath: "",
         relationIds: false,

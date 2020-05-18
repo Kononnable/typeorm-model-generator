@@ -5,6 +5,8 @@
 import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 {{/inline}}
 {{#*inline "Column"}}
+{{^generated}}{{^primary}}@Field(() => ({{graphqlType}})){{/primary}}{{/generated}}
+{{#primary}}@Field(() => (ID)){{/primary}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
 {{printPropertyVisibility}}{{toPropertyName tscName}}{{strictMode}}:{{tscType}}{{#if options.nullable}} | null{{/if}};
 
@@ -16,6 +18,7 @@ import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 @{{relationType}}(()=>{{toEntityName relatedTable}},{{toPropertyName relatedTable}}=>{{toPropertyName relatedTable}}.{{toPropertyName relatedField}}{{#if relationOptions}},{ {{json relationOptions}} }{{/if}})
 {{#if joinColumnOptions}}@JoinColumn([{{#joinColumnOptions}}{{> JoinColumnOptions}}{{/joinColumnOptions}}]){{/if}}
 {{#joinTableOptions}}@JoinTable({ name:"{{name}}", joinColumns:[{{#joinColumns}}{{> JoinColumnOptions}}{{/joinColumns}}],inverseJoinColumns:[{{#inverseJoinColumns}}{{> JoinColumnOptions}}{{/inverseJoinColumns}}],{{#database}}database:"{{.}}",{{/database}}{{#schema}}schema:"{{.}}"{{/schema}} }){{/joinTableOptions}}
+@Field(() => {{toGraphqlRelation (toEntityName relatedTable) relationType}})
 {{printPropertyVisibility}}{{toPropertyName fieldName}}{{strictMode}}:{{toRelation (toEntityName relatedTable) relationType}};
 
 {{/inline}}
@@ -33,6 +36,9 @@ import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 {{#*inline "Entity"}}
 {{#indices}}{{> Index}}{{/indices~}}
 @Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}})
+{{#graphql}}
+@ObjectType()
+{{/graphql}}
 export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
 
 {{#columns}}{{> Column}}{{/columns~}}
@@ -42,6 +48,7 @@ export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends
 }
 {{/inline}}
 import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
+{{#graphql}}import { ObjectType, Field, ID, Int } from "type-graphql";{{/graphql}}
 {{#fileImports}}{{> Import}}{{/fileImports}}
 
 {{> Entity}}

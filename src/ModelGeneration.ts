@@ -1,9 +1,9 @@
-import * as Handlebars from "handlebars";
-import * as Prettier from "prettier";
 import * as changeCase from "change-case";
 import * as fs from "fs";
-import * as path from "path";
+import * as Handlebars from "handlebars";
 import { EOL } from "os";
+import * as path from "path";
+import * as Prettier from "prettier";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
@@ -76,6 +76,11 @@ function generateModels(
             entitiesPath,
             `${casedFileName}.ts`
         );
+
+        if (generationOptions.graphql) {
+            element.graphql = true;
+        }
+
         const rendered = entityCompliedTemplate(element);
         const withImportStatements = removeUnusedImports(
             EOL !== eolConverter[generationOptions.convertEol]
@@ -230,6 +235,21 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             return retVal;
         }
     );
+
+    Handlebars.registerHelper(
+        "toGraphqlRelation",
+        (entityType: string, relationType: Relation["relationType"]) => {
+            let retVal = entityType;
+            if (relationType === "ManyToMany" || relationType === "OneToMany") {
+                retVal = `[${retVal}]`;
+            }
+            if (generationOptions.lazy) {
+                retVal = `Promise<${retVal}>`;
+            }
+            return retVal;
+        }
+    );
+
     Handlebars.registerHelper("defaultExport", () =>
         generationOptions.exportType === "default" ? "default" : ""
     );

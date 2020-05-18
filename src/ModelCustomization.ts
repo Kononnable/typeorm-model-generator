@@ -1,7 +1,7 @@
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
 import { DefaultNamingStrategy } from "typeorm/naming-strategy/DefaultNamingStrategy";
-import { Entity } from "./models/Entity";
 import IGenerationOptions from "./IGenerationOptions";
+import { Entity } from "./models/Entity";
 import * as NamingStrategy from "./NamingStrategy";
 import * as TomgUtils from "./Utils";
 
@@ -219,6 +219,11 @@ function addImportsAndGenerationOptions(
         if (generationOptions.activeRecord) {
             entity.activeRecord = true;
         }
+
+        if (generationOptions.graphql) {
+            entity.graphql = true;
+        }
+
         if (generationOptions.generateConstructor) {
             entity.generateConstructor = true;
         }
