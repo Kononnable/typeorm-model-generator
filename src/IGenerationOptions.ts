@@ -19,7 +19,7 @@ export default interface IGenerationOptions {
     generateConstructor: boolean;
     customNamingStrategyPath: string;
     relationIds: boolean;
-    strictMode: "none" | "?" | "!";
+    strictMode: "none" | "?" | "!" | "smart";
     skipSchema: boolean;
     indexFile: boolean;
     exportType: "named" | "default";

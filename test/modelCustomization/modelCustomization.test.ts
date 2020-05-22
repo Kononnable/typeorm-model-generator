@@ -30,6 +30,19 @@ describe("Model customization phase", async () => {
                     options: { name: "name" },
                     tscName: "name",
                     tscType: "string"
+                },
+                {
+                    type: "character varying",
+                    options: { name: "bio", nullable: true },
+                    tscName: "bio",
+                    tscType: "string"
+                },
+                {
+                    type: "character varying",
+                    options: { name: "city", nullable: true },
+                    default: "() => \"'Pontonx sur l'adour'\"",
+                    tscName: "city",
+                    tscType: "string"
                 }
             ],
             indices: [
@@ -75,6 +88,13 @@ describe("Model customization phase", async () => {
                     type: "character varying",
                     options: { name: "text" },
                     tscName: "text",
+                    tscType: "string"
+                },
+                {
+                    type: "character varying",
+                    options: { name: "tags" },
+                    default: "() => \"'to-be-tagged'\"",
+                    tscName: "tags",
                     tscType: "string"
                 }
             ],
@@ -610,6 +630,42 @@ describe("Model customization phase", async () => {
             expect(postAuthorContent).to.have.string(`id?: number;`);
             expect(postAuthorContent).to.have.string(`name?: string;`);
             expect(postAuthorContent).to.have.string(`posts?: Post[];`);
+
+            compileGeneratedModel(generationOptions.resultsPath, [""]);
+        });
+        it("smart", async () => {
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            clearGenerationDir();
+
+            generationOptions.strictMode = "smart";
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const postContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Post.ts"))
+                .toString();
+            const postAuthorContent = fs
+                .readFileSync(path.resolve(filesGenPath, "PostAuthor.ts"))
+                .toString();
+            expect(postContent).to.have.string(`id!: number;`);
+            expect(postContent).to.have.string(`title!: string;`);
+            expect(postContent).to.have.string(`text!: string;`);
+            expect(postContent).to.have.string(`tags?: string;`);
+            expect(postContent).to.have.string(`author!: PostAuthor;`);
+            expect(postAuthorContent).to.have.string(`id!: number;`);
+            expect(postAuthorContent).to.have.string(`name!: string;`);
+            expect(postAuthorContent).to.have.string(`bio!: string | null;`);
+            expect(postAuthorContent).to.have.string(`city?: string | null;`);
+            expect(postAuthorContent).to.have.string(`posts!: Post[];`);
 
             compileGeneratedModel(generationOptions.resultsPath, [""]);
         });

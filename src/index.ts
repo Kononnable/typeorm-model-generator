@@ -271,7 +271,7 @@ function checkYargsParameters(options: options): options {
                 "Skip schema generation for specific tables. You can pass multiple values separated by comma",
         },
         strictMode: {
-            choices: ["none", "?", "!"],
+            choices: ["none", "?", "!", "smart"],
             default: options.generationOptions.strictMode,
             describe: "Mark fields as optional(?) or non-null(!)",
         },

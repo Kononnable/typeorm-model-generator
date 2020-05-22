@@ -238,10 +238,19 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             ? entityName
             : `{${entityName}}`
     );
-    Handlebars.registerHelper("strictMode", () =>
-        generationOptions.strictMode !== "none"
-            ? generationOptions.strictMode
-            : ""
+    Handlebars.registerHelper(
+        "strictMode",
+        (defaultValue?: string | object) => {
+            if (generationOptions.strictMode === "smart") {
+                return defaultValue && typeof defaultValue === "string"
+                    ? "?"
+                    : "!";
+            }
+
+            return generationOptions.strictMode !== "none"
+                ? generationOptions.strictMode
+                : "";
+        }
     );
     Handlebars.registerHelper({
         and: (v1, v2) => v1 && v2,
