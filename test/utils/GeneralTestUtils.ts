@@ -1,6 +1,7 @@
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn";
+import * as path from "path"
 import IGenerationOptions, {
     getDefaultGenerationOptions
 } from "../../src/IGenerationOptions";
@@ -10,8 +11,6 @@ import MariaDbDriver from "../../src/drivers/MariaDbDriver";
 import PostgresDriver from "../../src/drivers/PostgresDriver";
 import OracleDriver from "../../src/drivers/OracleDriver";
 import MysqlDriver from "../../src/drivers/MysqlDriver";
-
-import path = require("path");
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     const retVal = getDefaultGenerationOptions();

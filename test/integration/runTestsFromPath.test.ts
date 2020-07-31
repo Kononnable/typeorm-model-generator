@@ -7,6 +7,7 @@ import * as chaiSubset from "chai-subset";
 import * as flatMap from "array.prototype.flatmap";
 import * as yn from "yn";
 import { CLIEngine } from "eslint";
+import * as dotEnv from "dotenv"
 import EntityFileToJson from "../utils/EntityFileToJson";
 import { createDriver, dataCollectionPhase } from "../../src/Engine";
 import * as GTU from "../utils/GeneralTestUtils";
@@ -15,7 +16,7 @@ import IConnectionOptions from "../../src/IConnectionOptions";
 import modelCustomizationPhase from "../../src/ModelCustomization";
 import modelGenerationPhase from "../../src/ModelGeneration";
 
-require("dotenv").config();
+dotEnv.config();
 
 flatMap.shim();
 chai.use(chaiSubset);

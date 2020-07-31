@@ -308,6 +308,7 @@ export default class MysqlDriver extends AbstractDriver {
         schema: string,
         dbNames: string
     ): Promise<Entity[]> {
+        /* eslint-disable camelcase */
         const response = await this.ExecQuery<{
             TableName: string;
             IndexName: string;
@@ -315,11 +316,12 @@ export default class MysqlDriver extends AbstractDriver {
             is_unique: number;
             is_primary_key: number;
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
-            CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
-            FROM information_schema.statistics sta
-            WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
-                dbNames
-            )})`);
+        CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
+        FROM information_schema.statistics sta
+        WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
+            dbNames
+        )})`);
+        /* eslint-enable camelcase */
         entities.forEach((ent) => {
             const entityIndices = response.filter(
                 (filterVal) => filterVal.TableName === ent.tscName
@@ -356,12 +358,14 @@ export default class MysqlDriver extends AbstractDriver {
     ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TableWithForeignKey: string;
+            // eslint-disable-next-line camelcase
             FK_PartNo: number;
             ForeignKeyColumn: string;
             TableReferenced: string;
             ForeignKeyColumnReferenced: string;
             onDelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
             onUpdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO_ACTION";
+            // eslint-disable-next-line camelcase
             object_id: string;
         }>(`SELECT
             CU.TABLE_NAME TableWithForeignKey,

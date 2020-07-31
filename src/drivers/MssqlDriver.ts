@@ -267,6 +267,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         dbNames: string
     ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
+        /* eslint-disable camelcase */
         const response: {
             TableName: string;
             TableSchema: string;
@@ -275,19 +276,13 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             is_unique: boolean;
             is_primary_key: boolean;
         }[] = [];
+        /* eslint-enable camelcase */
         await Promise.all(
             dbNames.split(",").map(async (dbName) => {
                 if (dbNames.length > 1) {
                     await this.UseDB(dbName);
                 }
-                const resp: {
-                    TableName: string;
-                    TableSchema: string;
-                    IndexName: string;
-                    ColumnName: string;
-                    is_unique: boolean;
-                    is_primary_key: boolean;
-                }[] = (
+                const resp = (
                     await request.query(`SELECT
              TableName = t.name,
              TableSchema = s.name,
@@ -351,6 +346,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableWithForeignKey: string;
+            // eslint-disable-next-line camelcase
             FK_PartNo: number;
             ForeignKeyColumn: string;
             TableReferenced: string;
@@ -366,6 +362,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 }
                 const resp: {
                     TableWithForeignKey: string;
+                    // eslint-disable-next-line camelcase
                     FK_PartNo: number;
                     ForeignKeyColumn: string;
                     TableReferenced: string;

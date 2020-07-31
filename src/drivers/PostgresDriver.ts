@@ -63,6 +63,7 @@ export default class PostgresDriver extends AbstractDriver {
         schema: string
     ): Promise<Entity[]> {
         const response: {
+            /* eslint-disable camelcase */
             table_name: string;
             column_name: string;
             udt_name: string;
@@ -75,6 +76,7 @@ export default class PostgresDriver extends AbstractDriver {
             isidentity: string;
             isunique: string;
             enumvalues: string | null;
+            /* eslint-enable camelcase */
         }[] = (
             await this.Connection
                 .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
@@ -436,7 +438,9 @@ export default class PostgresDriver extends AbstractDriver {
             tablename: string;
             indexname: string;
             columnname: string;
+            // eslint-disable-next-line camelcase
             is_unique: number;
+            // eslint-disable-next-line camelcase
             is_primary_key: number;
         }[] = (
             await this.Connection.query(`SELECT
@@ -498,12 +502,14 @@ export default class PostgresDriver extends AbstractDriver {
     ): Promise<Entity[]> {
         const response: {
             tablewithforeignkey: string;
+            // eslint-disable-next-line camelcase
             fk_partno: number;
             foreignkeycolumn: string;
             tablereferenced: string;
             foreignkeycolumnreferenced: string;
             ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+            // eslint-disable-next-line camelcase
             object_id: string;
             // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
         }[] = (
@@ -621,7 +627,6 @@ export default class PostgresDriver extends AbstractDriver {
             password: connectionOptons.password,
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             statement_timeout: 60 * 60 * 1000,
             user: connectionOptons.user,
         });

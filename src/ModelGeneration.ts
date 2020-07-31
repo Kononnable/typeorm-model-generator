@@ -50,7 +50,7 @@ function generateModels(
         "templates",
         "entity.mst"
     );
-    const entityTemplate = fs.readFileSync(entityTemplatePath, "UTF-8");
+    const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
     const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
         noEscape: true,
     });
@@ -97,7 +97,7 @@ function generateModels(
             formatted = withImportStatements;
         }
         fs.writeFileSync(resultFilePath, formatted, {
-            encoding: "UTF-8",
+            encoding: "utf-8",
             flag: "w",
         });
     });
@@ -109,7 +109,7 @@ function createIndexFile(
     entitiesPath: string
 ) {
     const templatePath = path.resolve(__dirname, "templates", "index.mst");
-    const template = fs.readFileSync(templatePath, "UTF-8");
+    const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
     });
@@ -130,7 +130,7 @@ function createIndexFile(
     }
     const resultFilePath = path.resolve(entitiesPath, `${fileName}.ts`);
     fs.writeFileSync(resultFilePath, formatted, {
-        encoding: "UTF-8",
+        encoding: "utf-8",
         flag: "w",
     });
 }
@@ -257,7 +257,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
 
 function createTsConfigFile(outputPath: string): void {
     const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
-    const template = fs.readFileSync(templatePath, "UTF-8");
+    const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
     });
@@ -265,7 +265,7 @@ function createTsConfigFile(outputPath: string): void {
     const formatted = Prettier.format(rendered, { parser: "json" });
     const resultFilePath = path.resolve(outputPath, "tsconfig.json");
     fs.writeFileSync(resultFilePath, formatted, {
-        encoding: "UTF-8",
+        encoding: "utf-8",
         flag: "w",
     });
 }
@@ -274,7 +274,7 @@ function createTypeOrmConfig(
     connectionOptions: IConnectionOptions
 ): void {
     const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
-    const template = fs.readFileSync(templatePath, "UTF-8");
+    const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
         noEscape: true,
     });
@@ -282,7 +282,7 @@ function createTypeOrmConfig(
     const formatted = Prettier.format(rendered, { parser: "json" });
     const resultFilePath = path.resolve(outputPath, "ormconfig.json");
     fs.writeFileSync(resultFilePath, formatted, {
-        encoding: "UTF-8",
+        encoding: "utf-8",
         flag: "w",
     });
 }
