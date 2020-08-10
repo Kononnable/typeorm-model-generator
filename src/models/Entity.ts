@@ -18,4 +18,5 @@ export type Entity = {
     fileImports: string[];
     activeRecord?: true;
     generateConstructor?: true;
+    exportAbstractClass?: true;
 };

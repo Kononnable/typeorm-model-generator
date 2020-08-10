@@ -222,6 +222,9 @@ function addImportsAndGenerationOptions(
         if (generationOptions.generateConstructor) {
             entity.generateConstructor = true;
         }
+        if (generationOptions.exportAbstractClass) {
+            entity.exportAbstractClass = true;
+        }
     });
     return dbModel;
 }

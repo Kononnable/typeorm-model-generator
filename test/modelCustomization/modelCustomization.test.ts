@@ -451,6 +451,44 @@ describe("Model customization phase", async () => {
 
         compileGeneratedModel(generationOptions.resultsPath, [""]);
     });
+    it("exportAbstractClass", async () => {
+        const data = generateSampleData();
+        const generationOptions = generateGenerationOptions();
+        clearGenerationDir();
+
+        generationOptions.exportAbstractClass = true;
+        const customizedModel = modelCustomizationPhase(
+            data,
+            generationOptions,
+            {}
+        );
+        modelGenerationPhase(
+            getDefaultConnectionOptions(),
+            generationOptions,
+            customizedModel
+        );
+        const filesGenPath = path.resolve(resultsPath, "entities");
+        const postContent = fs
+            .readFileSync(path.resolve(filesGenPath, "Post.ts"))
+            .toString();
+        const postAuthorContent = fs
+            .readFileSync(path.resolve(filesGenPath, "PostAuthor.ts"))
+            .toString();
+        expect(postContent).to.have.string(
+            `export abstract class Post `
+        );
+        expect(postAuthorContent).to.have.string(
+            `export abstract class PostAuthor `
+        );
+        expect(postContent).to.not.have.string(
+            `@Entity`
+        );
+        expect(postAuthorContent).to.not.have.string(
+            `@Entity`
+        );
+
+        compileGeneratedModel(generationOptions.resultsPath, [""]);
+    });
     it("skipSchema", async () => {
         const data = generateSampleData();
         const generationOptions = generateGenerationOptions();

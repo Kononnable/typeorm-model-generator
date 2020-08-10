@@ -285,6 +285,11 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.exportType === "default",
             describe: "Generate index file",
         },
+        exportAbstractClass: {
+            boolean: true,
+            default: options.generationOptions.exportAbstractClass,
+            describe: "Export generated models as abstract classes",
+        },
     });
 
     options.connectionOptions.databaseName = argv.d;
@@ -325,7 +330,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
         : "named";
-
+    options.generationOptions.exportAbstractClass = argv.exportAbstractClass;
     return options;
 }
 
@@ -558,6 +563,12 @@ async function useInquirer(options: options): Promise<options> {
                                 options.generationOptions.exportType ===
                                 "default",
                         },
+                        {
+                            name: "Export generated models as abstract classes",
+                            value: "exportAbstractClass",
+                            checked:
+                                options.generationOptions.exportAbstractClass,
+                        },
                     ],
                     message: "Available customizations",
                     name: "selected",
@@ -616,6 +627,9 @@ async function useInquirer(options: options): Promise<options> {
         )
             ? "default"
             : "named";
+        options.generationOptions.exportAbstractClass = customizations.includes(
+            "exportAbstractClass"
+        );
 
         if (customizations.includes("namingStrategy")) {
             const namingStrategyPath = (
