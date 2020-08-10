@@ -231,7 +231,7 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
         }
     );
     Handlebars.registerHelper("defaultExport", () =>
-        generationOptions.exportType === "default" ? "default" : ""
+        generationOptions.exportType === "default" ? " default" : ""
     );
     Handlebars.registerHelper("localImport", (entityName: string) =>
         generationOptions.exportType === "default"

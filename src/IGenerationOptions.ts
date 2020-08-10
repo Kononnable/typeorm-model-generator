@@ -16,6 +16,8 @@ export default interface IGenerationOptions {
     propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
     activeRecord: boolean;
+    skipRelationships: boolean;
+    extendAbstractClass: string;
     generateConstructor: boolean;
     customNamingStrategyPath: string;
     relationIds: boolean;
@@ -23,6 +25,7 @@ export default interface IGenerationOptions {
     skipSchema: boolean;
     indexFile: boolean;
     exportType: "named" | "default";
+    exportAbstractClass: boolean;
 }
 
 export const eolConverter = {
@@ -42,6 +45,8 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         propertyVisibility: "none",
         lazy: false,
         activeRecord: false,
+        skipRelationships: false,
+        extendAbstractClass: "",
         generateConstructor: false,
         customNamingStrategyPath: "",
         relationIds: false,
@@ -49,6 +54,7 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         skipSchema: false,
         indexFile: false,
         exportType: "named",
+        exportAbstractClass: false,
     };
     return generationOptions;
 }
