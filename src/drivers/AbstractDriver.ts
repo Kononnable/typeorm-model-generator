@@ -372,7 +372,7 @@ export default abstract class AbstractDriver {
                 );
 
                 let fieldType = "";
-                if (isOneToMany) {
+                if (ownerRelation.relationType === "OneToMany") {
                     fieldType = `${ownerColumns[0].tscType}[]`;
                 } else {
                     fieldType = ownerColumns[0].tscType;
