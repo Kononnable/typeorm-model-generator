@@ -79,6 +79,7 @@ export default function modelCustomizationPhase(
     namingStrategy.enablePluralization(generationOptions.pluralizeNames);
     let retVal = removeIndicesGeneratedByTypeorm(dbModel);
     retVal = removeColumnsInRelation(dbModel);
+    retVal = setDecoratorPrefix( retVal, generationOptions );
     retVal = applyNamingStrategy(namingStrategy, dbModel);
     retVal = addImportsAndGenerationOptions(retVal, generationOptions);
     retVal = removeColumnDefaultProperties(retVal, defaultValues);
@@ -128,6 +129,41 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
     });
     return dbModel;
 }
+
+function setDecoratorPrefix(dbModel: Entity[], generationOptions : IGenerationOptions): Entity[] {
+    dbModel.forEach((entity) => {
+        entity.columns.forEach((column) => {
+            generationOptions.deleteDateColumns.forEach((name) => {
+                if (column.options.name === name) {
+                    column.decoratorPrefix = "DeleteDate";
+                }
+            });
+            generationOptions.updateDateColumns.forEach((name) => {
+                if (column.options.name === name) {
+                    column.decoratorPrefix = "UpdateDate";
+                }
+            });
+            generationOptions.createDateColumns.forEach((name) => {
+                if (column.options.name === name) {
+                    column.decoratorPrefix = "CreateDate";
+                }
+            });
+            generationOptions.versionColumns.forEach((name) => {
+                if (column.options.name === name) {
+                    column.decoratorPrefix = "Version";
+                }
+            });
+            // Generated logic is no longer representative of how the decorator gets prefixed in the template
+            if (column.generated) {
+                column.decoratorPrefix = "PrimaryGenerated";
+            }
+        });
+    });
+    return dbModel;
+
+}
+
+
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
     dbModel.forEach((entity) => {
         entity.columns = entity.columns.filter(
