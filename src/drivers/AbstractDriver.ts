@@ -70,7 +70,8 @@ export default abstract class AbstractDriver {
     public abstract GetAllTablesQuery: (
         schema: string,
         dbNames: string,
-        tableNames: string[]
+        notIntTables: string[],
+        inTables: string[]
     ) => Promise<
         {
             TABLE_SCHEMA: string;
@@ -189,7 +190,8 @@ export default abstract class AbstractDriver {
         dbModel = await this.GetAllTables(
             sqlEscapedSchema,
             connectionOptions.databaseName,
-            connectionOptions.skipTables
+            connectionOptions.skipTables,
+            connectionOptions.tables
         );
         await this.GetCoulmnsFromEntity(
             dbModel,
@@ -218,12 +220,14 @@ export default abstract class AbstractDriver {
     public async GetAllTables(
         schema: string,
         dbNames: string,
-        tableNames: string[]
+        notInTables: string[],
+        inTables: string[]
     ): Promise<Entity[]> {
         const response = await this.GetAllTablesQuery(
             schema,
             dbNames,
-            tableNames
+            notInTables,
+            inTables
         );
         const ret: Entity[] = [] as Entity[];
         response.forEach((val) => {
