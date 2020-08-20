@@ -350,7 +350,8 @@ async function prepareTestRuns(
                         databaseType: "mysql",
                         schemaName: "ignored",
                         ssl: yn(process.env.MYSQL_SSL, { default: false }),
-                        skipTables: []
+                        skipTables: [],
+                        tables: [],
                     };
                     break;
                 case "mariadb":
@@ -363,7 +364,8 @@ async function prepareTestRuns(
                         databaseType: "mariadb",
                         schemaName: "ignored",
                         ssl: yn(process.env.MARIADB_SSL, { default: false }),
-                        skipTables: []
+                        skipTables: [],
+                        tables: []
                     };
                     break;
 
