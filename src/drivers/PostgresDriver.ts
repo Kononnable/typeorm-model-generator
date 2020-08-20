@@ -40,11 +40,16 @@ export default class PostgresDriver extends AbstractDriver {
     public GetAllTablesQuery = async (
         schema: string,
         dbNames: string,
-        tableNames: string[]
+        notInTables: string[],
+        inTables: string[]
     ) => {
         const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT table_name IN ('${tableNames.join("','")}')`
+            notInTables.length > 0
+                ? ` AND NOT table_name IN ('${notInTables.join("','")}')`
+                : "";
+        const inTableCondition =
+            inTables.length > 0
+                ? ` AND table_name IN ('${inTables.join("','")}')`
                 : "";
         const response: {
             TABLE_SCHEMA: string;
@@ -52,7 +57,7 @@ export default class PostgresDriver extends AbstractDriver {
             DB_NAME: string;
         }[] = (
             await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) ${tableCondition}`
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) ${tableCondition} ${inTableCondition}`
             )
         ).rows;
         return response;
