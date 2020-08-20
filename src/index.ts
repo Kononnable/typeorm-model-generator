@@ -11,7 +11,6 @@ import IGenerationOptions, {
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
-import { string } from "yargs";
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
