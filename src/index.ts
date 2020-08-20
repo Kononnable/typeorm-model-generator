@@ -11,6 +11,7 @@ import IGenerationOptions, {
 import fs = require("fs-extra");
 import inquirer = require("inquirer");
 import path = require("path");
+import { string } from "yargs";
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
@@ -211,7 +212,7 @@ function checkYargsParameters(options: options): options {
         },
         cp: {
             alias: "case-property",
-            choices: ["pascal", "camel", "none"],
+            choices: ["pascal", "camel", "snake", "none"],
             default: options.generationOptions.convertCaseProperty,
             describe: "Convert property names to specified case",
         },
