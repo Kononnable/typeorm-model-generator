@@ -73,7 +73,8 @@ export default class PostgresDriver extends AbstractDriver {
             character_maximum_length: number;
             numeric_precision: number;
             numeric_scale: number;
-            isidentity: string;
+            isidentity: string; // SERIAL identity type
+            is_identity: string; // reccommended INDENTITY type for pg > 10
             isunique: string;
             enumvalues: string | null;
             /* eslint-enable camelcase */
@@ -82,6 +83,7 @@ export default class PostgresDriver extends AbstractDriver {
                 .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
                     data_type,character_maximum_length,numeric_precision,numeric_scale,
                     case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+                    is_identity,
         			(SELECT count(*)
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
                 inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
@@ -114,7 +116,9 @@ export default class PostgresDriver extends AbstractDriver {
                     if (resp.isunique === "1") options.unique = true;
 
                     const generated =
-                        resp.isidentity === "YES" ? true : undefined;
+                        resp.isidentity === "YES" || resp.is_identity === "YES"
+                            ? true
+                            : undefined;
                     const defaultValue = generated
                         ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
