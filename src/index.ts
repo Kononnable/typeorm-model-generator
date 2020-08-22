@@ -211,7 +211,7 @@ function checkYargsParameters(options: options): options {
         },
         cp: {
             alias: "case-property",
-            choices: ["pascal", "camel", "none"],
+            choices: ["pascal", "camel", "snake", "none"],
             default: options.generationOptions.convertCaseProperty,
             describe: "Convert property names to specified case",
         },

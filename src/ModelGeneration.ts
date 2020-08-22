@@ -212,6 +212,9 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
             case "none":
                 retStr = str;
                 break;
+            case "snake":
+                retStr = changeCase.snakeCase(str);
+                break;
             default:
                 throw new Error("Unknown case style");
         }
