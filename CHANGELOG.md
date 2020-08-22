@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+* Option to generate properties with snake_case(#295)
+
 ## 0.4.2
 
 * Use statement not available on Azure SQL (#243)

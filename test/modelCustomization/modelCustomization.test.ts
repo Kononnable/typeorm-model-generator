@@ -30,6 +30,12 @@ describe("Model customization phase", async () => {
                     options: { name: "name" },
                     tscName: "name",
                     tscType: "string"
+                },
+                {
+                    type: "character varying",
+                    options: { name: "complicatedName" },
+                    tscName: "complexName",
+                    tscType: "string"
                 }
             ],
             indices: [
@@ -251,6 +257,7 @@ describe("Model customization phase", async () => {
                 .toString();
             expect(postContent).to.contain("Title: string;");
             expect(postAuthorContent).to.contain("Posts: Post[];");
+            expect(postAuthorContent).to.contain("ComplexName: string;");
 
             compileGeneratedModel(generationOptions.resultsPath, [""], false);
         });
@@ -279,8 +286,38 @@ describe("Model customization phase", async () => {
                 .toString();
             expect(postContent).to.contain("title: string;");
             expect(postAuthorContent).to.contain("posts: Post[];");
+            expect(postAuthorContent).to.contain("complexName: string;");
 
             compileGeneratedModel(generationOptions.resultsPath, [""]);
+        });
+        it("snake_case", () => {
+            const data = generateSampleData();
+            const generationOptions = generateGenerationOptions();
+            clearGenerationDir();
+
+            generationOptions.convertCaseProperty = "snake";
+            const customizedModel = modelCustomizationPhase(
+                data,
+                generationOptions,
+                {}
+            );
+            modelGenerationPhase(
+                getDefaultConnectionOptions(),
+                generationOptions,
+                customizedModel
+            );
+            const filesGenPath = path.resolve(resultsPath, "entities");
+            const postContent = fs
+                .readFileSync(path.resolve(filesGenPath, "Post.ts"))
+                .toString();
+            const postAuthorContent = fs
+                .readFileSync(path.resolve(filesGenPath, "PostAuthor.ts"))
+                .toString();
+            expect(postContent).to.contain("title: string;");
+            expect(postAuthorContent).to.contain("posts: Post[];");
+            expect(postAuthorContent).to.contain("complex_name: string;");
+
+            compileGeneratedModel(generationOptions.resultsPath, [""],false);
         });
     });
     describe("EOL", async () => {
