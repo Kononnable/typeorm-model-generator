@@ -26,5 +26,5 @@ export class PostReader {
     post: Post;
 
     @RelationId((postReader: PostReader) => postReader.post)
-    postId: number[];
+    postId: number;
 }
