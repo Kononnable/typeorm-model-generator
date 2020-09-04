@@ -23,4 +23,6 @@ export type Column = {
         array?: boolean; // ?
         comment?: string;
     };
+
+    decoratorPrefix?: string;
 };
