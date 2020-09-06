@@ -38,22 +38,55 @@ describe("TypeOrm examples", async () => {
     const testPartialPath = "test/integration/examples";
     await runTestsFromPath(testPartialPath, false);
 });
+describe("Filtering tables", async () => {
+    const testPartialPath = "test/integration/examples";
+    it("skipTables",async ()=>{
+        const dbDrivers: string[] = GTU.getEnabledDbDrivers();
+        const modelGenerationPromises = dbDrivers.map(async dbDriver => {
+            const {
+                generationOptions,
+                driver,
+                connectionOptions
+            } = await prepareTestRuns(testPartialPath, "sample2-one-to-one", dbDriver);
+            const dbModel = await dataCollectionPhase(
+                        driver,
+                        {...connectionOptions,
+                        skipTables:["Post"]},
+                        generationOptions
+                    );
+            expect(dbModel.length).to.equal(6);
+            expect(dbModel.find(x=>x.sqlName==="Post")).to.be.undefined;
+        });
+        await Promise.all(modelGenerationPromises);
+    });
+    it("onlyTables",async ()=>{
+        const dbDrivers: string[] = GTU.getEnabledDbDrivers();
+        const modelGenerationPromises = dbDrivers.map(async dbDriver => {
+            const {
+                generationOptions,
+                driver,
+                connectionOptions
+            } = await prepareTestRuns(testPartialPath, "sample2-one-to-one", dbDriver);
+            const dbModel = await dataCollectionPhase(
+                        driver,
+                        {...connectionOptions,
+                        onlyTables:["Post"]},
+                        generationOptions
+                    );
+            expect(dbModel.length).to.equal(1);
+            expect(dbModel.find(x=>x.sqlName==="Post")).to.not.be.undefined;
+        });
+        await Promise.all(modelGenerationPromises);
+    })
+
+});
 
 async function runTestsFromPath(
     testPartialPath: string,
     isDbSpecific: boolean
 ) {
-    const resultsPath = path.resolve(process.cwd(), `output`);
-    if (!fs.existsSync(resultsPath)) {
-        fs.mkdirSync(resultsPath);
-    }
     const dbDrivers: string[] = GTU.getEnabledDbDrivers();
-    dbDrivers.forEach(dbDriver => {
-        const newDirPath = path.resolve(resultsPath, dbDriver);
-        if (!fs.existsSync(newDirPath)) {
-            fs.mkdirSync(newDirPath);
-        }
-    });
+    createOutputDirs(dbDrivers);
     const files = fs.readdirSync(path.resolve(process.cwd(), testPartialPath));
     if (isDbSpecific) {
         await runTest(dbDrivers, testPartialPath, files);
@@ -62,6 +95,19 @@ async function runTestsFromPath(
             runTestForMultipleDrivers(folder, dbDrivers, testPartialPath);
         });
     }
+}
+
+function createOutputDirs(dbDrivers: string[]) {
+    const resultsPath = path.resolve(process.cwd(), `output`);
+    if (!fs.existsSync(resultsPath)) {
+        fs.mkdirSync(resultsPath);
+    }
+    dbDrivers.forEach(dbDriver => {
+        const newDirPath = path.resolve(resultsPath, dbDriver);
+        if (!fs.existsSync(newDirPath)) {
+            fs.mkdirSync(newDirPath);
+        }
+    });
 }
 
 function runTestForMultipleDrivers(
