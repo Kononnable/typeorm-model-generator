@@ -272,7 +272,7 @@ function checkYargsParameters(options: options): options {
         },
         tables: {
             string: true,
-            default: options.connectionOptions.tables.join(","),
+            default: options.connectionOptions.onlyTables.join(","),
             describe:
                 "Generate specific tables. You can pass multiple values separated by comma",
         },
@@ -316,7 +316,7 @@ function checkYargsParameters(options: options): options {
         tables = [];
     }
     options.connectionOptions.skipTables = skipTables;
-    options.connectionOptions.tables = tables;
+    options.connectionOptions.onlyTables = tables;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
@@ -466,7 +466,7 @@ async function useInquirer(options: options): Promise<options> {
     const optionsMapper = {
         "All of them": () => {
             options.connectionOptions.skipTables = [];
-            options.connectionOptions.tables = [];
+            options.connectionOptions.onlyTables = [];
         },
         "Ignore specific tables": async () => {
             const { tableNames } = await inquirer.prompt({
@@ -479,12 +479,12 @@ async function useInquirer(options: options): Promise<options> {
         },
         "Select specific tables": async () => {
             const { tableNames } = await inquirer.prompt({
-                default: options.connectionOptions.tables.join(","),
+                default: options.connectionOptions.onlyTables.join(","),
                 message: "Table names(separated by comma)",
                 name: "tableNames",
                 type: "input",
             });
-            options.connectionOptions.tables = tableNames.split(",");
+            options.connectionOptions.onlyTables = tableNames.split(",");
         },
     };
 

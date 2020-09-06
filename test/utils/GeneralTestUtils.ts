@@ -32,7 +32,7 @@ export async function createMSSQLModels(
         schemaName: "dbo,sch1,sch2",
         ssl: yn(process.env.MSSQL_SSL, { default: false }),
         skipTables: [],
-        tables: []
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.MSSQL_Database);
@@ -85,7 +85,7 @@ export async function createPostgresModels(
         schemaName: "public,sch1,sch2",
         ssl: yn(process.env.POSTGRES_SSL, { default: false }),
         skipTables: ["spatial_ref_sys"],
-        tables: []
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.POSTGRES_Database);
@@ -137,7 +137,7 @@ export async function createSQLiteModels(
         schemaName: "",
         ssl: false,
         skipTables: [],
-        tables: []
+        onlyTables: []
     };
 
     const connOpt: ConnectionOptions = {
@@ -173,7 +173,7 @@ export async function createMysqlModels(
         schemaName: "ignored",
         ssl: yn(process.env.MYSQL_SSL, { default: false }),
         skipTables: [],
-        tables: []
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -217,7 +217,7 @@ export async function createMariaDBModels(
         schemaName: "ignored",
         ssl: yn(process.env.MARIADB_SSL, { default: false }),
         skipTables: [],
-        tables: []
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -263,7 +263,7 @@ export async function createOracleDBModels(
         schemaName: String(process.env.ORACLE_Username),
         ssl: yn(process.env.ORACLE_SSL, { default: false }),
         skipTables: [],
-        tables: []
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.user = String(process.env.ORACLE_Username);

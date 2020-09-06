@@ -39,20 +39,7 @@ export default class MysqlDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (
-        schema: string,
-        dbNames: string,
-        notInTables: string[],
-        inTables: string[]
-    ) => {
-        const tableCondition =
-            notInTables.length > 0
-                ? ` AND NOT TABLE_NAME IN ('${notInTables.join("','")}')`
-                : "";
-        const inTableCondition =
-            inTables.length > 0
-                ? ` AND TABLE_NAME IN ('${inTables.join("','")}')`
-                : "";
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const response = this.ExecQuery<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
@@ -62,7 +49,7 @@ export default class MysqlDriver extends AbstractDriver {
             WHERE table_type='BASE TABLE'
             AND table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
-            )}) ${tableCondition} ${inTableCondition}`);
+            )})`);
         return response;
     };
 

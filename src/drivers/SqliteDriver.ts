@@ -46,22 +46,12 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetAllTables(
         schema: string,
-        dbNames: string,
-        notInTables: string[],
-        inTables: string[]
+        dbNames: string
     ): Promise<Entity[]> {
         const ret: Entity[] = [] as Entity[];
-        const tableCondition =
-            notInTables.length > 0
-                ? ` AND NOT tbl_name IN ('${notInTables.join("','")}')`
-                : "";
-        const inTableCondition =
-            inTables.length > 0
-                ? ` AND tbl_name IN ('${inTables.join("','")}')`
-                : "";
         // eslint-disable-next-line camelcase
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
-            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%' ${tableCondition} ${inTableCondition}`
+            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
         );
         rows.forEach((val) => {
             if (val.sql.includes("AUTOINCREMENT")) {
