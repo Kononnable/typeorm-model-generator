@@ -7,8 +7,8 @@ import IConnectionOptions, {
 import IGenerationOptions, {
     getDefaultGenerationOptions,
 } from "./IGenerationOptions";
-
 import fs = require("fs-extra");
+
 import inquirer = require("inquirer");
 import path = require("path");
 
@@ -270,6 +270,12 @@ function checkYargsParameters(options: options): options {
             describe:
                 "Skip schema generation for specific tables. You can pass multiple values separated by comma",
         },
+        tables: {
+            string: true,
+            default: options.connectionOptions.onlyTables.join(","),
+            describe:
+                "Generate specific tables. You can pass multiple values separated by comma",
+        },
         strictMode: {
             choices: ["none", "?", "!"],
             default: options.generationOptions.strictMode,
@@ -305,7 +311,12 @@ function checkYargsParameters(options: options): options {
     if (skipTables.length === 1 && skipTables[0] === "") {
         skipTables = []; // #252
     }
+    let tables = argv.tables.split(",");
+    if (tables.length === 1 && tables[0] === "") {
+        tables = [];
+    }
     options.connectionOptions.skipTables = skipTables;
+    options.connectionOptions.onlyTables = tables;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
@@ -441,23 +452,43 @@ async function useInquirer(options: options): Promise<options> {
                         ? "All of them"
                         : "Ignore specific tables",
                 message: "Generate schema for tables:",
-                choices: ["All of them", "Ignore specific tables"],
+                choices: [
+                    "All of them",
+                    "Ignore specific tables",
+                    "Select specific tables",
+                ],
                 name: "specyficTables",
                 type: "list",
             },
         ])
     ).specyficTables;
-    if (ignoreSpecyficTables === "Ignore specific tables") {
-        const { tableNames } = await inquirer.prompt({
-            default: options.connectionOptions.skipTables.join(","),
-            message: "Table names(separated by comma)",
-            name: "tableNames",
-            type: "input",
-        });
-        options.connectionOptions.skipTables = tableNames.split(",");
-    } else {
-        options.connectionOptions.skipTables = [];
-    }
+
+    const optionsMapper = {
+        "All of them": () => {
+            options.connectionOptions.skipTables = [];
+            options.connectionOptions.onlyTables = [];
+        },
+        "Ignore specific tables": async () => {
+            const { tableNames } = await inquirer.prompt({
+                default: options.connectionOptions.skipTables.join(","),
+                message: "Table names(separated by comma)",
+                name: "tableNames",
+                type: "input",
+            });
+            options.connectionOptions.skipTables = tableNames.split(",");
+        },
+        "Select specific tables": async () => {
+            const { tableNames } = await inquirer.prompt({
+                default: options.connectionOptions.onlyTables.join(","),
+                message: "Table names(separated by comma)",
+                name: "tableNames",
+                type: "input",
+            });
+            options.connectionOptions.onlyTables = tableNames.split(",");
+        },
+    };
+
+    await optionsMapper[ignoreSpecyficTables]();
 
     options.generationOptions.resultsPath = (
         await inquirer.prompt([

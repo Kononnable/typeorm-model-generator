@@ -37,16 +37,8 @@ export default class MssqlDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (
-        schema: string,
-        dbNames: string,
-        tableNames: string[]
-    ) => {
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const request = new this.MSSQL.Request(this.Connection);
-        const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
-                : "";
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
@@ -56,7 +48,7 @@ export default class MssqlDriver extends AbstractDriver {
                 `SELECT TABLE_SCHEMA,TABLE_NAME, table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
                     dbNames
-                )}) ${tableCondition}`
+                )})`
             )
         ).recordset;
         return response;
