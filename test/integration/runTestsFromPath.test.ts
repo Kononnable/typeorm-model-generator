@@ -55,6 +55,7 @@ describe("Filtering tables", async () => {
                         generationOptions
                     );
             expect(dbModel.length).to.equal(6);
+            // eslint-disable-next-line no-unused-expressions
             expect(dbModel.find(x=>x.sqlName==="Post")).to.be.undefined;
         });
         await Promise.all(modelGenerationPromises);
@@ -74,6 +75,7 @@ describe("Filtering tables", async () => {
                         generationOptions
                     );
             expect(dbModel.length).to.equal(1);
+            // eslint-disable-next-line no-unused-expressions
             expect(dbModel.find(x=>x.sqlName==="Post")).to.not.be.undefined;
         });
         await Promise.all(modelGenerationPromises);
