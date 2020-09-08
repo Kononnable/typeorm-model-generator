@@ -40,7 +40,7 @@ export function relationIdName(
 }
 
 export function relationName(relation: Relation, owner?: Entity): string {
-    const columnOldName = relation.fieldName;
+    const columnOldName =  relation.relatedTable; // relation.fieldName;
 
     const isRelationToMany =
         relation.relationType === "OneToMany" ||

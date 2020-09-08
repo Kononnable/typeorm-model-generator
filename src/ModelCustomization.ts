@@ -165,17 +165,18 @@ function setDecoratorPrefix(dbModel: Entity[], generationOptions : IGenerationOp
 
 
 function removeColumnsInRelation(dbModel: Entity[]): Entity[] {
-    dbModel.forEach((entity) => {
-        entity.columns = entity.columns.filter(
-            (col) =>
-                !col.isUsedInRelationAsOwner ||
-                col.isUsedInRelationAsReferenced ||
-                entity.indices.some((idx) =>
-                    idx.columns.some((v) => v === col.tscName)
-                ) ||
-                col.primary
-        );
-    });
+    // What a pile of shit.  Who does this?
+    // dbModel.forEach((entity) => {
+    //     entity.columns = entity.columns.filter(
+    //         (col) =>
+    //             !col.isUsedInRelationAsOwner ||
+    //             col.isUsedInRelationAsReferenced ||
+    //             entity.indices.some((idx) =>
+    //                 idx.columns.some((v) => v === col.tscName)
+    //             ) ||
+    //             col.primary
+    //     );
+    // });
     return dbModel;
 }
 function removeColumnDefaultProperties(
