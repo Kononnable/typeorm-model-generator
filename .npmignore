@@ -8,6 +8,7 @@ output/**/*.*
 .nyc_output/
 coverage/
 .env
+.env.dist
 *.tgz
 .editorconfig
 .prettierrc
@@ -25,3 +26,4 @@ dist/test/
 .eslintrc.js
 .eslintignore
 .tomg-config
+.github/

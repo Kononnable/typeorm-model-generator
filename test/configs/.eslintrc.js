@@ -18,7 +18,8 @@ module.exports = {
     "import/prefer-default-export": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "@typescript-eslint/camelcase": ["off"],
-    "@typescript-eslint/class-name-casing": ["off"]
+    "@typescript-eslint/class-name-casing": ["off"],
+    "@typescript-eslint/ban-types": ["off"]
   },
   settings: {
     "import/resolver": {

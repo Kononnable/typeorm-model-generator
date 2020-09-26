@@ -38,22 +38,14 @@ export default class OracleDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (
-        schema: string,
-        dbNames: string,
-        tableNames: string[]
-    ) => {
-        const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
-                : "";
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const response = (
             await this.Connection.execute<{
                 TABLE_SCHEMA: string;
                 TABLE_NAME: string;
                 DB_NAME: string;
             }>(
-                `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE owner = (select user from dual) ${tableCondition}`
+                `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE owner = (select user from dual)`
             )
         ).rows!;
         return response;

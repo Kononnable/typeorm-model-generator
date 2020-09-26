@@ -69,8 +69,7 @@ export default abstract class AbstractDriver {
 
     public abstract GetAllTablesQuery: (
         schema: string,
-        dbNames: string,
-        tableNames: string[]
+        dbNames: string
     ) => Promise<
         {
             TABLE_SCHEMA: string;
@@ -188,8 +187,7 @@ export default abstract class AbstractDriver {
         );
         dbModel = await this.GetAllTables(
             sqlEscapedSchema,
-            connectionOptions.databaseName,
-            connectionOptions.skipTables
+            connectionOptions.databaseName
         );
         await this.GetCoulmnsFromEntity(
             dbModel,
@@ -210,21 +208,35 @@ export default abstract class AbstractDriver {
         );
         await this.DisconnectFromServer();
         dbModel = AbstractDriver.FindManyToManyRelations(dbModel);
+        dbModel = AbstractDriver.FilterGeneratedTables(
+            dbModel,
+            connectionOptions.skipTables,
+            connectionOptions.onlyTables
+        );
         return dbModel;
+    }
+
+    static FilterGeneratedTables(
+        dbModel: Entity[],
+        skipTables: string[],
+        onlyTables: string[]
+    ): Entity[] {
+        return dbModel
+            .filter((table) => !skipTables.includes(table.sqlName))
+            .filter(
+                (table) =>
+                    onlyTables.length === 0 ||
+                    onlyTables.includes(table.sqlName)
+            );
     }
 
     public abstract async ConnectToServer(connectionOptons: IConnectionOptions);
 
     public async GetAllTables(
         schema: string,
-        dbNames: string,
-        tableNames: string[]
+        dbNames: string
     ): Promise<Entity[]> {
-        const response = await this.GetAllTablesQuery(
-            schema,
-            dbNames,
-            tableNames
-        );
+        const response = await this.GetAllTablesQuery(schema, dbNames);
         const ret: Entity[] = [] as Entity[];
         response.forEach((val) => {
             ret.push({
@@ -372,7 +384,7 @@ export default abstract class AbstractDriver {
                 );
 
                 let fieldType = "";
-                if (isOneToMany) {
+                if (ownerRelation.relationType === "OneToMany") {
                     fieldType = `${ownerColumns[0].tscType}[]`;
                 } else {
                     fieldType = ownerColumns[0].tscType;

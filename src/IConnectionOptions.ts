@@ -17,6 +17,7 @@ export default interface IConnectionOptions {
     schemaName: string;
     ssl: boolean;
     skipTables: string[];
+    onlyTables: string[];
 }
 
 export function getDefaultConnectionOptions(): IConnectionOptions {
@@ -30,6 +31,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         schemaName: "",
         ssl: false,
         skipTables: [],
+        onlyTables: [],
     };
     return connectionOptions;
 }

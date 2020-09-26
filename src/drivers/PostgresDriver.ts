@@ -37,22 +37,14 @@ export default class PostgresDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (
-        schema: string,
-        dbNames: string,
-        tableNames: string[]
-    ) => {
-        const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT table_name IN ('${tableNames.join("','")}')`
-                : "";
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
         }[] = (
             await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema}) ${tableCondition}`
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema})`
             )
         ).rows;
         return response;
@@ -63,6 +55,7 @@ export default class PostgresDriver extends AbstractDriver {
         schema: string
     ): Promise<Entity[]> {
         const response: {
+            /* eslint-disable camelcase */
             table_name: string;
             column_name: string;
             udt_name: string;
@@ -72,14 +65,17 @@ export default class PostgresDriver extends AbstractDriver {
             character_maximum_length: number;
             numeric_precision: number;
             numeric_scale: number;
-            isidentity: string;
+            isidentity: string; // SERIAL identity type
+            is_identity: string; // reccommended INDENTITY type for pg > 10
             isunique: string;
             enumvalues: string | null;
+            /* eslint-enable camelcase */
         }[] = (
             await this.Connection
                 .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
                     data_type,character_maximum_length,numeric_precision,numeric_scale,
                     case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+                    is_identity,
         			(SELECT count(*)
             FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
                 inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
@@ -112,7 +108,9 @@ export default class PostgresDriver extends AbstractDriver {
                     if (resp.isunique === "1") options.unique = true;
 
                     const generated =
-                        resp.isidentity === "YES" ? true : undefined;
+                        resp.isidentity === "YES" || resp.is_identity === "YES"
+                            ? true
+                            : undefined;
                     const defaultValue = generated
                         ? undefined
                         : PostgresDriver.ReturnDefaultValueFunction(
@@ -436,7 +434,9 @@ export default class PostgresDriver extends AbstractDriver {
             tablename: string;
             indexname: string;
             columnname: string;
+            // eslint-disable-next-line camelcase
             is_unique: number;
+            // eslint-disable-next-line camelcase
             is_primary_key: number;
         }[] = (
             await this.Connection.query(`SELECT
@@ -498,12 +498,14 @@ export default class PostgresDriver extends AbstractDriver {
     ): Promise<Entity[]> {
         const response: {
             tablewithforeignkey: string;
+            // eslint-disable-next-line camelcase
             fk_partno: number;
             foreignkeycolumn: string;
             tablereferenced: string;
             foreignkeycolumnreferenced: string;
             ondelete: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
             onupdate: "RESTRICT" | "CASCADE" | "SET NULL" | "NO ACTION";
+            // eslint-disable-next-line camelcase
             object_id: string;
             // Distinct because of note in https://www.postgresql.org/docs/9.1/information-schema.html
         }[] = (
@@ -621,7 +623,6 @@ export default class PostgresDriver extends AbstractDriver {
             password: connectionOptons.password,
             port: connectionOptons.port,
             ssl: connectionOptons.ssl,
-            // eslint-disable-next-line @typescript-eslint/camelcase
             statement_timeout: 60 * 60 * 1000,
             user: connectionOptons.user,
         });

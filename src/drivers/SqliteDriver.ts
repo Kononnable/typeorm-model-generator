@@ -46,16 +46,12 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetAllTables(
         schema: string,
-        dbNames: string,
-        tableNames: string[]
+        dbNames: string
     ): Promise<Entity[]> {
         const ret: Entity[] = [] as Entity[];
-        const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT tbl_name IN ('${tableNames.join("','")}')`
-                : "";
+        // eslint-disable-next-line camelcase
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
-            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%' ${tableCondition}`
+            `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
         );
         rows.forEach((val) => {
             if (val.sql.includes("AUTOINCREMENT")) {
@@ -82,6 +78,7 @@ export default class SqliteDriver extends AbstractDriver {
                     name: string;
                     type: string;
                     notnull: number;
+                    // eslint-disable-next-line camelcase
                     dflt_value: string;
                     pk: number;
                 }>(`PRAGMA table_info('${ent.tscName}');`);
@@ -322,11 +319,13 @@ export default class SqliteDriver extends AbstractDriver {
                     table: string;
                     from: string;
                     to: string;
+                    // eslint-disable-next-line camelcase
                     on_update:
                         | "RESTRICT"
                         | "CASCADE"
                         | "SET NULL"
                         | "NO ACTION";
+                    // eslint-disable-next-line camelcase
                     on_delete:
                         | "RESTRICT"
                         | "CASCADE"

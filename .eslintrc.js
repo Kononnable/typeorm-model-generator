@@ -31,7 +31,8 @@ module.exports = {
     "import/extensions": ["off"],
     "no-param-reassign": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
-    "no-loop-func": ["off"]
+    "no-loop-func": ["off"],
+    "@typescript-eslint/explicit-module-boundary-types": ["off"]
   },
   settings: {
     "import/resolver": {

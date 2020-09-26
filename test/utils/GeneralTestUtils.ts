@@ -1,6 +1,7 @@
 import { ConnectionOptions, createConnection } from "typeorm";
 import * as ts from "typescript";
 import * as yn from "yn";
+import * as path from "path"
 import IGenerationOptions, {
     getDefaultGenerationOptions
 } from "../../src/IGenerationOptions";
@@ -10,8 +11,6 @@ import MariaDbDriver from "../../src/drivers/MariaDbDriver";
 import PostgresDriver from "../../src/drivers/PostgresDriver";
 import OracleDriver from "../../src/drivers/OracleDriver";
 import MysqlDriver from "../../src/drivers/MysqlDriver";
-
-import path = require("path");
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     const retVal = getDefaultGenerationOptions();
@@ -32,7 +31,8 @@ export async function createMSSQLModels(
         databaseType: "mssql",
         schemaName: "dbo,sch1,sch2",
         ssl: yn(process.env.MSSQL_SSL, { default: false }),
-        skipTables: []
+        skipTables: [],
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.MSSQL_Database);
@@ -84,7 +84,8 @@ export async function createPostgresModels(
         databaseType: "postgres",
         schemaName: "public,sch1,sch2",
         ssl: yn(process.env.POSTGRES_SSL, { default: false }),
-        skipTables: ["spatial_ref_sys"]
+        skipTables: ["spatial_ref_sys"],
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.databaseName = String(process.env.POSTGRES_Database);
@@ -135,7 +136,8 @@ export async function createSQLiteModels(
         databaseType: "sqlite",
         schemaName: "",
         ssl: false,
-        skipTables: []
+        skipTables: [],
+        onlyTables: []
     };
 
     const connOpt: ConnectionOptions = {
@@ -170,7 +172,8 @@ export async function createMysqlModels(
         databaseType: "mysql",
         schemaName: "ignored",
         ssl: yn(process.env.MYSQL_SSL, { default: false }),
-        skipTables: []
+        skipTables: [],
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -213,7 +216,8 @@ export async function createMariaDBModels(
         databaseType: "mariadb",
         schemaName: "ignored",
         ssl: yn(process.env.MARIADB_SSL, { default: false }),
-        skipTables: []
+        skipTables: [],
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
 
@@ -258,7 +262,8 @@ export async function createOracleDBModels(
         databaseType: "oracle",
         schemaName: String(process.env.ORACLE_Username),
         ssl: yn(process.env.ORACLE_SSL, { default: false }),
-        skipTables: []
+        skipTables: [],
+        onlyTables: []
     };
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.user = String(process.env.ORACLE_Username);

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3
+* Add ability to generate models only for specyfic tables (#296)
+* Fix for generating one-to-many RelationId columns (#291)
+* Support for identity in newer postgres databases (#291)
+* Fixed bug with Mssql IsIdentity on tables with non-default schema name (#275)
+* Option to generate properties with snake_case (#295)
+
 ## 0.4.2
 
 * Use statement not available on Azure SQL (#243)

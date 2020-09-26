@@ -37,16 +37,8 @@ export default class MssqlDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (
-        schema: string,
-        dbNames: string,
-        tableNames: string[]
-    ) => {
+    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
         const request = new this.MSSQL.Request(this.Connection);
-        const tableCondition =
-            tableNames.length > 0
-                ? ` AND NOT TABLE_NAME IN ('${tableNames.join("','")}')`
-                : "";
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
@@ -56,7 +48,7 @@ export default class MssqlDriver extends AbstractDriver {
                 `SELECT TABLE_SCHEMA,TABLE_NAME, table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
                     dbNames
-                )}) ${tableCondition}`
+                )})`
             )
         ).recordset;
         return response;
@@ -83,7 +75,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         }[] = (
             await request.query(`SELECT TABLE_NAME,TABLE_SCHEMA,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
         DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-        COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') IsIdentity,
+        COLUMNPROPERTY(object_id(CONCAT(TABLE_SCHEMA,'.', TABLE_NAME)), COLUMN_NAME, 'IsIdentity') IsIdentity,
         (SELECT count(*)
          FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
              inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
@@ -267,6 +259,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         dbNames: string
     ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
+        /* eslint-disable camelcase */
         const response: {
             TableName: string;
             TableSchema: string;
@@ -275,19 +268,13 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             is_unique: boolean;
             is_primary_key: boolean;
         }[] = [];
+        /* eslint-enable camelcase */
         await Promise.all(
             dbNames.split(",").map(async (dbName) => {
                 if (dbNames.length > 1) {
                     await this.UseDB(dbName);
                 }
-                const resp: {
-                    TableName: string;
-                    TableSchema: string;
-                    IndexName: string;
-                    ColumnName: string;
-                    is_unique: boolean;
-                    is_primary_key: boolean;
-                }[] = (
+                const resp = (
                     await request.query(`SELECT
              TableName = t.name,
              TableSchema = s.name,
@@ -351,6 +338,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
         const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TableWithForeignKey: string;
+            // eslint-disable-next-line camelcase
             FK_PartNo: number;
             ForeignKeyColumn: string;
             TableReferenced: string;
@@ -366,6 +354,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
                 }
                 const resp: {
                     TableWithForeignKey: string;
+                    // eslint-disable-next-line camelcase
                     FK_PartNo: number;
                     ForeignKeyColumn: string;
                     TableReferenced: string;

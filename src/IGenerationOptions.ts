@@ -11,7 +11,7 @@ export default interface IGenerationOptions {
     noConfigs: boolean;
     convertCaseFile: "pascal" | "param" | "camel" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
-    convertCaseProperty: "pascal" | "camel" | "none";
+    convertCaseProperty: "pascal" | "camel" | "snake" | "none";
     convertEol: "LF" | "CRLF";
     propertyVisibility: "public" | "protected" | "private" | "none";
     lazy: boolean;
