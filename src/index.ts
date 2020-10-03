@@ -311,6 +311,7 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.schemaName = argv.s
         ? argv.s.toString()
         : standardSchema;
+    options.connectionOptions.instanceName = argv.i || undefined;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
     let skipTables = argv.skipTables.split(",");
