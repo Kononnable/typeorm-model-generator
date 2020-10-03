@@ -15,7 +15,7 @@ export default interface IConnectionOptions {
         | "oracle"
         | "sqlite";
     schemaName: string;
-    instanceName: string;
+    instanceName?: string;
     ssl: boolean;
     skipTables: string[];
     onlyTables: string[];
@@ -30,7 +30,7 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
         password: "",
         databaseType: undefined as any,
         schemaName: "",
-        instanceName: undefined as any,
+        instanceName: undefined,
         ssl: false,
         skipTables: [],
         onlyTables: [],
