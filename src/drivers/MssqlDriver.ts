@@ -475,8 +475,6 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             user: connectionOptons.user,
         };
 
-        console.log(config);
-
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = new this.MSSQL.ConnectionPool(config, (err) => {
                 if (!err) {
