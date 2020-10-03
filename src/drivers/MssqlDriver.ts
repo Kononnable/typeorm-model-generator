@@ -466,6 +466,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             options: {
                 appName: "typeorm-model-generator",
                 encrypt: connectionOptons.ssl,
+                instanceName: connectionOptons.instanceName,
             },
             password: connectionOptons.password,
             port: connectionOptons.port,
