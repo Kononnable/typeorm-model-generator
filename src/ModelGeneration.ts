@@ -278,10 +278,10 @@ function createTypeOrmConfig(
 ): void {
     const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
-    const compliedTemplate = Handlebars.compile(template, {
+    const compiledTemplate = Handlebars.compile(template, {
         noEscape: true,
     });
-    const rendered = compliedTemplate(connectionOptions);
+    const rendered = compiledTemplate(connectionOptions);
     const formatted = Prettier.format(rendered, { parser: "json" });
     const resultFilePath = path.resolve(outputPath, "ormconfig.json");
     fs.writeFileSync(resultFilePath, formatted, {
