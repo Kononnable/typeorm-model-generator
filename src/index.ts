@@ -188,12 +188,6 @@ function checkYargsParameters(options: options): options {
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3",
         },
-        i: {
-            alias: "instance",
-            string: true,
-            default: options.connectionOptions.instanceName,
-            describe: "Named instance to create model from. Only for mssql.",
-        },
         ssl: {
             boolean: true,
             default: options.connectionOptions.ssl,
@@ -430,18 +424,6 @@ async function useInquirer(options: options): Promise<options> {
                     },
                 ])
             ).schema;
-        }
-        if (options.connectionOptions.databaseType === "mssql") {
-            options.connectionOptions.instanceName = (
-                await inquirer.prompt([
-                    {
-                        default: options.connectionOptions.instanceName,
-                        message: "Named instance:",
-                        name: "instanceName",
-                        type: "input",
-                    },
-                ])
-            ).instanceName;
         }
         options.connectionOptions.port = parseInt(answ.port, 10);
         options.connectionOptions.host = answ.host;

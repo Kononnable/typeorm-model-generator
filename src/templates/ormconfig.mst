@@ -7,8 +7,7 @@
     "username": "{{user}}",
     "password": "{{password}}",
     "database": "{{databaseName}}",{{#schemaName}}
-    "schema": "{{.}}",{{/schemaName}}{{#instanceName}}
-    "extra": { "instanceName": "{{.}}" },{{/instanceName}}
+    "schema": "{{.}}",{{/schemaName}}
     "synchronize": false,
     "entities": [
       "entities/*.js"
