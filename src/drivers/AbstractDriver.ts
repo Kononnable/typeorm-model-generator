@@ -91,9 +91,15 @@ export default abstract class AbstractDriver {
                     entity.relations[1].relatedTable &&
                 entity.relations[0].joinColumnOptions!.length ===
                     entity.relations[1].joinColumnOptions!.length &&
-                entity.columns.length ===
-                    entity.columns.filter((c) => c.primary).length &&
+                [entity.columns.length, 1].includes(
+                    entity.columns.filter((c) => c.primary).length
+                ) &&
                 entity.columns
+                    .filter((v) =>
+                        entity.columns.filter((c) => c.primary).length === 1
+                            ? !v.primary
+                            : true
+                    )
                     .map((v) => v.tscName)
                     .filter(
                         (v) =>
