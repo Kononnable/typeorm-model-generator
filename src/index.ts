@@ -374,6 +374,19 @@ async function useInquirer(options: options): Promise<options> {
         options.connectionOptions.schemaName = driver.standardSchema;
     }
     if (options.connectionOptions.databaseType !== "sqlite") {
+        if (options.connectionOptions.databaseType === "mssql") {
+            options.connectionOptions.instanceName = (
+                await inquirer.prompt([
+                    {
+                        default: options.connectionOptions.instanceName,
+                        message:
+                            "Instance name(leave empty if using port number):",
+                        name: "instanceName",
+                        type: "input",
+                    },
+                ])
+            ).instanceName;
+        }
         const answ = await inquirer.prompt([
             {
                 default: options.connectionOptions.host,
@@ -386,6 +399,7 @@ async function useInquirer(options: options): Promise<options> {
                 name: "port",
                 type: "input",
                 default: options.connectionOptions.port,
+                when: !options.connectionOptions.instanceName,
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid port number";
@@ -431,18 +445,6 @@ async function useInquirer(options: options): Promise<options> {
                     },
                 ])
             ).schema;
-        }
-        if (options.connectionOptions.databaseType === "mssql") {
-            options.connectionOptions.instanceName = (
-                await inquirer.prompt([
-                    {
-                        default: options.connectionOptions.instanceName,
-                        message: "Named instance:",
-                        name: "instanceName",
-                        type: "input",
-                    },
-                ])
-            ).instanceName;
         }
         options.connectionOptions.port = parseInt(answ.port, 10);
         options.connectionOptions.host = answ.host;
