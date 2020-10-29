@@ -188,6 +188,12 @@ function checkYargsParameters(options: options): options {
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3",
         },
+        i: {
+            alias: "instance",
+            string: true,
+            default: options.connectionOptions.instanceName,
+            describe: "Named instance to create model from. Only for mssql.",
+        },
         ssl: {
             boolean: true,
             default: options.connectionOptions.ssl,
@@ -305,6 +311,7 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.schemaName = argv.s
         ? argv.s.toString()
         : standardSchema;
+    options.connectionOptions.instanceName = argv.i || undefined;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
     let skipTables = argv.skipTables.split(",");
@@ -367,6 +374,19 @@ async function useInquirer(options: options): Promise<options> {
         options.connectionOptions.schemaName = driver.standardSchema;
     }
     if (options.connectionOptions.databaseType !== "sqlite") {
+        if (options.connectionOptions.databaseType === "mssql") {
+            options.connectionOptions.instanceName = (
+                await inquirer.prompt([
+                    {
+                        default: options.connectionOptions.instanceName,
+                        message:
+                            "Instance name(leave empty if using port number):",
+                        name: "instanceName",
+                        type: "input",
+                    },
+                ])
+            ).instanceName;
+        }
         const answ = await inquirer.prompt([
             {
                 default: options.connectionOptions.host,
@@ -379,6 +399,7 @@ async function useInquirer(options: options): Promise<options> {
                 name: "port",
                 type: "input",
                 default: options.connectionOptions.port,
+                when: !options.connectionOptions.instanceName,
                 validate(value) {
                     const valid = !Number.isNaN(parseInt(value, 10));
                     return valid || "Please enter a valid port number";
