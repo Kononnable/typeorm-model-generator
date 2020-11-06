@@ -297,6 +297,12 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.exportType === "default",
             describe: "Generate index file",
         },
+        t: {
+            alias: "entityTemplate",
+            string: true,
+            default: options.generationOptions.entityTemplate,
+            describe: "Template file for entity generation",
+        },
     });
 
     options.connectionOptions.databaseName = argv.d;
@@ -343,6 +349,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
         : "named";
+    options.generationOptions.entityTemplate = argv.t;
 
     return options;
 }

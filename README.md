@@ -50,6 +50,8 @@ Options:
                                                               [default: "mssql"]
   -o, --output           Where to place generated models
                             [default: "./output"]
+  -t                               Template file for entity generation
+      --entityTemplate              [string] [default: "./templates/entity.mst"]
   -s, --schema           Schema name to create model from. Only for mssql
                          and postgres. You can pass multiple values
                          separated by comma eg. -s scheme1,scheme2,scheme3

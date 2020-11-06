@@ -45,11 +45,9 @@ function generateModels(
     generationOptions: IGenerationOptions,
     entitiesPath: string
 ) {
-    const entityTemplatePath = path.resolve(
-        __dirname,
-        "templates",
-        "entity.mst"
-    );
+    const entityTemplatePath =
+        generationOptions.entityTemplate ||
+        path.resolve(__dirname, "templates", "entity.mst");
     const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
     const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
         noEscape: true,
