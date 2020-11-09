@@ -9,6 +9,9 @@ export type Entity = {
 
     database?: string;
     schema?: string;
+    // add type ->view or table
+    type?: string;
+    expression?: string;
 
     columns: Column[];
     relationIds: RelationId[];

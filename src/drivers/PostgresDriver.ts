@@ -41,10 +41,15 @@ export default class PostgresDriver extends AbstractDriver {
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            TABLE_TYPE: string;
+            VIEW_DEFINITION: string;
             DB_NAME: string;
-        }[] = (
+        }[] = // add type ->view or table
+        (
             await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema})`
+                `SELECT t.table_schema as "TABLE_SCHEMA",t.table_name as "TABLE_NAME",t.table_type as "TABLE_TYPE",v.view_definition as "VIEW_DEFINITION", t.table_catalog as "DB_NAME"
+                FROM INFORMATION_SCHEMA.TABLES as t LEFT JOIN INFORMATION_SCHEMA.VIEWS AS v ON v.TABLE_CATALOG = t.TABLE_CATALOG AND v.TABLE_SCHEMA = t.TABLE_SCHEMA AND v.TABLE_NAME = t.TABLE_NAME
+                WHERE  t.table_schema in (${schema})`
             )
         ).rows;
         return response;
@@ -72,27 +77,30 @@ export default class PostgresDriver extends AbstractDriver {
             /* eslint-enable camelcase */
         }[] = (
             await this.Connection
-                .query(`SELECT table_name,column_name,udt_name,column_default,is_nullable,
-                    data_type,character_maximum_length,numeric_precision,numeric_scale,
-                    case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
-                    is_identity,
-        			(SELECT count(*)
-            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-                inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                    on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-            where
-                tc.CONSTRAINT_TYPE = 'UNIQUE'
-                and tc.TABLE_NAME = c.TABLE_NAME
-                and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
-                (SELECT
-        string_agg(enumlabel, ',')
-        FROM "pg_enum" "e"
-        INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
-        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enumValues
-                    FROM INFORMATION_SCHEMA.COLUMNS c
+                .query(`SELECT c.table_name,c.column_name,c.udt_name,c.column_default,c.is_nullable,
+                data_type,character_maximum_length,numeric_precision,numeric_scale,
+                case when column_default LIKE 'nextval%' then 'YES' else 'NO' end isidentity,
+                is_identity,
+                case when COALESCE(tc.cnt,0)>0 then 1 else 0 end IsUnique,
+                enumValues
+                FROM INFORMATION_SCHEMA.COLUMNS c
+                left join (SELECT tc.TABLE_SCHEMA,tc.TABLE_NAME, cu.COLUMN_NAME, count(1) as cnt
+                    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+                        inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
+                            on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
+                        where tc.CONSTRAINT_TYPE = 'UNIQUE'
+                          group by tc.TABLE_SCHEMA,tc.TABLE_NAME, cu.COLUMN_NAME
+                          ) tc
+                        on tc.TABLE_NAME = c.TABLE_NAME
+                        and tc.COLUMN_NAME = c.COLUMN_NAME
+                        and tc.TABLE_SCHEMA=c.TABLE_SCHEMA
+                left join (SELECT "n"."nspname","t"."typname",
+                    string_agg(enumlabel, ',') as enumValues
+                    FROM "pg_enum" "e"
+                    INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
+                    INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+                    group by "n"."nspname","t"."typname"
+                    ) as "e" on "e"."nspname" = c.table_schema AND "e"."typname"=udt_name
                     where table_schema in (${schema})
         			order by ordinal_position`)
         ).rows;

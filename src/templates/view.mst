@@ -1,0 +1,26 @@
+{{#*inline "Import"}}
+import {{localImport (toEntityName .)}} from './{{toFileName .}}'
+{{/inline}}
+{{#*inline "Column"}}
+@ViewColumn()
+{{printPropertyVisibility}}{{toPropertyName tscName}}{{strictMode}}:{{tscType}}{{#if options.nullable}} | null{{/if}};
+{{/inline}}
+
+{{#*inline "Constructor"}}
+{{printPropertyVisibility}}constructor(init?: Partial<{{toEntityName entityName}}>) {
+    {{#activeRecord}}super();
+    {{/activeRecord}}Object.assign(this, init);
+}
+{{/inline}}
+{{#*inline "Entity"}}
+
+@ViewEntity({expression:`{{expression}}`})
+export {{defaultExport}} class {{toEntityName tscName}} {
+
+    {{#columns}}{{> Column}}{{/columns~}}
+}
+{{/inline}}
+import {ViewColumn,ViewEntity} from "typeorm";
+{{#fileImports}}{{> Import}}{{/fileImports}}
+
+{{> Entity}}

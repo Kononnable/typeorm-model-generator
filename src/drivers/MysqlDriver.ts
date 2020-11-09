@@ -43,13 +43,18 @@ export default class MysqlDriver extends AbstractDriver {
         const response = this.ExecQuery<{
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            TABLE_TYPE: string;
+            VIEW_DEFINITION: string;
             DB_NAME: string;
-        }>(`SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
+        }>(
+            // TODO sql not ready
+            `SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
             FROM information_schema.tables
             WHERE table_type='BASE TABLE'
             AND table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
                 dbNames
-            )})`);
+            )})`
+        );
         return response;
     };
 

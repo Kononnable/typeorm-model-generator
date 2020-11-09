@@ -51,6 +51,7 @@ export default class SqliteDriver extends AbstractDriver {
         const ret: Entity[] = [] as Entity[];
         // eslint-disable-next-line camelcase
         const rows = await this.ExecQuery<{ tbl_name: string; sql: string }>(
+            // TODO sql not ready
             `SELECT tbl_name, sql FROM "sqlite_master" WHERE "type" = 'table'  AND name NOT LIKE 'sqlite_%'`
         );
         rows.forEach((val) => {

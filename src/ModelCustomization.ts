@@ -279,25 +279,27 @@ function applyNamingStrategy(
                 const relatedEntity = model.find(
                     (v) => v.tscName === relation.relatedTable
                 )!;
-                const relation2 = relatedEntity.relations.find(
-                    (v) => v.fieldName === relation.relatedField
-                )!;
+                if (relatedEntity) {
+                    const relation2 = relatedEntity.relations.find(
+                        (v) => v.fieldName === relation.relatedField
+                    )!;
 
-                entity.relationIds
-                    .filter((v) => v.relationField === oldName)
-                    .forEach((v) => {
-                        v.relationField = newName;
-                    });
+                    entity.relationIds
+                        .filter((v) => v.relationField === oldName)
+                        .forEach((v) => {
+                            v.relationField = newName;
+                        });
 
-                relation.fieldName = newName;
-                relation2.relatedField = newName;
+                    relation.fieldName = newName;
+                    relation2.relatedField = newName;
 
-                if (relation.relationOptions) {
-                    entity.indices.forEach((ind) => {
-                        ind.columns.map((column2) =>
-                            column2 === oldName ? newName : column2
-                        );
-                    });
+                    if (relation.relationOptions) {
+                        entity.indices.forEach((ind) => {
+                            ind.columns.map((column2) =>
+                                column2 === oldName ? newName : column2
+                            );
+                        });
+                    }
                 }
             });
         });

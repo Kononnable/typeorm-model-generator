@@ -74,6 +74,9 @@ export default abstract class AbstractDriver {
         {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
+            // add type ->view or table
+            TABLE_TYPE: string;
+            VIEW_DEFINITION: string;
             DB_NAME: string;
         }[]
     >;
@@ -248,8 +251,16 @@ export default abstract class AbstractDriver {
                 tscName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
                 schema: val.TABLE_SCHEMA,
+                // add type ->view or table
+                type: val.TABLE_TYPE === "VIEW" ? "view" : "table",
+                expression: val.VIEW_DEFINITION
+                    ? val.VIEW_DEFINITION.substring(
+                          val.VIEW_DEFINITION.indexOf("SELECT")
+                      ).trimRight()
+                    : "",
                 fileImports: [],
             });
+            // if(val.TABLE_TYPE==='VIEW'){console.log(val.TABLE_NAME,val.VIEW_DEFINITION)}
         });
         return ret;
     }
