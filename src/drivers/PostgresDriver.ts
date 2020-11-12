@@ -101,7 +101,7 @@ export default class PostgresDriver extends AbstractDriver {
                     INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
                     group by "n"."nspname","t"."typname"
                     ) as "e" on "e"."nspname" = c.table_schema AND "e"."typname"=udt_name
-                    where table_schema in (${schema})
+                    where c.table_schema in (${schema})
         			order by ordinal_position`)
         ).rows;
         entities.forEach((ent) => {
