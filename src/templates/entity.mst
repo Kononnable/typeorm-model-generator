@@ -26,22 +26,23 @@ import {{localImport (toEntityName .)}} from './{{toFileName .}}'
 {{/inline}}
 {{#*inline "Constructor"}}
 {{printPropertyVisibility}}constructor(init?: Partial<{{toEntityName entityName}}>) {
-    {{#activeRecord}}super();
-    {{/activeRecord}}Object.assign(this, init);
+    {{#generateSuper}}super();
+    {{/generateSuper}}Object.assign(this, init);
 }
 {{/inline}}
 {{#*inline "Entity"}}
 {{#indices}}{{> Index}}{{/indices~}}
-@Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}})
-export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
+{{#unless exportAbstractClass}}@Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}}){{/unless}}
+export{{defaultExport}}{{#exportAbstractClass}} abstract{{/exportAbstractClass}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}}{{#extendAbstractClass}} extends BaseClass{{/extendAbstractClass}} {
 
 {{#columns}}{{> Column}}{{/columns~}}
-{{#relations}}{{> Relation}}{{/relations~}}
+{{#unless skipRelationships}}{{#relations}}{{> Relation}}{{/relations~}}{{/unless}}
 {{#relationIds}}{{> RelationId entityName=../tscName}}{{/relationIds~}}
 {{#if generateConstructor}}{{>Constructor entityName=tscName}}{{/if~}}
 }
 {{/inline}}
 import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne,OneToMany,OneToOne,PrimaryColumn,PrimaryGeneratedColumn,RelationId} from "typeorm";
-{{#fileImports}}{{> Import}}{{/fileImports}}
+{{#unless skipRelationships}}{{#fileImports}}{{> Import}}{{/fileImports}}{{/unless}}
+{{#extendAbstractClass}}import BaseClass from "{{.}}";{{/extendAbstractClass}}
 
 {{> Entity}}

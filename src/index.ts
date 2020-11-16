@@ -54,6 +54,15 @@ function validateConfig(options: options): options {
             false
         );
         options.generationOptions.relationIds = false;
+    } else if (
+        options.generationOptions.activeRecord &&
+        options.generationOptions.extendAbstractClass
+    ) {
+        TomgUtils.LogError(
+            "Typeorm cannot use ActiveRecord and extend-abstract-class at the same time.",
+            false
+        );
+        options.generationOptions.activeRecord = false;
     }
     return options;
 }
@@ -244,6 +253,24 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.activeRecord,
             describe: "Use ActiveRecord syntax for generated models",
         },
+        skipRelationships: {
+            alias: "skip-relationships",
+            boolean: true,
+            default: options.generationOptions.skipRelationships,
+            describe: "Skip relationship declarations",
+        },
+        extendAbstractClass: {
+            alias: "extend-abstract-class",
+            string: true,
+            default: options.generationOptions.extendAbstractClass,
+            describe: "Make generated models extend a custom abstract class",
+        },
+        exportAbstractClass: {
+            alias: "export-abstract-class",
+            boolean: true,
+            default: options.generationOptions.exportAbstractClass,
+            describe: "Export generated models as abstract classes",
+        },
         namingStrategy: {
             describe: "Use custom naming strategy",
             default: options.generationOptions.customNamingStrategyPath,
@@ -325,6 +352,8 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.skipTables = skipTables;
     options.connectionOptions.onlyTables = tables;
     options.generationOptions.activeRecord = argv.a;
+    options.generationOptions.skipRelationships = argv.skipRelationships;
+    options.generationOptions.extendAbstractClass = argv.extendAbstractClass;
     options.generationOptions.generateConstructor = argv.generateConstructor;
     options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
     options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
@@ -343,7 +372,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
         : "named";
-
+    options.generationOptions.exportAbstractClass = argv.exportAbstractClass;
     return options;
 }
 
@@ -552,6 +581,19 @@ async function useInquirer(options: options): Promise<options> {
                             checked: options.generationOptions.activeRecord,
                         },
                         {
+                            name: "Skip relationship declarations",
+                            value: "skipRelationships",
+                            checked:
+                                options.generationOptions.skipRelationships,
+                        },
+                        {
+                            name:
+                                "Generated models extend a custom abstract class",
+                            value: "extendAbstractClass",
+                            checked:
+                                options.generationOptions.extendAbstractClass,
+                        },
+                        {
                             name: "Use custom naming strategy",
                             value: "namingStrategy",
                             checked: !!options.generationOptions
@@ -610,6 +652,12 @@ async function useInquirer(options: options): Promise<options> {
                                 options.generationOptions.exportType ===
                                 "default",
                         },
+                        {
+                            name: "Export generated models as abstract classes",
+                            value: "exportAbstractClass",
+                            checked:
+                                options.generationOptions.exportAbstractClass,
+                        },
                     ],
                     message: "Available customizations",
                     name: "selected",
@@ -653,6 +701,44 @@ async function useInquirer(options: options): Promise<options> {
         options.generationOptions.activeRecord = customizations.includes(
             "activeRecord"
         );
+        options.generationOptions.skipRelationships = customizations.includes(
+            "skipRelationships"
+        );
+        if (customizations.includes("extendAbstractClass")) {
+            const { extendAbstractClass } = await inquirer.prompt([
+                {
+                    default: options.generationOptions.extendAbstractClass,
+                    message: "Relative path to custom abstract class file:",
+                    name: "extendAbstractClass",
+                    type: "input",
+                    validate(value) {
+                        const valid = value === "" || fs.existsSync(value);
+                        return (
+                            valid ||
+                            "Please enter a valid relative path to custom abstract class file"
+                        );
+                    },
+                },
+            ]);
+
+            if (extendAbstractClass && extendAbstractClass !== "") {
+                const resultsAbsolutePath = path.join(
+                    process.cwd(),
+                    options.generationOptions.resultsPath
+                );
+                const abstractClassAbsolutePath = path.join(
+                    process.cwd(),
+                    options.generationOptions.resultsPath
+                );
+                const relativePath = path.relative(
+                    abstractClassAbsolutePath,
+                    resultsAbsolutePath
+                );
+                options.generationOptions.extendAbstractClass = relativePath;
+            } else {
+                options.generationOptions.extendAbstractClass = "";
+            }
+        }
         options.generationOptions.relationIds = customizations.includes(
             "relationId"
         );
@@ -668,6 +754,9 @@ async function useInquirer(options: options): Promise<options> {
         )
             ? "default"
             : "named";
+        options.generationOptions.exportAbstractClass = customizations.includes(
+            "exportAbstractClass"
+        );
 
         if (customizations.includes("namingStrategy")) {
             const namingStrategyPath = (
