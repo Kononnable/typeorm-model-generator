@@ -13,6 +13,12 @@ Supported db engines:
 * Oracle Database
 * SQLite
 
+## Warning
+This is a fork of the original typeorm-model-generator authored by Konnonable with abstract class generation options authored by ivawzh.
+Additional options are the following
+- extendAbstractClass (string) Similar to activeRecord that extends BaseEntity. Now it supports custom abstract class inheritance by passing a relative path as string to extendAbstractClass.
+- exportAbstractClass (boolean) Export the generated models as an abstract class without @Entity
+- skipRelationships (boolean) Skip generating relationship columns. Because currently there is a bug from TypeORM failing at foreign key embedded columns in abstract classes.
 
 ## Installation
 ### Versions
