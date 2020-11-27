@@ -20,3 +20,7 @@ export function entityName(oldEntityName: string): string {
 export function columnName(oldColumnName: string): string {
     return `${NamingStrategy.columnName(oldColumnName)}_C`;
 }
+
+export function fileName(oldFileName: string): string {
+    return `${NamingStrategy.fileName(oldFileName)}_D`;
+}

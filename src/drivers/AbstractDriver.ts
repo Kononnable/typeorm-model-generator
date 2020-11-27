@@ -246,6 +246,7 @@ export default abstract class AbstractDriver {
                 relationIds: [],
                 sqlName: val.TABLE_NAME,
                 tscName: val.TABLE_NAME,
+                fileName: val.TABLE_NAME,
                 database: dbNames.includes(",") ? val.DB_NAME : "",
                 schema: val.TABLE_SCHEMA,
                 fileImports: [],

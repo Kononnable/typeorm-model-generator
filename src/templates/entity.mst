@@ -2,7 +2,7 @@
 @Index("{{name}}",[{{#columns}}"{{toPropertyName .}}",{{/columns~}}],{ {{json options}} })
 {{/inline}}
 {{#*inline "Import"}}
-import {{localImport (toEntityName .)}} from './{{toFileName .}}'
+import {{localImport (toEntityName entityName)}} from './{{toFileName fileName}}'
 {{/inline}}
 {{#*inline "Column"}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })

@@ -58,16 +58,16 @@ function generateModels(
         let casedFileName = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
-                casedFileName = changeCase.camelCase(element.tscName);
+                casedFileName = changeCase.camelCase(element.fileName);
                 break;
             case "param":
-                casedFileName = changeCase.paramCase(element.tscName);
+                casedFileName = changeCase.paramCase(element.fileName);
                 break;
             case "pascal":
-                casedFileName = changeCase.pascalCase(element.tscName);
+                casedFileName = changeCase.pascalCase(element.fileName);
                 break;
             case "none":
-                casedFileName = element.tscName;
+                casedFileName = element.fileName;
                 break;
             default:
                 throw new Error("Unknown case style");
