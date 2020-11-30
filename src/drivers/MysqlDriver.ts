@@ -1,4 +1,4 @@
-import type * as MYSQL from "mysql";
+import type * as MYSQL from "mysql2";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -32,7 +32,7 @@ export default class MysqlDriver extends AbstractDriver {
         super();
         try {
             // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
-            this.MYSQL = require("mysql");
+            this.MYSQL = require("mysql2");
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;
