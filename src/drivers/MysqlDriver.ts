@@ -466,7 +466,7 @@ export default class MysqlDriver extends AbstractDriver {
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
         const databaseName = connectionOptons.databaseNames[0];
-        let config: MYSQL.ConnectionConfig;
+        let config: MYSQL.ConnectionOptions;
         if (connectionOptons.ssl) {
             config = {
                 database: databaseName,
@@ -476,7 +476,7 @@ export default class MysqlDriver extends AbstractDriver {
                 ssl: {
                     rejectUnauthorized: false,
                 },
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         } else {
@@ -485,7 +485,7 @@ export default class MysqlDriver extends AbstractDriver {
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         }
