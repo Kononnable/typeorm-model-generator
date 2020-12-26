@@ -38,7 +38,10 @@ export default class OracleDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
+    public async GetAllTables(
+        schemas: string[],
+        dbNames: string[]
+    ): Promise<Entity[]> {
         const response = (
             await this.Connection.execute<{
                 TABLE_SCHEMA: string;
@@ -48,8 +51,23 @@ export default class OracleDriver extends AbstractDriver {
                 `SELECT NULL AS TABLE_SCHEMA, TABLE_NAME, NULL AS DB_NAME FROM all_tables WHERE owner = (select user from dual)`
             )
         ).rows!;
-        return response;
-    };
+        const ret: Entity[] = [];
+        response.forEach((val) => {
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.TABLE_NAME,
+                tscName: val.TABLE_NAME,
+                fileName: val.TABLE_NAME,
+                database: dbNames.length > 1 ? val.DB_NAME : "",
+                schema: val.TABLE_SCHEMA,
+                fileImports: [],
+            });
+        });
+        return ret;
+    }
 
     public async GetCoulmnsFromEntity(entities: Entity[]): Promise<Entity[]> {
         const response = (
@@ -262,8 +280,8 @@ export default class OracleDriver extends AbstractDriver {
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         const response = (
@@ -341,7 +359,7 @@ export default class OracleDriver extends AbstractDriver {
         let config: Oracle.ConnectionAttributes;
         if (connectionOptions.user === String(process.env.ORACLE_UsernameSys)) {
             config = {
-                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseName}`,
+                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseNames[0]}`,
                 externalAuth: connectionOptions.ssl,
                 password: connectionOptions.password,
                 privilege: this.Oracle.SYSDBA,
@@ -349,7 +367,7 @@ export default class OracleDriver extends AbstractDriver {
             };
         } else {
             config = {
-                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseName}`,
+                connectString: `${connectionOptions.host}:${connectionOptions.port}/${connectionOptions.databaseNames[0]}`,
                 externalAuth: connectionOptions.ssl,
                 password: connectionOptions.password,
                 user: connectionOptions.user,

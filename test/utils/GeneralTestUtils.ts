@@ -11,6 +11,7 @@ import MariaDbDriver from "../../src/drivers/MariaDbDriver";
 import PostgresDriver from "../../src/drivers/PostgresDriver";
 import OracleDriver from "../../src/drivers/OracleDriver";
 import MysqlDriver from "../../src/drivers/MysqlDriver";
+import { assertUnreachable } from "../../src/Utils";
 
 export function getGenerationOptions(resultsPath: string): IGenerationOptions {
     const retVal = getDefaultGenerationOptions();
@@ -22,20 +23,9 @@ export async function createMSSQLModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
     const driver = new MssqlDriver();
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MSSQL_Host),
-        port: Number(process.env.MSSQL_Port),
-        databaseName: `master`,
-        user: String(process.env.MSSQL_Username),
-        password: String(process.env.MSSQL_Password),
-        databaseType: "mssql",
-        schemaName: "dbo,sch1,sch2",
-        ssl: yn(process.env.MSSQL_SSL, { default: false }),
-        skipTables: [],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("mssql");
     await driver.ConnectToServer(connectionOptions);
-    connectionOptions.databaseName = String(process.env.MSSQL_Database);
+    connectionOptions.databaseNames = [String(process.env.MSSQL_Database)];
 
     if (await driver.CheckIfDBExists(String(process.env.MSSQL_Database))) {
         await driver.DropDB(String(process.env.MSSQL_Database));
@@ -75,20 +65,9 @@ export async function createPostgresModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
     const driver = new PostgresDriver();
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.POSTGRES_Host),
-        port: Number(process.env.POSTGRES_Port),
-        databaseName: `postgres`,
-        user: String(process.env.POSTGRES_Username),
-        password: String(process.env.POSTGRES_Password),
-        databaseType: "postgres",
-        schemaName: "public,sch1,sch2",
-        ssl: yn(process.env.POSTGRES_SSL, { default: false }),
-        skipTables: ["spatial_ref_sys"],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("postgres");
     await driver.ConnectToServer(connectionOptions);
-    connectionOptions.databaseName = String(process.env.POSTGRES_Database);
+    connectionOptions.databaseNames = [String(process.env.POSTGRES_Database)];
 
     if (await driver.CheckIfDBExists(String(process.env.POSTGRES_Database))) {
         await driver.DropDB(String(process.env.POSTGRES_Database));
@@ -127,18 +106,7 @@ export async function createPostgresModels(
 export async function createSQLiteModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
-    const connectionOptions: IConnectionOptions = {
-        host: "",
-        port: 0,
-        databaseName: String(process.env.SQLITE_Database),
-        user: "",
-        password: "",
-        databaseType: "sqlite",
-        schemaName: "",
-        ssl: false,
-        skipTables: [],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("sqlite");
 
     const connOpt: ConnectionOptions = {
         database: String(process.env.SQLITE_Database),
@@ -163,18 +131,7 @@ export async function createMysqlModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
     const driver = new MysqlDriver();
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MYSQL_Host),
-        port: Number(process.env.MYSQL_Port),
-        databaseName: String(process.env.MYSQL_Database),
-        user: String(process.env.MYSQL_Username),
-        password: String(process.env.MYSQL_Password),
-        databaseType: "mysql",
-        schemaName: "ignored",
-        ssl: yn(process.env.MYSQL_SSL, { default: false }),
-        skipTables: [],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("mysql");
     await driver.ConnectToServer(connectionOptions);
 
     if (await driver.CheckIfDBExists(String(process.env.MYSQL_Database))) {
@@ -207,18 +164,7 @@ export async function createMariaDBModels(
     filesOrgPath: string
 ): Promise<IConnectionOptions> {
     const driver = new MariaDbDriver();
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.MARIADB_Host),
-        port: Number(process.env.MARIADB_Port),
-        databaseName: String(process.env.MARIADB_Database),
-        user: String(process.env.MARIADB_Username),
-        password: String(process.env.MARIADB_Password),
-        databaseType: "mariadb",
-        schemaName: "ignored",
-        ssl: yn(process.env.MARIADB_SSL, { default: false }),
-        skipTables: [],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("mariadb");
     await driver.ConnectToServer(connectionOptions);
 
     if (await driver.CheckIfDBExists(String(process.env.MARIADB_Database))) {
@@ -253,18 +199,8 @@ export async function createOracleDBModels(
 ): Promise<IConnectionOptions> {
     const driver = new OracleDriver();
 
-    const connectionOptions: IConnectionOptions = {
-        host: String(process.env.ORACLE_Host),
-        port: Number(process.env.ORACLE_Port),
-        databaseName: String(process.env.ORACLE_Database),
-        user: String(process.env.ORACLE_UsernameSys),
-        password: String(process.env.ORACLE_PasswordSys),
-        databaseType: "oracle",
-        schemaName: String(process.env.ORACLE_Username),
-        ssl: yn(process.env.ORACLE_SSL, { default: false }),
-        skipTables: [],
-        onlyTables: []
-    };
+    const connectionOptions = getTomgConnectionOptions("oracle");
+
     await driver.ConnectToServer(connectionOptions);
     connectionOptions.user = String(process.env.ORACLE_Username);
     connectionOptions.password = String(process.env.ORACLE_Password);
@@ -317,7 +253,7 @@ export function compileTsFiles(
         );
         console.log(
             `${diagnostic.file!.fileName} (${lineAndCharacter.line +
-                1},${lineAndCharacter.character + 1}): ${message}`
+            1},${lineAndCharacter.character + 1}): ${message}`
         );
         compiledWithoutErrors = false;
     });
@@ -325,8 +261,8 @@ export function compileTsFiles(
     return compiledWithoutErrors;
 }
 
-export function getEnabledDbDrivers(): string[] {
-    const dbDrivers: string[] = [];
+export function getEnabledDbDrivers(): IConnectionOptions["databaseType"][] {
+    const dbDrivers: IConnectionOptions["databaseType"][] = [];
     if (process.env.SQLITE_Skip === "0") {
         dbDrivers.push("sqlite");
     }
@@ -369,4 +305,90 @@ export function createModelsInDb(
             console.log(`Unknown engine type`);
             throw new Error("Unknown engine type");
     }
+}
+
+
+export function getTomgConnectionOptions(dbType: IConnectionOptions["databaseType"]): IConnectionOptions {
+    switch (dbType) {
+        case "mssql":
+            return {
+                host: String(process.env.MSSQL_Host),
+                port: Number(process.env.MSSQL_Port),
+                databaseNames: ["master"],
+                user: String(process.env.MSSQL_Username),
+                password: String(process.env.MSSQL_Password),
+                databaseType: "mssql",
+                schemaNames: ["dbo","sch1","sch2"],
+                ssl: yn(process.env.MSSQL_SSL, { default: false }),
+                skipTables: [],
+                onlyTables: []
+            };
+        case "mariadb":
+            return {
+                host: String(process.env.MARIADB_Host),
+                port: Number(process.env.MARIADB_Port),
+                databaseNames: [String(process.env.MARIADB_Database)],
+                user: String(process.env.MARIADB_Username),
+                password: String(process.env.MARIADB_Password),
+                databaseType: "mariadb",
+                schemaNames: ["ignored"],
+                ssl: yn(process.env.MARIADB_SSL, { default: false }),
+                skipTables: [],
+                onlyTables: []
+            };
+        case "mysql":
+            return {
+                host: String(process.env.MYSQL_Host),
+                port: Number(process.env.MYSQL_Port),
+                databaseNames: [String(process.env.MYSQL_Database)],
+                user: String(process.env.MYSQL_Username),
+                password: String(process.env.MYSQL_Password),
+                databaseType: "mysql",
+                schemaNames: ["ignored"],
+                ssl: yn(process.env.MYSQL_SSL, { default: false }),
+                skipTables: [],
+                onlyTables: []
+            };
+        case "oracle":
+            return {
+                host: String(process.env.ORACLE_Host),
+                port: Number(process.env.ORACLE_Port),
+                databaseNames: [String(process.env.ORACLE_Database)],
+                user: String(process.env.ORACLE_UsernameSys),
+                password: String(process.env.ORACLE_PasswordSys),
+                databaseType: "oracle",
+                schemaNames: [String(process.env.ORACLE_Username)],
+                ssl: yn(process.env.ORACLE_SSL, { default: false }),
+                skipTables: [],
+                onlyTables: []
+            };
+        case "postgres":
+            return {
+                host: String(process.env.POSTGRES_Host),
+                port: Number(process.env.POSTGRES_Port),
+                databaseNames: ["postgres"],
+                user: String(process.env.POSTGRES_Username),
+                password: String(process.env.POSTGRES_Password),
+                databaseType: "postgres",
+                schemaNames: ["public","sch1","sch2"],
+                ssl: yn(process.env.POSTGRES_SSL, { default: false }),
+                skipTables: ["spatial_ref_sys"],
+                onlyTables: []
+            };
+        case "sqlite": return {
+            host: "",
+            port: 0,
+            databaseNames: [String(process.env.SQLITE_Database)],
+            user: "",
+            password: "",
+            databaseType: "sqlite",
+            schemaNames: [""],
+            ssl: false,
+            skipTables: [],
+            onlyTables: []
+        };
+        default:
+            return assertUnreachable(dbType);
+    }
+
 }

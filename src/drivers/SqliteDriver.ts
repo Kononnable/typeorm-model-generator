@@ -45,8 +45,10 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async GetAllTables(
-        schema: string,
-        dbNames: string
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        schemas: string[],
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        dbNames: string[]
     ): Promise<Entity[]> {
         const ret: Entity[] = [] as Entity[];
         // eslint-disable-next-line camelcase
@@ -307,8 +309,8 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         let retVal = entities;
@@ -387,30 +389,29 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
-        await this.UseDB(connectionOptons.databaseName);
+        const promise = new Promise<void>((resolve, reject) => {
+            this.db = new this.sqlite.Database(
+                connectionOptons.databaseNames[0],
+                (err) => {
+                    if (err) {
+                        TomgUtils.LogError(
+                            "Error connecting to SQLite database.",
+                            false,
+                            err.message
+                        );
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                }
+            );
+        });
+        return promise;
     }
 
     // eslint-disable-next-line class-methods-use-this
     public async CreateDB() {
         // not supported
-    }
-
-    public async UseDB(dbName: string) {
-        const promise = new Promise<boolean>((resolve, reject) => {
-            this.db = new this.sqlite.Database(dbName, (err) => {
-                if (err) {
-                    TomgUtils.LogError(
-                        "Error connecting to SQLite database.",
-                        false,
-                        err.message
-                    );
-                    reject(err);
-                    return;
-                }
-                resolve();
-            });
-        });
-        return promise;
     }
 
     // eslint-disable-next-line class-methods-use-this

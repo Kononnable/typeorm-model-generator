@@ -37,7 +37,10 @@ export default class MssqlDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
+    public async GetAllTables(
+        schemas: string[],
+        dbNames: string[]
+    ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
         const response: {
             TABLE_SCHEMA: string;
@@ -46,18 +49,36 @@ export default class MssqlDriver extends AbstractDriver {
         }[] = (
             await request.query(
                 `SELECT TABLE_SCHEMA,TABLE_NAME, table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
+        WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${MssqlDriver.buildEscapedObjectList(
+            schemas
+        )}) AND TABLE_CATALOG in (${MssqlDriver.buildEscapedObjectList(
                     dbNames
                 )})`
             )
         ).recordset;
-        return response;
-    };
+        // const response = await this.GetAllTablesQuery(schemas, dbNames);
+        const ret: Entity[] = [] as Entity[];
+        response.forEach((val) => {
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.TABLE_NAME,
+                tscName: val.TABLE_NAME,
+                fileName: val.TABLE_NAME,
+                database: dbNames.length > 1 ? val.DB_NAME : "",
+                schema: val.TABLE_SCHEMA,
+                fileImports: [],
+            });
+        });
+        return ret;
+    }
 
     public async GetCoulmnsFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
         const response: {
@@ -86,7 +107,9 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
              and cu.COLUMN_NAME = c.COLUMN_NAME
              and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
         FROM INFORMATION_SCHEMA.COLUMNS c
-        where TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG in (${MssqlDriver.escapeCommaSeparatedList(
+        where TABLE_SCHEMA in (${MssqlDriver.buildEscapedObjectList(
+            schemas
+        )}) AND TABLE_CATALOG in (${MssqlDriver.buildEscapedObjectList(
                 dbNames
             )})
              order by ordinal_position`)
@@ -255,8 +278,8 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
     public async GetIndexesFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
         /* eslint-disable camelcase */
@@ -269,38 +292,40 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             is_primary_key: boolean;
         }[] = [];
         /* eslint-enable camelcase */
-        await Promise.all(
-            dbNames.split(",").map(async (dbName) => {
-                if (dbNames.length > 1) {
-                    await this.UseDB(dbName);
-                }
-                const resp = (
-                    await request.query(`SELECT
-             TableName = t.name,
-             TableSchema = s.name,
-             IndexName = ind.name,
-             ColumnName = col.name,
-             ind.is_unique,
-             ind.is_primary_key
-        FROM
-             sys.indexes ind
-        INNER JOIN
-             sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
-        INNER JOIN
-             sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
-        INNER JOIN
-             sys.tables t ON ind.object_id = t.object_id
-        INNER JOIN
-             sys.schemas s on s.schema_id=t.schema_id
-        WHERE
-             t.is_ms_shipped = 0 and s.name in (${schema})
-        ORDER BY
-             t.name, ind.name, ind.index_id, ic.key_ordinal;`)
-                ).recordset;
-                response.push(...resp);
-            })
-        );
+        /* eslint-disable no-await-in-loop */
+        for (const dbName of dbNames) {
+            if (dbNames.length > 1) {
+                await this.UseDB(dbName);
+            }
+            const resp = (
+                await request.query(`SELECT
+                TableName = t.name,
+                TableSchema = s.name,
+                IndexName = ind.name,
+                ColumnName = col.name,
+                ind.is_unique,
+                ind.is_primary_key
+                FROM
+                sys.indexes ind
+                INNER JOIN
+                sys.index_columns ic ON  ind.object_id = ic.object_id and ind.index_id = ic.index_id
+                INNER JOIN
+                sys.columns col ON ic.object_id = col.object_id and ic.column_id = col.column_id
+                INNER JOIN
+                sys.tables t ON ind.object_id = t.object_id
+                INNER JOIN
+                sys.schemas s on s.schema_id=t.schema_id
+                WHERE
+                t.is_ms_shipped = 0 and s.name in (${MssqlDriver.buildEscapedObjectList(
+                    schemas
+                )})
+                    ORDER BY
+                    t.name, ind.name, ind.index_id, ic.key_ordinal;`)
+            ).recordset;
+            response.push(...resp);
+        }
 
+        /* eslint-enable no-await-in-loop */
         entities.forEach((ent) => {
             const entityIndices = response.filter(
                 (filterVal) =>
@@ -331,8 +356,8 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         const request = new this.MSSQL.Request(this.Connection);
@@ -347,53 +372,56 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
             onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
             objectId: number;
         }[] = [];
-        await Promise.all(
-            dbNames.split(",").map(async (dbName) => {
-                if (dbNames.length > 1) {
-                    await this.UseDB(dbName);
-                }
-                const resp: {
-                    TableWithForeignKey: string;
-                    // eslint-disable-next-line camelcase
-                    FK_PartNo: number;
-                    ForeignKeyColumn: string;
-                    TableReferenced: string;
-                    ForeignKeyColumnReferenced: string;
-                    onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                    onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
-                    objectId: number;
-                }[] = (
-                    await request.query(`select
-            parentTable.name as TableWithForeignKey,
-            fkc.constraint_column_id as FK_PartNo,
-             parentColumn.name as ForeignKeyColumn,
-             referencedTable.name as TableReferenced,
-             referencedColumn.name as ForeignKeyColumnReferenced,
-             fk.delete_referential_action_desc as onDelete,
-             fk.update_referential_action_desc as onUpdate,
-             fk.object_id as objectId
-        from
-            sys.foreign_keys fk
-        inner join
-            sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
-        inner join
-            sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
-        inner join
-            sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
-        inner join
-            sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
-        inner join
-            sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
-        inner join
-        	sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
-        where
-            fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${schema})
-        order by
-            TableWithForeignKey, FK_PartNo`)
-                ).recordset;
-                response.push(...resp);
-            })
-        );
+        /* eslint-disable no-await-in-loop */
+        for (const dbName of dbNames) {
+            if (dbNames.length > 1) {
+                await this.UseDB(dbName);
+            }
+            const resp: {
+                TableWithForeignKey: string;
+                // eslint-disable-next-line camelcase
+                FK_PartNo: number;
+                ForeignKeyColumn: string;
+                TableReferenced: string;
+                ForeignKeyColumnReferenced: string;
+                onDelete: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                onUpdate: "RESTRICT" | "CASCADE" | "SET_NULL" | "NO_ACTION";
+                objectId: number;
+            }[] = (
+                await request.query(`select
+                parentTable.name as TableWithForeignKey,
+                fkc.constraint_column_id as FK_PartNo,
+                parentColumn.name as ForeignKeyColumn,
+                referencedTable.name as TableReferenced,
+                referencedColumn.name as ForeignKeyColumnReferenced,
+                fk.delete_referential_action_desc as onDelete,
+                fk.update_referential_action_desc as onUpdate,
+                fk.object_id as objectId
+                from
+                sys.foreign_keys fk
+                inner join
+                sys.foreign_key_columns as fkc on fkc.constraint_object_id=fk.object_id
+                inner join
+                sys.tables as parentTable on fkc.parent_object_id = parentTable.object_id
+                inner join
+                sys.columns as parentColumn on fkc.parent_object_id = parentColumn.object_id and fkc.parent_column_id = parentColumn.column_id
+                inner join
+                sys.tables as referencedTable on fkc.referenced_object_id = referencedTable.object_id
+                inner join
+                sys.columns as referencedColumn on fkc.referenced_object_id = referencedColumn.object_id and fkc.referenced_column_id = referencedColumn.column_id
+                inner join
+                sys.schemas as parentSchema on parentSchema.schema_id=parentTable.schema_id
+                where
+                fk.is_disabled=0 and fk.is_ms_shipped=0 and parentSchema.name in (${MssqlDriver.buildEscapedObjectList(
+                    schemas
+                )})
+                    order by
+                    TableWithForeignKey, FK_PartNo`)
+            ).recordset;
+            response.push(...resp);
+        }
+        /* eslint-enable no-await-in-loop */
+
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
         const relationKeys = new Set(response.map((v) => v.objectId));
 
@@ -460,7 +488,7 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
     }
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
-        const databaseName = connectionOptons.databaseName.split(",")[0];
+        const databaseName = connectionOptons.databaseNames[0];
         const config: MSSQL.config = {
             database: databaseName,
             options: {
@@ -495,17 +523,17 @@ WHERE TABLE_TYPE='BASE TABLE' and TABLE_SCHEMA in (${schema}) AND TABLE_CATALOG 
 
     public async CreateDB(dbName: string) {
         const request = new this.MSSQL.Request(this.Connection);
-        await request.query(`CREATE DATABASE ${dbName}; `);
+        await request.query(`CREATE DATABASE "${dbName}"; `);
     }
 
     public async UseDB(dbName: string) {
         const request = new this.MSSQL.Request(this.Connection);
-        await request.query(`USE ${dbName}; `);
+        await request.query(`USE "${dbName}"; `);
     }
 
     public async DropDB(dbName: string) {
         const request = new this.MSSQL.Request(this.Connection);
-        await request.query(`DROP DATABASE ${dbName}; `);
+        await request.query(`DROP DATABASE "${dbName}"; `);
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {

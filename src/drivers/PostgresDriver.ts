@@ -37,22 +37,42 @@ export default class PostgresDriver extends AbstractDriver {
         }
     }
 
-    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
+    public async GetAllTables(
+        schemas: string[],
+        dbNames: string[]
+    ): Promise<Entity[]> {
         const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
         }[] = (
             await this.Connection.query(
-                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${schema})`
+                `SELECT table_schema as "TABLE_SCHEMA",table_name as "TABLE_NAME", table_catalog as "DB_NAME" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND table_schema in (${PostgresDriver.buildEscapedObjectList(
+                    schemas
+                )})`
             )
         ).rows;
-        return response;
-    };
+        const ret: Entity[] = [];
+        response.forEach((val) => {
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.TABLE_NAME,
+                tscName: val.TABLE_NAME,
+                fileName: val.TABLE_NAME,
+                database: dbNames.length > 1 ? val.DB_NAME : "",
+                schema: val.TABLE_SCHEMA,
+                fileImports: [],
+            });
+        });
+        return ret;
+    }
 
     public async GetCoulmnsFromEntity(
         entities: Entity[],
-        schema: string
+        schemas: string[]
     ): Promise<Entity[]> {
         const response: {
             /* eslint-disable camelcase */
@@ -93,7 +113,9 @@ export default class PostgresDriver extends AbstractDriver {
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
                 ) enumValues
                     FROM INFORMATION_SCHEMA.COLUMNS c
-                    where table_schema in (${schema})
+                    where table_schema in (${PostgresDriver.buildEscapedObjectList(
+                        schemas
+                    )})
         			order by ordinal_position`)
         ).rows;
         entities.forEach((ent) => {
@@ -428,7 +450,7 @@ export default class PostgresDriver extends AbstractDriver {
 
     public async GetIndexesFromEntity(
         entities: Entity[],
-        schema: string
+        schemas: string[]
     ): Promise<Entity[]> {
         const response: {
             tablename: string;
@@ -459,7 +481,7 @@ export default class PostgresDriver extends AbstractDriver {
         LEFT JOIN pg_index AS ix ON f.attnum = ANY(ix.indkey) and c.oid = f.attrelid and c.oid = ix.indrelid
         LEFT JOIN pg_class AS i ON ix.indexrelid = i.oid
         WHERE c.relkind = 'r'::char
-        AND n.nspname in (${schema})
+        AND n.nspname in (${PostgresDriver.buildEscapedObjectList(schemas)})
         AND f.attnum > 0
         AND i.oid<>0
         ORDER BY c.relname,f.attname;`)
@@ -492,8 +514,8 @@ export default class PostgresDriver extends AbstractDriver {
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         const response: {
@@ -535,7 +557,9 @@ export default class PostgresDriver extends AbstractDriver {
                      con1.contype = 'f'::"char"
                      AND cl_1.relnamespace = ns.oid
                      AND con1.conrelid = cl_1.oid
-                     and nspname in (${schema})
+                     and nspname in (${PostgresDriver.buildEscapedObjectList(
+                         schemas
+                     )})
               ) con,
                 pg_attribute att,
                 pg_class cl,
@@ -618,7 +642,7 @@ export default class PostgresDriver extends AbstractDriver {
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
         this.Connection = new this.PG.Client({
-            database: connectionOptons.databaseName,
+            database: connectionOptons.databaseNames[0],
             host: connectionOptons.host,
             password: connectionOptons.password,
             port: connectionOptons.port,
@@ -647,10 +671,6 @@ export default class PostgresDriver extends AbstractDriver {
 
     public async CreateDB(dbName: string) {
         await this.Connection.query(`CREATE DATABASE ${dbName}; `);
-    }
-
-    public async UseDB(dbName: string) {
-        await this.Connection.query(`USE ${dbName}; `);
     }
 
     public async DropDB(dbName: string) {
