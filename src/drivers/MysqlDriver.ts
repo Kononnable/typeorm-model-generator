@@ -1,4 +1,4 @@
-import type * as MYSQL from "mysql";
+import type * as MYSQL from "mysql2";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -32,7 +32,7 @@ export default class MysqlDriver extends AbstractDriver {
         super();
         try {
             // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
-            this.MYSQL = require("mysql");
+            this.MYSQL = require("mysql2");
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;
@@ -466,7 +466,7 @@ export default class MysqlDriver extends AbstractDriver {
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
         const databaseName = connectionOptons.databaseNames[0];
-        let config: MYSQL.ConnectionConfig;
+        let config: MYSQL.ConnectionOptions;
         if (connectionOptons.ssl) {
             config = {
                 database: databaseName,
@@ -476,7 +476,7 @@ export default class MysqlDriver extends AbstractDriver {
                 ssl: {
                     rejectUnauthorized: false,
                 },
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         } else {
@@ -485,7 +485,7 @@ export default class MysqlDriver extends AbstractDriver {
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         }
