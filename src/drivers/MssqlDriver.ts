@@ -94,25 +94,18 @@ export default class MssqlDriver extends AbstractDriver {
             IsIdentity: number;
             IsUnique: number;
         }[] = (
-            await request.query(`SELECT TABLE_NAME,TABLE_SCHEMA,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
-        DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
-        COLUMNPROPERTY(object_id(CONCAT(TABLE_SCHEMA,'.', TABLE_NAME)), COLUMN_NAME, 'IsIdentity') IsIdentity,
-        (SELECT count(*)
-         FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-             inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu
-                 on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME
-         where
-             tc.CONSTRAINT_TYPE = 'UNIQUE'
-             and tc.TABLE_NAME = c.TABLE_NAME
-             and cu.COLUMN_NAME = c.COLUMN_NAME
-             and tc.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique
-        FROM INFORMATION_SCHEMA.COLUMNS c
-        where TABLE_SCHEMA in (${MssqlDriver.buildEscapedObjectList(
-            schemas
-        )}) AND TABLE_CATALOG in (${MssqlDriver.buildEscapedObjectList(
+            await request.query(`SELECT c.TABLE_NAME,c.TABLE_SCHEMA,c.COLUMN_NAME,c.COLUMN_DEFAULT,IS_NULLABLE, DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
+            COLUMNPROPERTY(object_id(c.TABLE_SCHEMA + '.'+ c.TABLE_NAME),c. COLUMN_NAME, 'IsIdentity') IsIdentity,
+             CASE WHEN ISNULL(tc.cnt,0)>0 THEN 1 ELSE 0 END AS IsUnique
+              FROM INFORMATION_SCHEMA.COLUMNS c
+              LEFT JOIN (SELECT tc.TABLE_SCHEMA,tc.TABLE_NAME,cu.COLUMN_NAME,COUNT(1) AS cnt FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE cu on cu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME where tc.CONSTRAINT_TYPE = 'UNIQUE' GROUP BY tc.TABLE_SCHEMA,tc.TABLE_NAME,cu.COLUMN_NAME) AS tc
+               on tc.TABLE_NAME = c.TABLE_NAME and tc.COLUMN_NAME = c.COLUMN_NAME and tc.TABLE_SCHEMA=c.TABLE_SCHEMA
+              where c.TABLE_SCHEMA in (${MssqlDriver.buildEscapedObjectList(
+                schemas
+            )}) AND c.TABLE_CATALOG in (${MssqlDriver.buildEscapedObjectList(
                 dbNames
-            )})
-             order by ordinal_position`)
+            )}) order by ordinal_position
+        `)
         ).recordset;
         entities.forEach((ent) => {
             response
