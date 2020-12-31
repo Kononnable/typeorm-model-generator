@@ -22,9 +22,7 @@ export function relationIdName(
     const isRelationToMany =
         relation.relationType === "OneToMany" ||
         relation.relationType === "ManyToMany";
-    let newColumnName = changeCase.camelCase(
-        columnOldName.replace(/[0-9]$/, "")
-    );
+    let newColumnName = columnOldName.replace(/[0-9]$/, "");
 
     if (!Number.isNaN(parseInt(newColumnName[newColumnName.length - 1], 10))) {
         newColumnName = newColumnName.substring(0, newColumnName.length - 1);
@@ -45,9 +43,7 @@ export function relationName(relation: Relation, owner?: Entity): string {
     const isRelationToMany =
         relation.relationType === "OneToMany" ||
         relation.relationType === "ManyToMany";
-    let newColumnName = changeCase.camelCase(
-        columnOldName.replace(/[0-9]$/, "")
-    );
+    let newColumnName = columnOldName.replace(/[0-9]$/, "");
 
     if (
         newColumnName.toLowerCase().endsWith("id") &&
