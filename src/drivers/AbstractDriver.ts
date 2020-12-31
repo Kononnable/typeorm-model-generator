@@ -409,7 +409,6 @@ export default abstract class AbstractDriver {
                     // eslint-disable-next-line no-param-reassign
                     col.primary = true;
                     if (
-                        primaryIndex!.columns.length === 1 &&
                         col.options.unique
                     ) {
                         delete col.options.unique;
