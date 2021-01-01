@@ -3,6 +3,7 @@ export type Index = {
     columns: string[];
     options: {
         unique?: boolean;
+        fulltext?: boolean;
     };
     primary?: boolean;
 };

@@ -408,9 +408,7 @@ export default abstract class AbstractDriver {
                 .forEach((col) => {
                     // eslint-disable-next-line no-param-reassign
                     col.primary = true;
-                    if (
-                        col.options.unique
-                    ) {
+                    if (col.options.unique) {
                         delete col.options.unique;
                     }
                 });

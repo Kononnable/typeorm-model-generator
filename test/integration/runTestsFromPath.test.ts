@@ -199,9 +199,14 @@ function runTestForMultipleDrivers(
             case "248":
                 return dbDrivers.filter(dbDriver =>
                     dbDriver === "postgres"
-                );case "273":
+                );
+            case "273":
                 return dbDrivers.filter(dbDriver =>
                     ["mysql", "mariadb","mssql"].includes(dbDriver)
+                );
+            case "285":
+                return dbDrivers.filter(dbDriver =>
+                    ["mysql", "mariadb"].includes(dbDriver)
                 );
             default:
                 return dbDrivers;
