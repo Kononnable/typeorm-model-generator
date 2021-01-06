@@ -428,6 +428,7 @@ export default class PostgresDriver extends AbstractDriver {
                     case "hstore":
                     case "geography":
                     case "geometry":
+                    case "ltree":
                         ret.sqlType = udtName;
                         break;
                     default:
