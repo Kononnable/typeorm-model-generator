@@ -67,17 +67,6 @@ export default abstract class AbstractDriver {
         "varbinary",
     ];
 
-    public abstract GetAllTablesQuery: (
-        schema: string,
-        dbNames: string
-    ) => Promise<
-        {
-            TABLE_SCHEMA: string;
-            TABLE_NAME: string;
-            DB_NAME: string;
-        }[]
-    >;
-
     public static FindManyToManyRelations(dbModel: Entity[]) {
         let retVal = dbModel;
         const manyToManyEntities = retVal.filter(
@@ -182,28 +171,25 @@ export default abstract class AbstractDriver {
     ): Promise<Entity[]> {
         let dbModel = [] as Entity[];
         await this.ConnectToServer(connectionOptions);
-        const sqlEscapedSchema = AbstractDriver.escapeCommaSeparatedList(
-            connectionOptions.schemaName
-        );
         dbModel = await this.GetAllTables(
-            sqlEscapedSchema,
-            connectionOptions.databaseName
+            connectionOptions.schemaNames,
+            connectionOptions.databaseNames
         );
         await this.GetCoulmnsFromEntity(
             dbModel,
-            sqlEscapedSchema,
-            connectionOptions.databaseName
+            connectionOptions.schemaNames,
+            connectionOptions.databaseNames
         );
         await this.GetIndexesFromEntity(
             dbModel,
-            sqlEscapedSchema,
-            connectionOptions.databaseName
+            connectionOptions.schemaNames,
+            connectionOptions.databaseNames
         );
         AbstractDriver.FindPrimaryColumnsFromIndexes(dbModel);
         dbModel = await this.GetRelations(
             dbModel,
-            sqlEscapedSchema,
-            connectionOptions.databaseName,
+            connectionOptions.schemaNames,
+            connectionOptions.databaseNames,
             generationOptions
         );
         await this.DisconnectFromServer();
@@ -230,29 +216,14 @@ export default abstract class AbstractDriver {
             );
     }
 
-    public abstract async ConnectToServer(connectionOptons: IConnectionOptions);
+    public abstract ConnectToServer(
+        connectionOptons: IConnectionOptions
+    ): Promise<void>;
 
-    public async GetAllTables(
-        schema: string,
-        dbNames: string
-    ): Promise<Entity[]> {
-        const response = await this.GetAllTablesQuery(schema, dbNames);
-        const ret: Entity[] = [] as Entity[];
-        response.forEach((val) => {
-            ret.push({
-                columns: [],
-                indices: [],
-                relations: [],
-                relationIds: [],
-                sqlName: val.TABLE_NAME,
-                tscName: val.TABLE_NAME,
-                database: dbNames.includes(",") ? val.DB_NAME : "",
-                schema: val.TABLE_SCHEMA,
-                fileImports: [],
-            });
-        });
-        return ret;
-    }
+    public abstract GetAllTables(
+        schemas: string[],
+        dbNames: string[]
+    ): Promise<Entity[]>;
 
     public static GetRelationsFromRelationTempInfo(
         relationsTemp: RelationInternal[],
@@ -404,22 +375,22 @@ export default abstract class AbstractDriver {
         return entities;
     }
 
-    public abstract async GetCoulmnsFromEntity(
+    public abstract GetCoulmnsFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]>;
 
-    public abstract async GetIndexesFromEntity(
+    public abstract GetIndexesFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]>;
 
-    public abstract async GetRelations(
+    public abstract GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]>;
 
@@ -437,10 +408,7 @@ export default abstract class AbstractDriver {
                 .forEach((col) => {
                     // eslint-disable-next-line no-param-reassign
                     col.primary = true;
-                    if (
-                        primaryIndex!.columns.length === 1 &&
-                        col.options.unique
-                    ) {
+                    if (col.options.unique) {
                         delete col.options.unique;
                     }
                 });
@@ -454,18 +422,15 @@ export default abstract class AbstractDriver {
         });
     }
 
-    public abstract async DisconnectFromServer();
+    public abstract DisconnectFromServer(): Promise<void>;
 
-    public abstract async CreateDB(dbName: string);
+    public abstract CreateDB(dbName: string): Promise<void>;
 
-    public abstract async DropDB(dbName: string);
+    public abstract DropDB(dbName: string): Promise<void>;
 
-    public abstract async UseDB(dbName: string);
+    public abstract CheckIfDBExists(dbName: string): Promise<boolean>;
 
-    public abstract async CheckIfDBExists(dbName: string): Promise<boolean>;
-
-    // TODO: change name
-    protected static escapeCommaSeparatedList(commaSeparatedList: string) {
-        return `'${commaSeparatedList.split(",").join("','")}'`;
+    protected static buildEscapedObjectList(dbNames: string[]) {
+        return `'${dbNames.join("','")}'`;
     }
 }

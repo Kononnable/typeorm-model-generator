@@ -27,8 +27,11 @@ export default function modelGenerationPhase(
     }
     let entitiesPath = resultPath;
     if (!generationOptions.noConfigs) {
-        createTsConfigFile(resultPath);
-        createTypeOrmConfig(resultPath, connectionOptions);
+        const tsconfigPath = path.resolve(resultPath, "tsconfig.json");
+        const typeormConfigPath = path.resolve(resultPath, "ormconfig.json");
+
+        createTsConfigFile(tsconfigPath);
+        createTypeOrmConfig(typeormConfigPath, connectionOptions);
         entitiesPath = path.resolve(resultPath, "./entities");
         if (!fs.existsSync(entitiesPath)) {
             fs.mkdirSync(entitiesPath);
@@ -58,16 +61,16 @@ function generateModels(
         let casedFileName = "";
         switch (generationOptions.convertCaseFile) {
             case "camel":
-                casedFileName = changeCase.camelCase(element.tscName);
+                casedFileName = changeCase.camelCase(element.fileName);
                 break;
             case "param":
-                casedFileName = changeCase.paramCase(element.tscName);
+                casedFileName = changeCase.paramCase(element.fileName);
                 break;
             case "pascal":
-                casedFileName = changeCase.pascalCase(element.tscName);
+                casedFileName = changeCase.pascalCase(element.fileName);
                 break;
             case "none":
-                casedFileName = element.tscName;
+                casedFileName = element.fileName;
                 break;
             default:
                 throw new Error("Unknown case style");
@@ -258,7 +261,13 @@ function createHandlebarsHelpers(generationOptions: IGenerationOptions): void {
     });
 }
 
-function createTsConfigFile(outputPath: string): void {
+function createTsConfigFile(tsconfigPath: string): void {
+    if (fs.existsSync(tsconfigPath)) {
+        console.warn(
+            `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of tsconfig.json file. File already exists. \x1b[0m`
+        );
+        return;
+    }
     const templatePath = path.resolve(__dirname, "templates", "tsconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
     const compliedTemplate = Handlebars.compile(template, {
@@ -266,25 +275,29 @@ function createTsConfigFile(outputPath: string): void {
     });
     const rendered = compliedTemplate({});
     const formatted = Prettier.format(rendered, { parser: "json" });
-    const resultFilePath = path.resolve(outputPath, "tsconfig.json");
-    fs.writeFileSync(resultFilePath, formatted, {
+    fs.writeFileSync(tsconfigPath, formatted, {
         encoding: "utf-8",
         flag: "w",
     });
 }
 function createTypeOrmConfig(
-    outputPath: string,
+    typeormConfigPath: string,
     connectionOptions: IConnectionOptions
 ): void {
+    if (fs.existsSync(typeormConfigPath)) {
+        console.warn(
+            `\x1b[33m[${new Date().toLocaleTimeString()}] WARNING: Skipping generation of ormconfig.json file. File already exists. \x1b[0m`
+        );
+        return;
+    }
     const templatePath = path.resolve(__dirname, "templates", "ormconfig.mst");
     const template = fs.readFileSync(templatePath, "utf-8");
-    const compliedTemplate = Handlebars.compile(template, {
+    const compiledTemplate = Handlebars.compile(template, {
         noEscape: true,
     });
-    const rendered = compliedTemplate(connectionOptions);
+    const rendered = compiledTemplate(connectionOptions);
     const formatted = Prettier.format(rendered, { parser: "json" });
-    const resultFilePath = path.resolve(outputPath, "ormconfig.json");
-    fs.writeFileSync(resultFilePath, formatted, {
+    fs.writeFileSync(typeormConfigPath, formatted, {
         encoding: "utf-8",
         flag: "w",
     });

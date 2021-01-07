@@ -189,4 +189,7 @@ export class Post {
 
     @Column("geography")
     geography: string;
+
+    @Column("ltree")
+    ltree: string;
 }

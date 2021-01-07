@@ -27,6 +27,8 @@ class EntityIndex {
     public columnNames: string[] = [];
 
     public isUnique = false;
+
+    public fulltext = false;
 }
 
 function removeTrailingComas(input: string) {
@@ -207,6 +209,9 @@ export default class EntityFileToJson {
                             case "unique":
                                 ind.isUnique =
                                     optionsStr.split(":")[1].trim() === "true";
+                                break;
+                            case "fulltext":
+                                ind.fulltext = optionsStr.split(":")[1].trim() === "true";
                                 break;
                             default:
                                 console.log(
