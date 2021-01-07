@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.4
+* Add ltree type support for PostgreSQL (#318)
+* Mysql fulltext index base support (#285)
+* Fix @PrimaryGeneratedColumn marked as unique(#239)
+* Proper relationId, ralationName none caseing (#280)
+* Keep old tsconfig and ormconfig files instead of generated ones (#154)
+* MSSQL model generation speed optimization (#312)
+* Mysql8 support (#311)
+* Allow database names with special characters (#273)
+* Naming strategy for entity file names (#236)
+* Support MSSQL named instances (#300)
+
 ## 0.4.3
 * Add ability to generate models only for specyfic tables (#296)
 * Fix for generating one-to-many RelationId columns (#291)
