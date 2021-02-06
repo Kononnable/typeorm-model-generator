@@ -493,6 +493,17 @@ export default class MysqlDriver extends AbstractDriver {
             };
         }
 
+        config.typeCast = (field, next) => {
+            switch (field.type) {
+                case "VAR_STRING":
+                    return field.string();
+                case "BLOB":
+                    return field.string();
+                default:
+                    return next();
+            }
+        };
+
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = this.MYSQL.createConnection(config);
 
