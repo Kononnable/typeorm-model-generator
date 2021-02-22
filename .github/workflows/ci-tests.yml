@@ -67,4 +67,5 @@ jobs:
       run: npm t
 
     - name: Push coverage
+      if: {{ github.ref == 'ref/head/master' }}
       uses: codecov/codecov-action@v1

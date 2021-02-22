@@ -63,7 +63,8 @@ jobs:
     - name: Test
       run: npm t
       env:
-       LD_LIBRARY_PATH:/tmp/oracle/instantclient_19_5"
+        LD_LIBRARY_PATH:/tmp/oracle/instantclient_19_5
 
     - name: Push coverage
+      if: {{ github.ref == 'ref/head/master' }}
       uses: codecov/codecov-action@v1
