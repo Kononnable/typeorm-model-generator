@@ -6,6 +6,7 @@ on:
       - "!no-engines"
     branches:
       - "!no-engines"
+  pull_request:
 
 env:
     ORACLE_Skip: 0
@@ -43,7 +44,9 @@ jobs:
 
     - name: Setup containers
       run: docker-compose up -d oracle oracle_client
+
     - name: Install dependencies
       run: npm ci
+
     - name: Test
       run: npm t

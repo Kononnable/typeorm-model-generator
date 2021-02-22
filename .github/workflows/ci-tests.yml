@@ -1,4 +1,4 @@
-name: CI tests for most supported db drivers
+name: CI tests for oracle db driver
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
     branches:
       - "!no-engines"
   pull_request:
-    - "*"
 
 env:
   POSTGRES_Skip: 0
@@ -60,7 +59,9 @@ jobs:
 
     - name: Setup containers
       run: docker-compose up -d mysql mariadb postgres mssql
+
     - name: Install dependencies
       run: npm ci
+
     - name: Test
       run: npm t
