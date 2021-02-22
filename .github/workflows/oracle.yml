@@ -45,6 +45,9 @@ jobs:
     - name: Setup containers
       run: docker-compose up -d oracle oracle_client
 
+    - name: Install dependencies
+      run: npm ci
+
     - name: Setup oracle client
       run: |
         wget https://download.oracle.com/otn_software/linux/instantclient/195000/instantclient-basiclite-linux.x64-19.5.0.0.0dbru.zip
@@ -56,9 +59,6 @@ jobs:
         sudo apt install libaio1
         until  /tmp/oracle/instantclient_19_5/sqlplus -L -S sys/Oradoc_db1@//localhost:1521/orclpdb1.localdomain as sysdba @/tmp/user.sql ; do echo waiting for oracle; sleep 10; done;
         npm install oracledb --no-save
-
-    - name: Install dependencies
-      run: npm ci
 
     - name: Test
       run: npm t
