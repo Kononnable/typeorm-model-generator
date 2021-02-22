@@ -91,7 +91,7 @@
     }
   },
   "nyc": {
-    "check-coverage": true,
+    "check-coverage": false,
     "all": true,
     "extension": [
       ".ts",
