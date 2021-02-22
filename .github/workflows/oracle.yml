@@ -1,4 +1,4 @@
-name: CI tests for most supported db drivers
+name: CI tests for oracle db driver
 
 on:
   push:
@@ -50,3 +50,6 @@ jobs:
 
     - name: Test
       run: npm t
+
+    - name: Test
+      run: codecov
