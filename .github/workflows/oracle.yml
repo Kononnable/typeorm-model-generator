@@ -2,10 +2,10 @@ name: CI tests for most supported db drivers
 
 on:
   push:
-    tags:
-      - "!no-engines"
-    branches:
-      - "!no-engines"
+    branches-ignore:
+      - "no-engines"
+    tags-ignore:
+      - "*-no-engines"
   pull_request:
 
 env:
