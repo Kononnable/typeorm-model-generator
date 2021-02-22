@@ -66,5 +66,5 @@ jobs:
     - name: Test
       run: npm t
 
-    - name: Test
-      run: codecov
+    - name: Push coverage
+      uses: codecov/codecov-action@v1

@@ -45,11 +45,24 @@ jobs:
     - name: Setup containers
       run: docker-compose up -d oracle oracle_client
 
+    - name: Setup oracle client
+      run: |
+        wget https://download.oracle.com/otn_software/linux/instantclient/195000/instantclient-basiclite-linux.x64-19.5.0.0.0dbru.zip
+        unzip instantclient-basiclite-linux.x64-19.5.0.0.0dbru.zip -d /tmp/oracle
+        wget https://download.oracle.com/otn_software/linux/instantclient/195000/instantclient-sqlplus-linux.x64-19.5.0.0.0dbru.zip
+        unzip instantclient-sqlplus-linux.x64-19.5.0.0.0dbru.zip -d /tmp/oracle
+        echo "export LD_LIBRARY_PATH=/tmp/oracle/instantclient_19_5" >> $BASH_ENV
+        sudo sh -c "echo /tmp/oracle/instantclient_19_5 > /etc/ld.so.conf.d/oracle-instantclient.conf";sudo ldconfig
+        sh -c 'echo WHENEVER SQLERROR EXIT FAILURE > /tmp/user.sql; echo CREATE USER typeorm_mg IDENTIFIED BY Passw0rd\; >> /tmp/user.sql;  echo GRANT CONNECT TO typeorm_mg\; >> /tmp/user.sql;  echo GRANT UNLIMITED TABLESPACE TO typeorm_mg\; >> /tmp/user.sql;  echo exit >> /tmp/user.sql'
+        sudo apt install libaio1
+        until  /tmp/oracle/instantclient_19_5/sqlplus -L -S sys/Oradoc_db1@//localhost:1521/orclpdb1.localdomain as sysdba @/tmp/user.sql ; do echo waiting for oracle; sleep 10; done;
+        npm install oracledb --no-save
+
     - name: Install dependencies
       run: npm ci
 
     - name: Test
       run: npm t
 
-    - name: Test
-      run: codecov
+    - name: Push coverage
+      uses: codecov/codecov-action@v1
