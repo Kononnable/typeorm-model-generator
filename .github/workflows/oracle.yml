@@ -66,5 +66,5 @@ jobs:
         LD_LIBRARY_PATH: /tmp/oracle/instantclient_19_5
 
     - name: Push coverage
-      if: github.ref == 'ref/head/master'
+      if: github.ref == 'refs/heads/master'
       uses: codecov/codecov-action@v1
