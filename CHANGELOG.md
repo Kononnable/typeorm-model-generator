@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+* **typeorm-model-generator enters maintenance phase (#329)**
+* Fix oracle driver to work with latest version of typeorm (#328)
+
 ## 0.4.4
 * Add ltree type support for PostgreSQL (#318)
 * Mysql fulltext index base support (#285)

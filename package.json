@@ -1,6 +1,6 @@
 {
   "name": "typeorm-model-generator",
-  "version": "0.4.4-no-engines",
+  "version": "0.4.5-no-engines",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
   "main": "./dist/src/library.js",
@@ -87,7 +87,7 @@
     }
   },
   "nyc": {
-    "check-coverage": true,
+    "check-coverage": false,
     "all": true,
     "extension": [
       ".ts",

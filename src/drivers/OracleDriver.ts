@@ -13,7 +13,7 @@ import { RelationInternal } from "../models/RelationInternal";
 
 export default class OracleDriver extends AbstractDriver {
     public defaultValues: DataTypeDefaults = new TypeormDriver.OracleDriver({
-        options: undefined,
+        options: {},
     } as any).dataTypeDefaults;
 
     public readonly standardPort = 1521;
