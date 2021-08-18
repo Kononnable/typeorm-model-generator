@@ -3,7 +3,7 @@ module.exports = {
     node: true,
     mocha: true
   },
-  extends: [
+  extends: [ 
     "airbnb-base",
     "plugin:@typescript-eslint/recommended",
     "prettier",
@@ -15,6 +15,7 @@ module.exports = {
   },
   plugins: ["@typescript-eslint"],
   rules: {
+    "import/order":["off"],
     "@typescript-eslint/explicit-function-return-type": ["off"],
     "@typescript-eslint/no-use-before-define": ["error", "nofunc"],
     "@typescript-eslint/prefer-interface": ["off"],

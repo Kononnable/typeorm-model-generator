@@ -23,6 +23,10 @@ export default interface IGenerationOptions {
     skipSchema: boolean;
     indexFile: boolean;
     exportType: "named" | "default";
+    createDateColumns: string[];
+    updateDateColumns: string[];
+    deleteDateColumns: string[];
+    versionColumns: string[];
 }
 
 export const eolConverter = {
@@ -49,6 +53,10 @@ export function getDefaultGenerationOptions(): IGenerationOptions {
         skipSchema: false,
         indexFile: false,
         exportType: "named",
+        createDateColumns: [],
+        updateDateColumns: [],
+        deleteDateColumns: [],
+        versionColumns: []
     };
     return generationOptions;
 }

@@ -297,6 +297,31 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.exportType === "default",
             describe: "Generate index file",
         },
+
+        deleteDateColumn: {
+            string: true,
+            default: options.generationOptions.deleteDateColumns.join(","),
+            describe:
+                "Apply @DeleteDateColumn decorator to columns with this name",
+        },
+        updateDateColumn: {
+            string: true,
+            default: options.generationOptions.updateDateColumns.join(","),
+            describe:
+                "Apply @DpdateDateColumn decorator to columns with this name",
+        },
+        createDateColumn: {
+            string: true,
+            default: options.generationOptions.createDateColumns.join(","),
+            describe:
+                "Apply @CreateDateColumn decorator to columns with this name",
+        },
+        versionColumn: {
+            string: true,
+            default: options.generationOptions.versionColumns.join(","),
+            describe:
+                "Apply @VersionColumn decorator to columns with this name",
+        },
     });
 
     options.connectionOptions.databaseNames = argv.d.split(",");
@@ -343,6 +368,33 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
         : "named";
+
+    let deleteDateColumn = argv.deleteDateColumn.split(",");
+    if (deleteDateColumn.length === 1 && deleteDateColumn[0] === "") {
+        deleteDateColumn = [];
+    }
+    options.generationOptions.deleteDateColumns = deleteDateColumn;
+
+    let updateDateColumn = argv.updateDateColumn.split(",");
+    if (updateDateColumn.length === 1 && updateDateColumn[0] === "") {
+        updateDateColumn = [];
+    }
+    options.generationOptions.updateDateColumns = updateDateColumn;
+
+    let createDateColumn = argv.createDateColumn.split(",");
+    if (createDateColumn.length === 1 && createDateColumn[0] === "") {
+        createDateColumn = [];
+    }
+    options.generationOptions.createDateColumns = createDateColumn;
+
+    let versionColumn = argv.versionColumn.split(",");
+    if (versionColumn.length === 1 && versionColumn[0] === "") {
+        versionColumn = [];
+    }
+    options.generationOptions.versionColumns = versionColumn;
+    
+
+
 
     return options;
 }
