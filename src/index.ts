@@ -308,7 +308,7 @@ function checkYargsParameters(options: options): options {
             string: true,
             default: options.generationOptions.updateDateColumns.join(","),
             describe:
-                "Apply @DpdateDateColumn decorator to columns with this name",
+                "Apply @UpdateDateColumn decorator to columns with this name",
         },
         createDateColumn: {
             string: true,
@@ -392,7 +392,7 @@ function checkYargsParameters(options: options): options {
         versionColumn = [];
     }
     options.generationOptions.versionColumns = versionColumn;
-    
+
 
 
 

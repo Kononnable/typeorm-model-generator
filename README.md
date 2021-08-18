@@ -4,7 +4,13 @@
 [![codecov](https://codecov.io/gh/Kononnable/typeorm-model-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/Kononnable/typeorm-model-generator)
 
 ***
-## :warning: This project is in a maintenance phase. See [#329](https://github.com/Kononnable/typeorm-model-generator/issues/329) for details.
+## :warning: The official @kononnable source code of fork of this source program combines the community @seamuncle code, and The following parameters are supported，See help (- H) for more information
+
+* --createdatecolumn 
+* --updatedatecolumn 
+* --deletedatecolumn 
+* --versioncolumn
+
 ***
 Generates models for TypeORM from existing databases.
 Supported db engines:
@@ -56,6 +62,12 @@ Options:
                          and postgres. You can pass multiple values
                          separated by comma eg. -s scheme1,scheme2,scheme3
   --ssl                                               [boolean] [default: false]
+  --deleteDateColumn  Apply @DeleteDateColumn decorator to columns
+                                   with this name          [string] [default: ""]
+  --updateDateColumn  Apply @UpdateDateColumn decorator to columns
+                                   with this name          [string] [default: ""]
+  --createDateColumn  Apply @CreateDateColumn decorator to columns
+                                   with this name          [string] [default: ""]
 ```
 ### Examples
 

@@ -1,5 +1,5 @@
 {
-  "name": "typeorm-model-generator",
+  "name": "typeorm-auto-model",
   "version": "0.4.5",
   "description": "Generates models for TypeORM from existing databases.",
   "bin": "bin/typeorm-model-generator",
