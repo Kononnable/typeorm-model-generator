@@ -91,9 +91,10 @@ export default class SqliteDriver extends AbstractDriver {
                     const options: Column["options"] = { name: resp.name };
                     if (resp.notnull === 0) options.nullable = true;
                     const isPrimary = resp.pk > 0 ? true : undefined;
-                    const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
-                        resp.dflt_value
-                    );
+                    const defaultValue =
+                        SqliteDriver.ReturnDefaultValueFunction(
+                            resp.dflt_value
+                        );
                     const columnType = resp.type
                         .replace(/\([0-9 ,]+\)/g, "")
                         .toLowerCase()
@@ -337,7 +338,8 @@ export default class SqliteDriver extends AbstractDriver {
                     match: string;
                 }>(`PRAGMA foreign_key_list('${entity.tscName}');`);
 
-                const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+                const relationsTemp: RelationInternal[] =
+                    [] as RelationInternal[];
                 const relationKeys = new Set(response.map((v) => v.id));
 
                 relationKeys.forEach((relationId) => {

@@ -433,9 +433,9 @@ export default class PostgresDriver extends AbstractDriver {
                         break;
                     default:
                         if (enumValues) {
-                            ret.tsType = (`"${enumValues
+                            ret.tsType = `"${enumValues
                                 .split(",")
-                                .join('" | "')}"` as never) as string;
+                                .join('" | "')}"` as never as string;
                             ret.sqlType = "enum";
                             ret.enumValues = enumValues.split(",");
                         }

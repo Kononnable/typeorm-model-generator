@@ -547,7 +547,7 @@ export default class MysqlDriver extends AbstractDriver {
         const stream = query.stream({});
         const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", (chunk) => {
-                ret.push((chunk as unknown) as T);
+                ret.push(chunk as unknown as T);
             });
             stream.on("error", (err) => reject(err));
             stream.on("end", () => resolve(true));

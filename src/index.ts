@@ -65,9 +65,10 @@ function makeDefaultConfigs() {
         connectionOptions,
     };
 }
-function readTOMLConfig(
-    options: options
-): { options; fullConfigFile: boolean } {
+function readTOMLConfig(options: options): {
+    options;
+    fullConfigFile: boolean;
+} {
     if (!fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
         return { options, fullConfigFile: false };
     }
@@ -326,19 +327,25 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.onlyTables = tables;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
-    options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
-    options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
-    options.generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
-    options.generationOptions.convertEol = argv.eol as IGenerationOptions["convertEol"];
+    options.generationOptions.convertCaseEntity =
+        argv.ce as IGenerationOptions["convertCaseEntity"];
+    options.generationOptions.convertCaseFile =
+        argv.cf as IGenerationOptions["convertCaseFile"];
+    options.generationOptions.convertCaseProperty =
+        argv.cp as IGenerationOptions["convertCaseProperty"];
+    options.generationOptions.convertEol =
+        argv.eol as IGenerationOptions["convertEol"];
     options.generationOptions.lazy = argv.lazy;
     options.generationOptions.customNamingStrategyPath = argv.namingStrategy;
     options.generationOptions.noConfigs = argv.noConfig;
-    options.generationOptions.propertyVisibility = argv.pv as IGenerationOptions["propertyVisibility"];
+    options.generationOptions.propertyVisibility =
+        argv.pv as IGenerationOptions["propertyVisibility"];
     options.generationOptions.relationIds = argv.relationIds;
     options.generationOptions.skipSchema = argv.skipSchema;
     options.generationOptions.resultsPath = argv.o;
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
-    options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
+    options.generationOptions.strictMode =
+        argv.strictMode as IGenerationOptions["strictMode"];
     options.generationOptions.indexFile = argv.index;
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
@@ -437,9 +444,8 @@ async function useInquirer(options: options): Promise<options> {
             options.connectionOptions.schemaNames = (
                 await inquirer.prompt([
                     {
-                        default: options.connectionOptions.schemaNames.join(
-                            ","
-                        ),
+                        default:
+                            options.connectionOptions.schemaNames.join(","),
                         message:
                             "Database schema: (You can pass multiple values separated by comma)",
                         name: "schema",
@@ -548,16 +554,16 @@ async function useInquirer(options: options): Promise<options> {
                             checked: options.generationOptions.lazy,
                         },
                         {
-                            name:
-                                "Use ActiveRecord syntax for generated models",
+                            name: "Use ActiveRecord syntax for generated models",
                             value: "activeRecord",
                             checked: options.generationOptions.activeRecord,
                         },
                         {
                             name: "Use custom naming strategy",
                             value: "namingStrategy",
-                            checked: !!options.generationOptions
-                                .customNamingStrategyPath,
+                            checked:
+                                !!options.generationOptions
+                                    .customNamingStrategyPath,
                         },
                         {
                             name: "Generate RelationId fields",
@@ -565,14 +571,12 @@ async function useInquirer(options: options): Promise<options> {
                             checked: options.generationOptions.relationIds,
                         },
                         {
-                            name:
-                                "Omits schema identifier in generated entities",
+                            name: "Omits schema identifier in generated entities",
                             value: "skipSchema",
                             checked: options.generationOptions.skipSchema,
                         },
                         {
-                            name:
-                                "Generate constructor allowing partial initialization",
+                            name: "Generate constructor allowing partial initialization",
                             value: "constructor",
                             checked:
                                 options.generationOptions.generateConstructor,
@@ -595,8 +599,7 @@ async function useInquirer(options: options): Promise<options> {
                             checked: false,
                         },
                         {
-                            name:
-                                "Pluralize OneToMany, ManyToMany relation names",
+                            name: "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
                             checked: options.generationOptions.pluralizeNames,
                         },
@@ -645,25 +648,19 @@ async function useInquirer(options: options): Promise<options> {
             ])
         ).strictMode;
 
-        options.generationOptions.noConfigs = !customizations.includes(
-            "config"
-        );
-        options.generationOptions.pluralizeNames = customizations.includes(
-            "pluralize"
-        );
+        options.generationOptions.noConfigs =
+            !customizations.includes("config");
+        options.generationOptions.pluralizeNames =
+            customizations.includes("pluralize");
         options.generationOptions.lazy = customizations.includes("lazy");
-        options.generationOptions.activeRecord = customizations.includes(
-            "activeRecord"
-        );
-        options.generationOptions.relationIds = customizations.includes(
-            "relationId"
-        );
-        options.generationOptions.skipSchema = customizations.includes(
-            "skipSchema"
-        );
-        options.generationOptions.generateConstructor = customizations.includes(
-            "constructor"
-        );
+        options.generationOptions.activeRecord =
+            customizations.includes("activeRecord");
+        options.generationOptions.relationIds =
+            customizations.includes("relationId");
+        options.generationOptions.skipSchema =
+            customizations.includes("skipSchema");
+        options.generationOptions.generateConstructor =
+            customizations.includes("constructor");
         options.generationOptions.indexFile = customizations.includes("index");
         options.generationOptions.exportType = customizations.includes(
             "defaultExport"
@@ -692,7 +689,8 @@ async function useInquirer(options: options): Promise<options> {
             ).namingStrategy;
 
             if (namingStrategyPath && namingStrategyPath !== "") {
-                options.generationOptions.customNamingStrategyPath = namingStrategyPath;
+                options.generationOptions.customNamingStrategyPath =
+                    namingStrategyPath;
             } else {
                 options.generationOptions.customNamingStrategyPath = "";
             }

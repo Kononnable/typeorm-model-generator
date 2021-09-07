@@ -136,15 +136,16 @@ export default abstract class AbstractDriver {
                         };
                     }
                 ),
-                inverseJoinColumns: junctionEntity.relations[1].joinColumnOptions!.map(
-                    (v, i) => {
-                        return {
-                            referencedColumnName: v.referencedColumnName,
-                            name: junctionEntity.relations[1]
-                                .joinColumnOptions![i].name,
-                        };
-                    }
-                ),
+                inverseJoinColumns:
+                    junctionEntity.relations[1].joinColumnOptions!.map(
+                        (v, i) => {
+                            return {
+                                referencedColumnName: v.referencedColumnName,
+                                name: junctionEntity.relations[1]
+                                    .joinColumnOptions![i].name,
+                            };
+                        }
+                    ),
             };
             if (junctionEntity.database) {
                 firstRelation.joinTableOptions.database =
