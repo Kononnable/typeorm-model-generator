@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6
+* Fix typecasting problem when using old version mysql (#326)
+* Update dependencies
+
 ## 0.4.5
 * **typeorm-model-generator enters maintenance phase (#329)**
 * Fix oracle driver to work with latest version of typeorm (#328)

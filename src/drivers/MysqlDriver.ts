@@ -492,6 +492,17 @@ export default class MysqlDriver extends AbstractDriver {
             };
         }
 
+        config.typeCast = (field, next) => {
+            switch (field.type) {
+                case "VAR_STRING":
+                    return field.string();
+                case "BLOB":
+                    return field.string();
+                default:
+                    return next();
+            }
+        };
+
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = this.MYSQL.createConnection(config);
 
@@ -535,7 +546,7 @@ export default class MysqlDriver extends AbstractDriver {
         const stream = query.stream({});
         const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", (chunk) => {
-                ret.push((chunk as unknown) as T);
+                ret.push(chunk as unknown as T);
             });
             stream.on("error", (err) => reject(err));
             stream.on("end", () => resolve(true));
