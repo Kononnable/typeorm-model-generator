@@ -1,4 +1,13 @@
-import { PrimaryGeneratedColumn, Column, Entity, OneToOne, OneToMany, ManyToOne, JoinColumn } from "typeorm";
+import {
+    PrimaryGeneratedColumn,
+    Column,
+    Entity,
+    OneToOne,
+    OneToMany,
+    ManyToOne,
+    JoinColumn,
+    UpdateDateColumn
+} from "typeorm";
 
 @Entity("Post")
 export class Post {
@@ -11,11 +20,16 @@ export class Post {
         })
     createdAt:Date;
 
-
     @Column("varchar",{
         length: 30,
         default: () => "'defVal'",
         })
     text:string;
+
+    @Column("varchar",{
+        length: 30,
+        default: () => "''",
+    })
+    blankDefault:string;
 
 }

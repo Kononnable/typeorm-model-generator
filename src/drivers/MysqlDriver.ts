@@ -561,7 +561,7 @@ export default class MysqlDriver extends AbstractDriver {
         dataType: string
     ): string | undefined {
         let defaultValue = defVal;
-        if (!defaultValue || defaultValue === "NULL") {
+        if (defaultValue !== "" && (!defaultValue || defaultValue === "NULL")) {
             return undefined;
         }
         if (defaultValue.toLowerCase() === "current_timestamp()") {
