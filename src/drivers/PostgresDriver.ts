@@ -130,7 +130,9 @@ export default class PostgresDriver extends AbstractDriver {
                     if (resp.isunique === "1") options.unique = true;
 
                     const generated =
-                        resp.isidentity === "YES" || resp.is_identity === "YES"
+                        resp.isidentity === "YES" ||
+                        resp.is_identity === "YES" ||
+                        resp.column_default === "uuid_generate_v4()"
                             ? true
                             : undefined;
                     const defaultValue = generated
