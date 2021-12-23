@@ -61,22 +61,36 @@ function createSchemaRelationOptions(
     relations: Relation[]
 ): EntitySchemaRelationOptionsObj {
     const entitySchemaRelationOptionsObj: EntitySchemaRelationOptionsObj = {};
+    function pascalToHyphenSeparated(str: string) {
+        return str
+            .split(/(?=[A-Z])/)
+            .map((s) => s.toLowerCase())
+            .join("-");
+    }
     relations.forEach((relation: Relation): void => {
         const {
             relationType,
             relatedTable,
-            // relatedField,
+            relatedField,
             fieldName,
-            // relationOptions,
-            // joinColumnOptions,
-            // joinTableOptions,
+            relationOptions,
+            joinColumnOptions,
+            joinTableOptions,
         } = relation;
-        Object.assign(entitySchemaRelationOptionsObj, {
-            [fieldName]: {
-                type: relationType as RelationType,
-                target: relatedTable,
-            },
-        });
+
+        const relationKey =
+            joinColumnOptions?.length && joinColumnOptions[0].name;
+
+        if (relationKey) {
+            Object.assign(entitySchemaRelationOptionsObj, {
+                [`${relationKey}`]: {
+                    type: pascalToHyphenSeparated(relationType) as RelationType,
+                    target: relatedTable,
+                    joinColumn: joinColumnOptions,
+                    joinTable: joinTableOptions,
+                } as EntitySchemaRelationOptions,
+            });
+        }
     });
 
     return entitySchemaRelationOptionsObj;
