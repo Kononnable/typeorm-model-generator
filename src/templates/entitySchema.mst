@@ -1,0 +1,2 @@
+import {EntitySchema} from 'typeorm';
+export const {{toEntityName name}} = new EntitySchema({{schemaConfStr}});

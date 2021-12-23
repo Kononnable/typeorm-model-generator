@@ -1,4 +1,7 @@
 import * as Yargs from "yargs";
+import fs = require("fs-extra");
+import inquirer = require("inquirer");
+import path = require("path");
 import { createDriver, createModelFromDatabase } from "./Engine";
 import * as TomgUtils from "./Utils";
 import IConnectionOptions, {
@@ -7,10 +10,6 @@ import IConnectionOptions, {
 import IGenerationOptions, {
     getDefaultGenerationOptions,
 } from "./IGenerationOptions";
-import fs = require("fs-extra");
-
-import inquirer = require("inquirer");
-import path = require("path");
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 CliLogic();
@@ -298,6 +297,11 @@ function checkYargsParameters(options: options): options {
             default: options.generationOptions.exportType === "default",
             describe: "Generate index file",
         },
+        useEntitySchema: {
+            boolean: true,
+            default: options.generationOptions.useEntitySchema === false,
+            describe: "Use EntitySchema instead of class based entity",
+        },
     });
 
     options.connectionOptions.databaseNames = argv.d.split(",");
@@ -350,6 +354,7 @@ function checkYargsParameters(options: options): options {
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
         : "named";
+    options.generationOptions.useEntitySchema = argv.useEntitySchema;
 
     return options;
 }
