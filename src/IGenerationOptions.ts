@@ -23,6 +23,7 @@ export default interface IGenerationOptions {
     skipSchema: boolean;
     indexFile: boolean;
     exportType: "named" | "default";
+    useEntitySchema?: boolean;
 }
 
 export const eolConverter = {

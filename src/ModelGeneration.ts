@@ -8,6 +8,7 @@ import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
+import createEntitySchemaConf from "./EntitySchemaHelper";
 
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
@@ -48,10 +49,12 @@ function generateModels(
     generationOptions: IGenerationOptions,
     entitiesPath: string
 ) {
+    const useEntitySchema = !!generationOptions.useEntitySchema;
+    const templateName = useEntitySchema ? "entitySchema.mst" : "entity.mst";
     const entityTemplatePath = path.resolve(
         __dirname,
         "templates",
-        "entity.mst"
+        templateName
     );
     const entityTemplate = fs.readFileSync(entityTemplatePath, "utf-8");
     const entityCompliedTemplate = Handlebars.compile(entityTemplate, {
@@ -79,15 +82,28 @@ function generateModels(
             entitiesPath,
             `${casedFileName}.ts`
         );
-        const rendered = entityCompliedTemplate(element);
-        const withImportStatements = removeUnusedImports(
-            EOL !== eolConverter[generationOptions.convertEol]
-                ? rendered.replace(
-                      /(\r\n|\n|\r)/gm,
-                      eolConverter[generationOptions.convertEol]
-                  )
-                : rendered
-        );
+        let rendered;
+        let withImportStatements;
+        if (useEntitySchema) {
+            const schemaConf = createEntitySchemaConf(element);
+            rendered = entityCompliedTemplate({
+                name: schemaConf.name,
+                EntitySchema: "EntitySchema",
+                schemaConfStr: JSON.stringify(schemaConf, undefined, 2),
+            });
+            withImportStatements = rendered;
+        } else {
+            rendered = entityCompliedTemplate(element);
+            withImportStatements = removeUnusedImports(
+                EOL !== eolConverter[generationOptions.convertEol]
+                    ? rendered.replace(
+                          /(\r\n|\n|\r)/gm,
+                          eolConverter[generationOptions.convertEol]
+                      )
+                    : rendered
+            );
+        }
+
         let formatted = "";
         try {
             formatted = Prettier.format(withImportStatements, prettierOptions);

@@ -1,0 +1,5 @@
+import {EntitySchema} from 'typeorm';
+
+const {{toEntityName name}} = new EntitySchema({{schemaConfStr}});
+
+export default {{toEntityName name}}
