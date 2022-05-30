@@ -27,7 +27,7 @@
   "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
   "dependencies": {
     "change-case": "^4.1.2",
-    "fs-extra": "^9.1.0",
+    "fs-extra": "^10.0.0",
     "handlebars": "^4.7.7",
     "inquirer": "^7.3.3",
     "mssql": "^6.3.2",
