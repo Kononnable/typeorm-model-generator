@@ -206,7 +206,7 @@ function checkYargsParameters(options: options): options {
         },
         cf: {
             alias: "case-file",
-            choices: ["pascal", "param", "camel", "none"],
+            choices: ["pascal", "param", "camel", "snake", "none"],
             default: options.generationOptions.convertCaseFile,
             describe: "Convert file names to specified case",
         },

@@ -63,6 +63,9 @@ function generateModels(
             case "camel":
                 casedFileName = changeCase.camelCase(element.fileName);
                 break;
+            case "snake":
+                casedFileName = changeCase.snakeCase(element.fileName);
+                break;
             case "param":
                 casedFileName = changeCase.paramCase(element.fileName);
                 break;

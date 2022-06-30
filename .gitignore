@@ -11,3 +11,5 @@ coverage/
 dist
 *.tgz
 .tomg-config
+test.bat
+cps

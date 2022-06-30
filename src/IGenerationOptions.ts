@@ -9,7 +9,7 @@ export default interface IGenerationOptions {
     resultsPath: string;
     pluralizeNames: boolean;
     noConfigs: boolean;
-    convertCaseFile: "pascal" | "param" | "camel" | "none";
+    convertCaseFile: "pascal" | "param" | "camel" | "snake" | "none";
     convertCaseEntity: "pascal" | "camel" | "none";
     convertCaseProperty: "pascal" | "camel" | "snake" | "none";
     convertEol: "LF" | "CRLF";

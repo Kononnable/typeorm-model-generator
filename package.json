@@ -1,12 +1,13 @@
 {
-  "name": "typeorm-model-generator",
-  "version": "0.4.6",
-  "description": "Generates models for TypeORM from existing databases.",
-  "bin": "bin/typeorm-model-generator",
+  "name": "@zdhsoft/tmg",
+  "version": "0.0.1",
+  "description": "this from https://github.com/Kononnable/typeorm-model-generator.git",
+  "bin": "bin/tmg",
   "main": "./dist/src/library.js",
   "types": "./dist/src/library.d.ts",
   "scripts": {
     "start": "ts-node ./src/index.ts",
+    "help": "ts-node ./src/index.ts --help",
     "build": "npm run clean && tsc && ncp src/templates/ dist/src/templates/ && ncp package.json dist/package.json",
     "prepare": "npm run build",
     "pretest": "tsc --noEmit",
@@ -17,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kononnable/typeorm-model-generator.git"
+    "url": "git+https://github.com/zdhsoft/typeorm-model-generator.git"
   },
   "author": "Kononnable",
   "license": "MIT",
