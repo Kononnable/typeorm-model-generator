@@ -4,15 +4,29 @@ import * as changeCase from "change-case";
 import * as fs from "fs";
 import * as path from "path";
 import { EOL } from "os";
+import { getLogger } from 'xmcommon';
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
 
+const log = getLogger(__filename);
+
+
+// const prettierOptions: Prettier.Options = {
+//     parser: "typescript",
+//     endOfLine: "auto",
+// };
+
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
-    endOfLine: "auto",
-};
+    "tabWidth": 4,
+    "singleQuote": true,
+    "trailingComma": "all",
+    "printWidth": 120,
+    "endOfLine": "crlf"
+}
+
 
 export default function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
@@ -42,7 +56,7 @@ export default function modelGenerationPhase(
     }
     generateModels(databaseModel, generationOptions, entitiesPath);
 }
-
+// 这里开始，对每个表生成
 function generateModels(
     databaseModel: Entity[],
     generationOptions: IGenerationOptions,
@@ -102,6 +116,7 @@ function generateModels(
             console.error(error);
             formatted = withImportStatements;
         }
+        log.info(resultFilePath);
         fs.writeFileSync(resultFilePath, formatted, {
             encoding: "utf-8",
             flag: "w",
