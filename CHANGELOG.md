@@ -1,5 +1,10 @@
 # Changelog
+## 0.0.2
++ 工具导出的表名文件名支持snake命令方式 即表名为：sampleTable => sample_table.ts
 
+## 0.0.1
+* 将typeorm-model-generator改为tmg，在命令行输入tmg就可以了
+* 从typeorm-model-generator这个迁移过来，包名改为@zdhsoft/tmg
 ## 0.4.6
 * Fix typecasting problem when using old version mysql (#326)
 * Update dependencies
@@ -66,7 +71,7 @@
 * Disallow generation of relationId fields with lazy relations(not supported in typeorm)
 
 ### ENHANCEMENTS
-* Support for old oracle versions (#195) 
+* Support for old oracle versions (#195)
 * New options:
     * Disable column name pluralization (#142)
     * Ignore tables parameter (#120)
