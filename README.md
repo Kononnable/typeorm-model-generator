@@ -1,5 +1,9 @@
 # typeorm-model-generator
 
+## 说明
+- 这个工具这里增加了一些自定义的代码
+- 文件名增加snakeCase命名
+
 [![npm version](https://badge.fury.io/js/typeorm-model-generator.svg)](https://badge.fury.io/js/typeorm-model-generator)
 [![codecov](https://codecov.io/gh/Kononnable/typeorm-model-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/Kononnable/typeorm-model-generator)
 
