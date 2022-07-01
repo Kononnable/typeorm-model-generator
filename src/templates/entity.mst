@@ -45,3 +45,8 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 {{#fileImports}}{{> Import}}{{/fileImports}}
 
 {{> Entity}}
+
+/** 定义where类型 便于使用 */
+export declare type Where{{toEntityName tscName}} = FindOptionsWhere<{{toEntityName tscName}}>;
+/** 定义Record类型 便于使用 */
+export declare type Rec{{toEntityName tscName}} = DeepPartial<{{toEntityName tscName}}>;

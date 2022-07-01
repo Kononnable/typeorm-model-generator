@@ -1,6 +1,9 @@
 # Changelog
-## 0.0.2
+## 0.0.4
++ 生成的实体文件，增加where和record类型定义，便于使用。这个需要typeorm 0.3.x及以上版本，才有。0.2.x请不要使用。
+## 0.0.3
 + 工具导出的表名文件名支持snake命令方式 即表名为：sampleTable => sample_table.ts
++ 优化了perttier格式代的规则
 
 ## 0.0.1
 * 将typeorm-model-generator改为tmg，在命令行输入tmg就可以了

@@ -1,6 +1,6 @@
 {
   "name": "@zdhsoft/tmg",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "this from https://github.com/Kononnable/typeorm-model-generator.git",
   "bin": "bin/tmg",
   "main": "./dist/src/library.js",
@@ -38,7 +38,7 @@
     "prettier": "^2.3.2",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^5.0.2",
-    "typeorm": "^0.2.37",
+    "typeorm": "^0.2.45",
     "xmcommon": "^1.0.3",
     "yargs": "^16.2.0"
   },

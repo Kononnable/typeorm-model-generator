@@ -12,12 +12,6 @@ import { Relation } from "./models/Relation";
 
 const log = getLogger(__filename);
 
-
-// const prettierOptions: Prettier.Options = {
-//     parser: "typescript",
-//     endOfLine: "auto",
-// };
-
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
     "tabWidth": 4,
@@ -97,13 +91,15 @@ function generateModels(
             `${casedFileName}.ts`
         );
         const rendered = entityCompliedTemplate(element);
+        const extImport = ['DeepPartial', 'FindOptionsWhere'];
         const withImportStatements = removeUnusedImports(
             EOL !== eolConverter[generationOptions.convertEol]
                 ? rendered.replace(
                       /(\r\n|\n|\r)/gm,
                       eolConverter[generationOptions.convertEol]
                   )
-                : rendered
+                : rendered,
+                extImport
         );
         let formatted = "";
         try {
@@ -155,8 +151,24 @@ function createIndexFile(
         flag: "w",
     });
 }
+/**
+ * 判断paramValue有没有在数组中
+ * @param paramList 指定的数组
+ * @param paramValue 指定的值
+ * @return 判断结果
+ *  - true 表示在数组中
+ *  - false 表示不在数组中
+ */
+function isInArray<T>(paramList: T[], paramValue: T) {
+    for(const v of paramList) {
+        if (v === paramValue) {
+            return true;
+        }
+    }
+    return false;
+}
 
-function removeUnusedImports(rendered: string) {
+function removeUnusedImports(rendered: string, extImport?: string[]) {
     const openBracketIndex = rendered.indexOf("{") + 1;
     const closeBracketIndex = rendered.indexOf("}");
     const imports = rendered
@@ -168,6 +180,14 @@ function removeUnusedImports(rendered: string) {
             restOfEntityDefinition.indexOf(`@${v}(`) !== -1 ||
             (v === "BaseEntity" && restOfEntityDefinition.indexOf(v) !== -1)
     );
+    if (Array.isArray(extImport) && extImport.length > 0) {
+        extImport.forEach(imp => {
+            if(!isInArray(distinctImports, imp)) {
+                distinctImports.push(imp);
+            }
+        });
+    }
+    distinctImports.sort();
     return `${rendered.substring(0, openBracketIndex)}${distinctImports.join(
         ","
     )}${restOfEntityDefinition}`;
