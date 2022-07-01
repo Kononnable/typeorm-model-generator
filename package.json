@@ -1,7 +1,7 @@
 {
   "name": "@zdhsoft/tmg",
   "version": "0.0.4",
-  "description": "this from https://github.com/Kononnable/typeorm-model-generator.git",
+  "description": "这个是从https://github.com/Kononnable/typeorm-model-generator.git fork过来的项目，目的在于增加定制化的一些功能和要求",
   "bin": "bin/tmg",
   "main": "./dist/src/library.js",
   "types": "./dist/src/library.d.ts",
@@ -20,12 +20,12 @@
     "type": "git",
     "url": "git+https://github.com/zdhsoft/typeorm-model-generator.git"
   },
-  "author": "Kononnable",
+  "author": "zdhsoft, 原作者:Kononnable",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Kononnable/typeorm-model-generator/issues"
+    "url": "https://github.com/zdhsoft/typeorm-model-generator/issues"
   },
-  "homepage": "https://github.com/Kononnable/typeorm-model-generator#readme",
+  "homepage": "https://github.com/zdhsoft/typeorm-model-generator.git",
   "dependencies": {
     "change-case": "^4.1.2",
     "fs-extra": "^9.1.0",
