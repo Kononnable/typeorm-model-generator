@@ -65,9 +65,10 @@ function makeDefaultConfigs() {
         connectionOptions,
     };
 }
-function readTOMLConfig(
-    options: options
-): { options; fullConfigFile: boolean } {
+function readTOMLConfig(options: options): {
+    options;
+    fullConfigFile: boolean;
+} {
     if (!fs.existsSync(path.resolve(process.cwd(), ".tomg-config"))) {
         return { options, fullConfigFile: false };
     }
@@ -140,7 +141,7 @@ function checkYargsParameters(options: options): options {
             alias: "database",
             string: true,
             demand: true,
-            default: options.connectionOptions.databaseName,
+            default: options.connectionOptions.databaseNames.join(","),
             describe:
                 "Database name(or path for sqlite). You can pass multiple values separated by comma.",
         },
@@ -184,7 +185,7 @@ function checkYargsParameters(options: options): options {
         s: {
             alias: "schema",
             string: true,
-            default: options.connectionOptions.schemaName,
+            default: options.connectionOptions.schemaNames.join(","),
             describe:
                 "Schema name to create model from. Only for mssql and postgres. You can pass multiple values separated by comma eg. -s scheme1,scheme2,scheme3",
         },
@@ -305,7 +306,7 @@ function checkYargsParameters(options: options): options {
         },
     });
 
-    options.connectionOptions.databaseName = argv.d;
+    options.connectionOptions.databaseNames = argv.d.split(",");
     options.connectionOptions.databaseType = argv.e;
 
     const driver = createDriver(options.connectionOptions.databaseType);
@@ -314,9 +315,9 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.host = argv.h;
     options.connectionOptions.password = argv.x;
     options.connectionOptions.port = argv.p || standardPort;
-    options.connectionOptions.schemaName = argv.s
-        ? argv.s.toString()
-        : standardSchema;
+    options.connectionOptions.schemaNames = argv.s
+        ? argv.s.split(",")
+        : [standardSchema];
     options.connectionOptions.instanceName = argv.i || undefined;
     options.connectionOptions.ssl = argv.ssl;
     options.connectionOptions.user = argv.u || standardUser;
@@ -332,19 +333,25 @@ function checkYargsParameters(options: options): options {
     options.connectionOptions.onlyTables = tables;
     options.generationOptions.activeRecord = argv.a;
     options.generationOptions.generateConstructor = argv.generateConstructor;
-    options.generationOptions.convertCaseEntity = argv.ce as IGenerationOptions["convertCaseEntity"];
-    options.generationOptions.convertCaseFile = argv.cf as IGenerationOptions["convertCaseFile"];
-    options.generationOptions.convertCaseProperty = argv.cp as IGenerationOptions["convertCaseProperty"];
-    options.generationOptions.convertEol = argv.eol as IGenerationOptions["convertEol"];
+    options.generationOptions.convertCaseEntity =
+        argv.ce as IGenerationOptions["convertCaseEntity"];
+    options.generationOptions.convertCaseFile =
+        argv.cf as IGenerationOptions["convertCaseFile"];
+    options.generationOptions.convertCaseProperty =
+        argv.cp as IGenerationOptions["convertCaseProperty"];
+    options.generationOptions.convertEol =
+        argv.eol as IGenerationOptions["convertEol"];
     options.generationOptions.lazy = argv.lazy;
     options.generationOptions.customNamingStrategyPath = argv.namingStrategy;
     options.generationOptions.noConfigs = argv.noConfig;
-    options.generationOptions.propertyVisibility = argv.pv as IGenerationOptions["propertyVisibility"];
+    options.generationOptions.propertyVisibility =
+        argv.pv as IGenerationOptions["propertyVisibility"];
     options.generationOptions.relationIds = argv.relationIds;
     options.generationOptions.skipSchema = argv.skipSchema;
     options.generationOptions.resultsPath = argv.o;
     options.generationOptions.pluralizeNames = !argv.disablePluralization;
-    options.generationOptions.strictMode = argv.strictMode as IGenerationOptions["strictMode"];
+    options.generationOptions.strictMode =
+        argv.strictMode as IGenerationOptions["strictMode"];
     options.generationOptions.indexFile = argv.index;
     options.generationOptions.exportType = argv.defaultExport
         ? "default"
@@ -378,7 +385,7 @@ async function useInquirer(options: options): Promise<options> {
     if (options.connectionOptions.databaseType !== oldDatabaseType) {
         options.connectionOptions.port = driver.standardPort;
         options.connectionOptions.user = driver.standardUser;
-        options.connectionOptions.schemaName = driver.standardSchema;
+        options.connectionOptions.schemaNames = [driver.standardSchema];
     }
     if (options.connectionOptions.databaseType !== "sqlite") {
         if (options.connectionOptions.databaseType === "mssql") {
@@ -430,7 +437,7 @@ async function useInquirer(options: options): Promise<options> {
                 type: "password",
             },
             {
-                default: options.connectionOptions.databaseName,
+                default: options.connectionOptions.databaseNames.join(","),
                 message:
                     "Database name: (You can pass multiple values separated by comma)",
                 name: "dbName",
@@ -441,29 +448,30 @@ async function useInquirer(options: options): Promise<options> {
             options.connectionOptions.databaseType === "mssql" ||
             options.connectionOptions.databaseType === "postgres"
         ) {
-            options.connectionOptions.schemaName = (
+            options.connectionOptions.schemaNames = (
                 await inquirer.prompt([
                     {
-                        default: options.connectionOptions.schemaName,
+                        default:
+                            options.connectionOptions.schemaNames.join(","),
                         message:
                             "Database schema: (You can pass multiple values separated by comma)",
                         name: "schema",
                         type: "input",
                     },
                 ])
-            ).schema;
+            ).schema.split(",");
         }
         options.connectionOptions.port = parseInt(answ.port, 10);
         options.connectionOptions.host = answ.host;
         options.connectionOptions.user = answ.login;
         options.connectionOptions.password = answ.password;
-        options.connectionOptions.databaseName = answ.dbName;
+        options.connectionOptions.databaseNames = answ.dbName.split(",");
         options.connectionOptions.ssl = answ.ssl;
     } else {
-        options.connectionOptions.databaseName = (
+        options.connectionOptions.databaseNames = (
             await inquirer.prompt([
                 {
-                    default: options.connectionOptions.databaseName,
+                    default: options.connectionOptions.databaseNames,
                     message: "Path to database file:",
                     name: "dbName",
                     type: "input",
@@ -553,16 +561,16 @@ async function useInquirer(options: options): Promise<options> {
                             checked: options.generationOptions.lazy,
                         },
                         {
-                            name:
-                                "Use ActiveRecord syntax for generated models",
+                            name: "Use ActiveRecord syntax for generated models",
                             value: "activeRecord",
                             checked: options.generationOptions.activeRecord,
                         },
                         {
                             name: "Use custom naming strategy",
                             value: "namingStrategy",
-                            checked: !!options.generationOptions
-                                .customNamingStrategyPath,
+                            checked:
+                                !!options.generationOptions
+                                    .customNamingStrategyPath,
                         },
                         {
                             name: "Generate RelationId fields",
@@ -570,14 +578,12 @@ async function useInquirer(options: options): Promise<options> {
                             checked: options.generationOptions.relationIds,
                         },
                         {
-                            name:
-                                "Omits schema identifier in generated entities",
+                            name: "Omits schema identifier in generated entities",
                             value: "skipSchema",
                             checked: options.generationOptions.skipSchema,
                         },
                         {
-                            name:
-                                "Generate constructor allowing partial initialization",
+                            name: "Generate constructor allowing partial initialization",
                             value: "constructor",
                             checked:
                                 options.generationOptions.generateConstructor,
@@ -600,8 +606,7 @@ async function useInquirer(options: options): Promise<options> {
                             checked: false,
                         },
                         {
-                            name:
-                                "Pluralize OneToMany, ManyToMany relation names",
+                            name: "Pluralize OneToMany, ManyToMany relation names",
                             value: "pluralize",
                             checked: options.generationOptions.pluralizeNames,
                         },
@@ -650,25 +655,19 @@ async function useInquirer(options: options): Promise<options> {
             ])
         ).strictMode;
 
-        options.generationOptions.noConfigs = !customizations.includes(
-            "config"
-        );
-        options.generationOptions.pluralizeNames = customizations.includes(
-            "pluralize"
-        );
+        options.generationOptions.noConfigs =
+            !customizations.includes("config");
+        options.generationOptions.pluralizeNames =
+            customizations.includes("pluralize");
         options.generationOptions.lazy = customizations.includes("lazy");
-        options.generationOptions.activeRecord = customizations.includes(
-            "activeRecord"
-        );
-        options.generationOptions.relationIds = customizations.includes(
-            "relationId"
-        );
-        options.generationOptions.skipSchema = customizations.includes(
-            "skipSchema"
-        );
-        options.generationOptions.generateConstructor = customizations.includes(
-            "constructor"
-        );
+        options.generationOptions.activeRecord =
+            customizations.includes("activeRecord");
+        options.generationOptions.relationIds =
+            customizations.includes("relationId");
+        options.generationOptions.skipSchema =
+            customizations.includes("skipSchema");
+        options.generationOptions.generateConstructor =
+            customizations.includes("constructor");
         options.generationOptions.indexFile = customizations.includes("index");
         options.generationOptions.exportType = customizations.includes(
             "defaultExport"
@@ -697,7 +696,8 @@ async function useInquirer(options: options): Promise<options> {
             ).namingStrategy;
 
             if (namingStrategyPath && namingStrategyPath !== "") {
-                options.generationOptions.customNamingStrategyPath = namingStrategyPath;
+                options.generationOptions.customNamingStrategyPath =
+                    namingStrategyPath;
             } else {
                 options.generationOptions.customNamingStrategyPath = "";
             }

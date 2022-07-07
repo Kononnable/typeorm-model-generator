@@ -15,7 +15,11 @@ export type Entity = {
     relations: Relation[];
     indices: Index[];
     // TODO: move to sub-object or use handlebars helpers(?)
-    fileImports: string[];
+    fileName: string;
+    fileImports: {
+        entityName: string;
+        fileName: string;
+    }[];
     activeRecord?: true;
     generateConstructor?: true;
 };

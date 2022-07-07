@@ -57,6 +57,7 @@ describe("Model customization phase", async () => {
             relationIds: [],
             sqlName: "PostAuthor",
             tscName: "PostAuthor",
+            fileName: "PostAuthor",
             database: "",
             schema: "public",
             fileImports: []
@@ -111,6 +112,7 @@ describe("Model customization phase", async () => {
             relationIds: [],
             sqlName: "Post",
             tscName: "Post",
+            fileName: "Post",
             database: "",
             schema: "public",
             fileImports: []
@@ -674,23 +676,23 @@ describe("Model customization phase", async () => {
         );
         const filesGenPath = path.resolve(resultsPath, "entities");
         const postContent = fs
-            .readFileSync(path.resolve(filesGenPath, "Post_B.ts"))
+            .readFileSync(path.resolve(filesGenPath, "Post_B_D.ts"))
             .toString();
         const postAuthorContent = fs
-            .readFileSync(path.resolve(filesGenPath, "PostAuthor_B.ts"))
+            .readFileSync(path.resolve(filesGenPath, "PostAuthor_B_D.ts"))
             .toString();
         expect(postContent).to.have.string(`@Entity("Post"`);
         expect(postContent).to.have.string(`class Post_B {`);
         expect(postContent).to.have.string(`id_C: number;`);
         expect(postContent).to.have.string(`author_A: PostAuthor_B`);
         expect(postContent).to.have.string(
-            `import { PostAuthor_B } from "./PostAuthor_B";`
+            `import { PostAuthor_B } from "./PostAuthor_B_D";`
         );
         expect(postAuthorContent).to.have.string(`@Entity("PostAuthor"`);
         expect(postAuthorContent).to.have.string(`class PostAuthor_B`);
         expect(postAuthorContent).to.have.string(`id_C: number;`);
         expect(postAuthorContent).to.have.string(
-            `import { Post_B } from "./Post_B";`
+            `import { Post_B } from "./Post_B_D";`
         );
 
         compileGeneratedModel(generationOptions.resultsPath, [""], false);

@@ -16,6 +16,7 @@ export default function modelCustomizationPhase(
         entityName: NamingStrategy.entityName,
         relationIdName: NamingStrategy.relationIdName,
         relationName: NamingStrategy.relationName,
+        fileName: NamingStrategy.fileName,
     };
     if (
         generationOptions.customNamingStrategyPath &&
@@ -63,6 +64,16 @@ export default function modelCustomizationPhase(
         } else {
             console.log(
                 `[${new Date().toLocaleTimeString()}] Using standard naming strategy for relation field names.`
+            );
+        }
+        if (req.fileName) {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using custom naming strategy for entity file names.`
+            );
+            namingStrategy.fileName = req.fileName;
+        } else {
+            console.log(
+                `[${new Date().toLocaleTimeString()}] Using standard naming strategy for entity file names.`
             );
         }
         if (req.enablePluralization) {
@@ -189,9 +200,17 @@ function findFileImports(dbModel: Entity[]) {
         entity.relations.forEach((relation) => {
             if (
                 relation.relatedTable !== entity.tscName &&
-                !entity.fileImports.some((v) => v === relation.relatedTable)
+                !entity.fileImports.some(
+                    (v) => v.entityName === relation.relatedTable
+                )
             ) {
-                entity.fileImports.push(relation.relatedTable);
+                let relatedTable = dbModel.find(
+                    (related) => related.tscName == relation.relatedTable
+                )!;
+                entity.fileImports.push({
+                    entityName: relatedTable.tscName,
+                    fileName: relatedTable.fileName,
+                });
             }
         });
     });
@@ -234,6 +253,7 @@ function applyNamingStrategy(
     retVal = changeRelationIdNames(retVal);
     retVal = changeEntityNames(retVal);
     retVal = changeColumnNames(retVal);
+    retVal = changeFileNames(retVal);
     return retVal;
 
     function changeRelationIdNames(model: Entity[]): Entity[] {
@@ -336,6 +356,13 @@ function applyNamingStrategy(
                 });
             });
             entity.tscName = newName;
+            entity.fileName = newName;
+        });
+        return entities;
+    }
+    function changeFileNames(entities: Entity[]): Entity[] {
+        entities.forEach((entity) => {
+            entity.fileName = namingStrategy.fileName(entity.fileName);
         });
         return entities;
     }

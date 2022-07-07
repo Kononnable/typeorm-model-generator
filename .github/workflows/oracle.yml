@@ -1,0 +1,69 @@
+name: CI tests for oracle db driver
+
+on:
+  push:
+    branches-ignore:
+      - "no-engines"
+    tags-ignore:
+      - "*-no-engines"
+  pull_request:
+
+env:
+  ORACLE_Skip: 0
+  ORACLE_Host: localhost
+  ORACLE_Port: 1521
+  ORACLE_SSL: 0
+  ORACLE_UsernameSys: sys
+  ORACLE_PasswordSys: Oradoc_db1
+  ORACLE_Database: orclpdb1.localdomain
+  ORACLE_Username: typeorm_mg
+  ORACLE_Password: Passw0rd
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+      - name: Login to registry
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_LOGIN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup containers
+        run: docker-compose up -d oracle oracle_client
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup oracle client
+        run: |
+          wget https://download.oracle.com/otn_software/linux/instantclient/195000/instantclient-basiclite-linux.x64-19.5.0.0.0dbru.zip
+          unzip instantclient-basiclite-linux.x64-19.5.0.0.0dbru.zip -d /tmp/oracle
+          wget https://download.oracle.com/otn_software/linux/instantclient/195000/instantclient-sqlplus-linux.x64-19.5.0.0.0dbru.zip
+          unzip instantclient-sqlplus-linux.x64-19.5.0.0.0dbru.zip -d /tmp/oracle
+          sudo sh -c "echo /tmp/oracle/instantclient_19_5 > /etc/ld.so.conf.d/oracle-instantclient.conf";sudo ldconfig
+          sh -c 'echo WHENEVER SQLERROR EXIT FAILURE > /tmp/user.sql; echo CREATE USER typeorm_mg IDENTIFIED BY Passw0rd\; >> /tmp/user.sql;  echo GRANT CONNECT TO typeorm_mg\; >> /tmp/user.sql;  echo GRANT UNLIMITED TABLESPACE TO typeorm_mg\; >> /tmp/user.sql;  echo exit >> /tmp/user.sql'
+          sudo apt install libaio1
+          until  /tmp/oracle/instantclient_19_5/sqlplus -L -S sys/Oradoc_db1@//localhost:1521/orclpdb1.localdomain as sysdba @/tmp/user.sql ; do echo waiting for oracle; sleep 10; done;
+          npm install oracledb --no-save
+
+      - name: Test
+        run: npm t
+        env:
+          LD_LIBRARY_PATH: /tmp/oracle/instantclient_19_5
+
+      - name: Push coverage
+        if: github.ref == 'refs/heads/master'
+        uses: codecov/codecov-action@v1

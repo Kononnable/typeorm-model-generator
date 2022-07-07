@@ -1,4 +1,4 @@
-import type * as MYSQL from "mysql";
+import type * as MYSQL from "mysql2";
 import { ConnectionOptions } from "typeorm";
 import * as TypeormDriver from "typeorm/driver/mysql/MysqlDriver";
 import { DataTypeDefaults } from "typeorm/driver/types/DataTypeDefaults";
@@ -32,31 +32,52 @@ export default class MysqlDriver extends AbstractDriver {
         super();
         try {
             // eslint-disable-next-line import/no-extraneous-dependencies, global-require, import/no-unresolved
-            this.MYSQL = require("mysql");
+            this.MYSQL = require("mysql2");
         } catch (error) {
             TomgUtils.LogError("", false, error);
             throw error;
         }
     }
 
-    public GetAllTablesQuery = async (schema: string, dbNames: string) => {
-        const response = this.ExecQuery<{
+    public async GetAllTables(
+        schemas: string[],
+        dbNames: string[]
+    ): Promise<Entity[]> {
+        const response: {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
-        }>(`SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
-            FROM information_schema.tables
-            WHERE table_type='BASE TABLE'
-            AND table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
-                dbNames
-            )})`);
-        return response;
-    };
+        }[] = await this.ExecQuery(
+            `SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
+                        FROM information_schema.tables
+                        WHERE table_type='BASE TABLE'
+                        AND table_schema IN (${MysqlDriver.buildEscapedObjectList(
+                            dbNames
+                        )})`
+        );
+        // const response = await this.GetAllTablesQuery(schemas, dbNames);
+        const ret: Entity[] = [] as Entity[];
+        response.forEach((val) => {
+            ret.push({
+                columns: [],
+                indices: [],
+                relations: [],
+                relationIds: [],
+                sqlName: val.TABLE_NAME,
+                tscName: val.TABLE_NAME,
+                fileName: val.TABLE_NAME,
+                database: dbNames.length > 1 ? val.DB_NAME : "",
+                schema: val.TABLE_SCHEMA,
+                fileImports: [],
+            });
+        });
+        return ret;
+    }
 
     public async GetCoulmnsFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
             TABLE_NAME: string;
@@ -74,7 +95,7 @@ export default class MysqlDriver extends AbstractDriver {
         }>(`SELECT TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,
             DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION,NUMERIC_SCALE,
             CASE WHEN EXTRA like '%auto_increment%' THEN 1 ELSE 0 END IsIdentity, COLUMN_TYPE, COLUMN_KEY, COLUMN_COMMENT
-            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(
+            FROM INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA IN (${MysqlDriver.buildEscapedObjectList(
                 dbNames
             )})
 			order by ordinal_position`);
@@ -297,8 +318,8 @@ export default class MysqlDriver extends AbstractDriver {
 
     public async GetIndexesFromEntity(
         entities: Entity[],
-        schema: string,
-        dbNames: string
+        schemas: string[],
+        dbNames: string[]
     ): Promise<Entity[]> {
         /* eslint-disable camelcase */
         const response = await this.ExecQuery<{
@@ -307,10 +328,11 @@ export default class MysqlDriver extends AbstractDriver {
             ColumnName: string;
             is_unique: number;
             is_primary_key: number;
+            is_fulltext: number;
         }>(`SELECT TABLE_NAME TableName,INDEX_NAME IndexName,COLUMN_NAME ColumnName,CASE WHEN NON_UNIQUE=0 THEN 1 ELSE 0 END is_unique,
-        CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key
+        CASE WHEN INDEX_NAME='PRIMARY' THEN 1 ELSE 0 END is_primary_key, CASE WHEN INDEX_TYPE="FULLTEXT" THEN 1 ELSE 0 END is_fulltext
         FROM information_schema.statistics sta
-        WHERE table_schema IN (${MysqlDriver.escapeCommaSeparatedList(
+        WHERE table_schema IN (${MysqlDriver.buildEscapedObjectList(
             dbNames
         )})`);
         /* eslint-enable camelcase */
@@ -330,6 +352,8 @@ export default class MysqlDriver extends AbstractDriver {
                     options: {},
                 };
                 if (records[0].is_primary_key === 1) indexInfo.primary = true;
+                if (records[0].is_fulltext === 1)
+                    indexInfo.options.fulltext = true;
                 if (records[0].is_unique === 1) indexInfo.options.unique = true;
 
                 records.forEach((record) => {
@@ -344,8 +368,8 @@ export default class MysqlDriver extends AbstractDriver {
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         const response = await this.ExecQuery<{
@@ -374,7 +398,7 @@ export default class MysqlDriver extends AbstractDriver {
             INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS RC
                 ON CU.CONSTRAINT_NAME=RC.CONSTRAINT_NAME AND CU.CONSTRAINT_SCHEMA = RC.CONSTRAINT_SCHEMA
           WHERE
-            TABLE_SCHEMA IN (${MysqlDriver.escapeCommaSeparatedList(dbNames)})
+            TABLE_SCHEMA IN (${MysqlDriver.buildEscapedObjectList(dbNames)})
             AND CU.REFERENCED_TABLE_NAME IS NOT NULL;
             `);
         const relationsTemp: RelationInternal[] = [] as RelationInternal[];
@@ -444,8 +468,8 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
-        const databaseName = connectionOptons.databaseName.split(",")[0];
-        let config: MYSQL.ConnectionConfig;
+        const databaseName = connectionOptons.databaseNames[0];
+        let config: MYSQL.ConnectionOptions;
         if (connectionOptons.ssl) {
             config = {
                 database: databaseName,
@@ -455,7 +479,7 @@ export default class MysqlDriver extends AbstractDriver {
                 ssl: {
                     rejectUnauthorized: false,
                 },
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         } else {
@@ -464,10 +488,21 @@ export default class MysqlDriver extends AbstractDriver {
                 host: connectionOptons.host,
                 password: connectionOptons.password,
                 port: connectionOptons.port,
-                timeout: 60 * 60 * 1000,
+                connectTimeout: 60 * 60 * 1000,
                 user: connectionOptons.user,
             };
         }
+
+        config.typeCast = (field, next) => {
+            switch (field.type) {
+                case "VAR_STRING":
+                    return field.string();
+                case "BLOB":
+                    return field.string();
+                default:
+                    return next();
+            }
+        };
 
         const promise = new Promise<boolean>((resolve, reject) => {
             this.Connection = this.MYSQL.createConnection(config);
@@ -490,19 +525,19 @@ export default class MysqlDriver extends AbstractDriver {
     }
 
     public async CreateDB(dbName: string) {
-        await this.ExecQuery(`CREATE DATABASE ${dbName}; `);
+        await this.ExecQuery(`CREATE DATABASE \`${dbName}\`; `);
     }
 
     public async UseDB(dbName: string) {
-        await this.ExecQuery(`USE ${dbName}; `);
+        await this.ExecQuery(`USE \`${dbName}\`; `);
     }
 
     public async DropDB(dbName: string) {
-        await this.ExecQuery(`DROP DATABASE ${dbName}; `);
+        await this.ExecQuery(`DROP DATABASE \`${dbName}\`; `);
     }
 
     public async CheckIfDBExists(dbName: string): Promise<boolean> {
-        const resp = await this.ExecQuery(`SHOW DATABASES LIKE '${dbName}' `);
+        const resp = await this.ExecQuery(`SHOW DATABASES LIKE "${dbName}" `);
         return resp.length > 0;
     }
 
@@ -512,7 +547,7 @@ export default class MysqlDriver extends AbstractDriver {
         const stream = query.stream({});
         const promise = new Promise<boolean>((resolve, reject) => {
             stream.on("data", (chunk) => {
-                ret.push((chunk as unknown) as T);
+                ret.push(chunk as unknown as T);
             });
             stream.on("error", (err) => reject(err));
             stream.on("end", () => resolve(true));

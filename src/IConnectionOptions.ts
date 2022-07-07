@@ -4,7 +4,7 @@
 export default interface IConnectionOptions {
     host: string;
     port: number;
-    databaseName: string;
+    databaseNames: string[];
     user: string;
     password: string;
     databaseType:
@@ -14,7 +14,7 @@ export default interface IConnectionOptions {
         | "mariadb"
         | "oracle"
         | "sqlite";
-    schemaName: string;
+    schemaNames: string[];
     instanceName?: string;
     ssl: boolean;
     skipTables: string[];
@@ -25,11 +25,11 @@ export function getDefaultConnectionOptions(): IConnectionOptions {
     const connectionOptions: IConnectionOptions = {
         host: "127.0.0.1",
         port: 0,
-        databaseName: "",
+        databaseNames: [""],
         user: "",
         password: "",
         databaseType: undefined as any,
-        schemaName: "",
+        schemaNames: [""],
         instanceName: undefined,
         ssl: false,
         skipTables: [],

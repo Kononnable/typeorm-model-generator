@@ -45,8 +45,10 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async GetAllTables(
-        schema: string,
-        dbNames: string
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        schemas: string[],
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+        dbNames: string[]
     ): Promise<Entity[]> {
         const ret: Entity[] = [] as Entity[];
         // eslint-disable-next-line camelcase
@@ -64,6 +66,7 @@ export default class SqliteDriver extends AbstractDriver {
                 relationIds: [],
                 sqlName: val.tbl_name,
                 tscName: val.tbl_name,
+                fileName: val.tbl_name,
                 fileImports: [],
             });
         });
@@ -88,9 +91,10 @@ export default class SqliteDriver extends AbstractDriver {
                     const options: Column["options"] = { name: resp.name };
                     if (resp.notnull === 0) options.nullable = true;
                     const isPrimary = resp.pk > 0 ? true : undefined;
-                    const defaultValue = SqliteDriver.ReturnDefaultValueFunction(
-                        resp.dflt_value
-                    );
+                    const defaultValue =
+                        SqliteDriver.ReturnDefaultValueFunction(
+                            resp.dflt_value
+                        );
                     const columnType = resp.type
                         .replace(/\([0-9 ,]+\)/g, "")
                         .toLowerCase()
@@ -306,8 +310,8 @@ export default class SqliteDriver extends AbstractDriver {
 
     public async GetRelations(
         entities: Entity[],
-        schema: string,
-        dbNames: string,
+        schemas: string[],
+        dbNames: string[],
         generationOptions: IGenerationOptions
     ): Promise<Entity[]> {
         let retVal = entities;
@@ -334,7 +338,8 @@ export default class SqliteDriver extends AbstractDriver {
                     match: string;
                 }>(`PRAGMA foreign_key_list('${entity.tscName}');`);
 
-                const relationsTemp: RelationInternal[] = [] as RelationInternal[];
+                const relationsTemp: RelationInternal[] =
+                    [] as RelationInternal[];
                 const relationKeys = new Set(response.map((v) => v.id));
 
                 relationKeys.forEach((relationId) => {
@@ -386,30 +391,29 @@ export default class SqliteDriver extends AbstractDriver {
     }
 
     public async ConnectToServer(connectionOptons: IConnectionOptions) {
-        await this.UseDB(connectionOptons.databaseName);
+        const promise = new Promise<void>((resolve, reject) => {
+            this.db = new this.sqlite.Database(
+                connectionOptons.databaseNames[0],
+                (err) => {
+                    if (err) {
+                        TomgUtils.LogError(
+                            "Error connecting to SQLite database.",
+                            false,
+                            err.message
+                        );
+                        reject(err);
+                        return;
+                    }
+                    resolve();
+                }
+            );
+        });
+        return promise;
     }
 
     // eslint-disable-next-line class-methods-use-this
     public async CreateDB() {
         // not supported
-    }
-
-    public async UseDB(dbName: string) {
-        const promise = new Promise<boolean>((resolve, reject) => {
-            this.db = new this.sqlite.Database(dbName, (err) => {
-                if (err) {
-                    TomgUtils.LogError(
-                        "Error connecting to SQLite database.",
-                        false,
-                        err.message
-                    );
-                    reject(err);
-                    return;
-                }
-                resolve();
-            });
-        });
-        return promise;
     }
 
     // eslint-disable-next-line class-methods-use-this

@@ -5,7 +5,6 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import * as chaiSubset from "chai-subset";
 import * as flatMap from "array.prototype.flatmap";
-import * as yn from "yn";
 import { CLIEngine } from "eslint";
 import * as dotEnv from "dotenv"
 import EntityFileToJson from "../utils/EntityFileToJson";
@@ -15,6 +14,7 @@ import { Entity } from "../../src/models/Entity";
 import IConnectionOptions from "../../src/IConnectionOptions";
 import modelCustomizationPhase from "../../src/ModelCustomization";
 import modelGenerationPhase from "../../src/ModelGeneration";
+import AbstractDriver from "../../src/drivers/AbstractDriver";
 
 dotEnv.config();
 
@@ -41,7 +41,7 @@ describe("TypeOrm examples", async () => {
 describe("Filtering tables", async () => {
     const testPartialPath = "test/integration/examples";
     it("skipTables",async ()=>{
-        const dbDrivers: string[] = GTU.getEnabledDbDrivers();
+        const dbDrivers = GTU.getEnabledDbDrivers();
         const modelGenerationPromises = dbDrivers.map(async dbDriver => {
             const {
                 generationOptions,
@@ -61,7 +61,7 @@ describe("Filtering tables", async () => {
         await Promise.all(modelGenerationPromises);
     });
     it("onlyTables",async ()=>{
-        const dbDrivers: string[] = GTU.getEnabledDbDrivers();
+        const dbDrivers = GTU.getEnabledDbDrivers();
         const modelGenerationPromises = dbDrivers.map(async dbDriver => {
             const {
                 generationOptions,
@@ -87,7 +87,7 @@ async function runTestsFromPath(
     testPartialPath: string,
     isDbSpecific: boolean
 ) {
-    const dbDrivers: string[] = GTU.getEnabledDbDrivers();
+    const dbDrivers: IConnectionOptions["databaseType"][] = GTU.getEnabledDbDrivers();
     createOutputDirs(dbDrivers);
     const files = fs.readdirSync(path.resolve(process.cwd(), testPartialPath));
     if (isDbSpecific) {
@@ -114,7 +114,7 @@ function createOutputDirs(dbDrivers: string[]) {
 
 function runTestForMultipleDrivers(
     testName: string,
-    dbDrivers: string[],
+    dbDrivers: IConnectionOptions["databaseType"][],
     testPartialPath: string
 ) {
     it(testName, async () => {
@@ -127,13 +127,23 @@ function runTestForMultipleDrivers(
                 resultsPath,
                 filesOrgPathTS
             } = await prepareTestRuns(testPartialPath, testName, dbDriver);
-            let dbModel: Entity[] = [];
+        let dbModel: Entity[] = [];
             switch (testName) {
                 case "144":
                     dbModel = await dataCollectionPhase(
                         driver,
                         Object.assign(connectionOptions, {
-                            databaseName: "db1,db2"
+                            databaseNames: ["db1","db2"]
+                        }),
+                        generationOptions
+                    );
+                    break;
+
+                case "273":
+                    dbModel = await dataCollectionPhase(
+                        driver,
+                        Object.assign(connectionOptions, {
+                            databaseNames: ["db-1","db-2"]
                         }),
                         generationOptions
                     );
@@ -147,13 +157,13 @@ function runTestForMultipleDrivers(
                     );
                     break;
             }
-            dbModel = modelCustomizationPhase(
+                    dbModel = modelCustomizationPhase(
                 dbModel,
                 generationOptions,
                 driver.defaultValues
             );
             modelGenerationPhase(connectionOptions, generationOptions, dbModel);
-            const filesGenPath = path.resolve(resultsPath, "entities");
+                    const filesGenPath = path.resolve(resultsPath, "entities");
             compareGeneratedFiles(filesOrgPathTS, filesGenPath);
             return {
                 dbModel,
@@ -190,6 +200,14 @@ function runTestForMultipleDrivers(
                 return dbDrivers.filter(dbDriver =>
                     dbDriver === "postgres"
                 );
+            case "273":
+                return dbDrivers.filter(dbDriver =>
+                    ["mysql", "mariadb","mssql"].includes(dbDriver)
+                );
+            case "285":
+                return dbDrivers.filter(dbDriver =>
+                    ["mysql", "mariadb"].includes(dbDriver)
+                );
             default:
                 return dbDrivers;
         }
@@ -197,7 +215,7 @@ function runTestForMultipleDrivers(
 }
 
 async function runTest(
-    dbDrivers: string[],
+    dbDrivers: IConnectionOptions["databaseType"][],
     testPartialPath: string,
     files: string[]
 ) {
@@ -359,7 +377,7 @@ export function compileGeneratedModel(
 async function prepareTestRuns(
     testPartialPath: string,
     testName: string,
-    dbDriver: string
+    dbDriver: IConnectionOptions["databaseType"]
 ) {
     const filesOrgPathJS = path.resolve(
         process.cwd(),
@@ -373,6 +391,7 @@ async function prepareTestRuns(
         testName,
         "entity"
     );
+
     const resultsPath = path.resolve(process.cwd(), `output`, dbDriver);
     fs.removeSync(resultsPath);
     const driver = createDriver(dbDriver);
@@ -385,51 +404,28 @@ async function prepareTestRuns(
             generationOptions.lazy = true;
             break;
         case "144":
-            // eslint-disable-next-line no-case-declarations
+        {
             let connectionOptions: IConnectionOptions;
             switch (dbDriver) {
-                case "mysql":
-                    connectionOptions = {
-                        host: String(process.env.MYSQL_Host),
-                        port: Number(process.env.MYSQL_Port),
-                        databaseName: String(process.env.MYSQL_Database),
-                        user: String(process.env.MYSQL_Username),
-                        password: String(process.env.MYSQL_Password),
-                        databaseType: "mysql",
-                        schemaName: "ignored",
-                        ssl: yn(process.env.MYSQL_SSL, { default: false }),
-                        skipTables: [],
-                        onlyTables: [],
-                    };
-                    break;
                 case "mariadb":
-                    connectionOptions = {
-                        host: String(process.env.MARIADB_Host),
-                        port: Number(process.env.MARIADB_Port),
-                        databaseName: String(process.env.MARIADB_Database),
-                        user: String(process.env.MARIADB_Username),
-                        password: String(process.env.MARIADB_Password),
-                        databaseType: "mariadb",
-                        schemaName: "ignored",
-                        ssl: yn(process.env.MARIADB_SSL, { default: false }),
-                        skipTables: [],
-                        onlyTables: []
-                    };
+                case "mysql":
+                    connectionOptions = GTU.getTomgConnectionOptions(dbDriver);
                     break;
-
                 default:
                     break;
             }
-
             await driver.ConnectToServer(connectionOptions!);
-            if (!(await driver.CheckIfDBExists("db1"))) {
-                await driver.CreateDB("db1");
-            }
-            if (!(await driver.CheckIfDBExists("db2"))) {
-                await driver.CreateDB("db2");
-            }
+            await createDatabases(["db1","db2"], driver);
             await driver.DisconnectFromServer();
             break;
+        }
+            case "273":{
+                const connectionOptions= GTU.getTomgConnectionOptions(dbDriver);
+                await driver.ConnectToServer(connectionOptions!);
+                await createDatabases(["db-1","db-2"], driver);
+            await driver.DisconnectFromServer();
+            break;
+        }
         default:
             break;
     }
@@ -445,3 +441,11 @@ async function prepareTestRuns(
         filesOrgPathTS
     };
 }
+async function createDatabases(databases: string[], driver: AbstractDriver) {
+    for await (const db of databases) {
+        if (!(await driver.CheckIfDBExists(db))) {
+            await driver.CreateDB(db);
+        }
+    }
+}
+

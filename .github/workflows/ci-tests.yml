@@ -1,0 +1,70 @@
+name: CI tests for most supported db drivers
+
+on:
+  push:
+    branches-ignore:
+      - "no-engines"
+    tags-ignore:
+      - "*-no-engines"
+  pull_request:
+
+env:
+  POSTGRES_Skip: 0
+  POSTGRES_Host: localhost
+  POSTGRES_Port: 5432
+  POSTGRES_Username: test
+  POSTGRES_Password: test
+  POSTGRES_Database: test
+  POSTGRES_SSL: 0
+  MYSQL_Skip: 0
+  MYSQL_Host: localhost
+  MYSQL_Port: 3306
+  MYSQL_Username: root
+  MYSQL_Password: admin
+  MYSQL_Database: test
+  MYSQL_SSL: 0
+  MARIADB_Skip: 0
+  MARIADB_Host: localhost
+  MARIADB_Port: 3307
+  MARIADB_Username: root
+  MARIADB_Password: admin
+  MARIADB_Database: test
+  MARIADB_SSL: 0
+  MSSQL_Skip: 0
+  MSSQL_Host: localhost
+  MSSQL_Port: 1433
+  MSSQL_Username: sa
+  MSSQL_Password: Admin12345
+  MSSQL_Database: typeorm_mg
+  MSSQL_SSL: 0
+  SQLITE_Skip: 0
+  SQLITE_Database: /tmp/sqlitedb.db
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup containers
+        run: docker-compose up -d mysql mariadb postgres mssql
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm t
+
+      - name: Push coverage
+        if: github.ref == 'refs/heads/master'
+        uses: codecov/codecov-action@v1
