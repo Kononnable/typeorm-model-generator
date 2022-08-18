@@ -4,7 +4,7 @@ import * as changeCase from "change-case";
 import * as fs from "fs";
 import * as path from "path";
 import { EOL } from "os";
-import { getLogger } from 'xmcommon';
+import { getLogger } from "xmcommon";
 import IConnectionOptions from "./IConnectionOptions";
 import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
@@ -14,13 +14,12 @@ const log = getLogger(__filename);
 
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
-    "tabWidth": 4,
-    "singleQuote": true,
-    "trailingComma": "all",
-    "printWidth": 120,
-    "endOfLine": "crlf"
-}
-
+    tabWidth: 4,
+    singleQuote: true,
+    trailingComma: "all",
+    printWidth: 120,
+    endOfLine: "crlf",
+};
 
 export default function modelGenerationPhase(
     connectionOptions: IConnectionOptions,
@@ -91,7 +90,7 @@ function generateModels(
             `${casedFileName}.ts`
         );
         const rendered = entityCompliedTemplate(element);
-        const extImport = ['DeepPartial', 'FindOptionsWhere'];
+        const extImport = ["DeepPartial", "FindOptionsWhere"];
         const withImportStatements = removeUnusedImports(
             EOL !== eolConverter[generationOptions.convertEol]
                 ? rendered.replace(
@@ -99,7 +98,7 @@ function generateModels(
                       eolConverter[generationOptions.convertEol]
                   )
                 : rendered,
-                extImport
+            extImport
         );
         let formatted = "";
         try {
@@ -160,7 +159,7 @@ function createIndexFile(
  *  - false 表示不在数组中
  */
 function isInArray<T>(paramList: T[], paramValue: T) {
-    for(const v of paramList) {
+    for (const v of paramList) {
         if (v === paramValue) {
             return true;
         }
@@ -181,8 +180,8 @@ function removeUnusedImports(rendered: string, extImport?: string[]) {
             (v === "BaseEntity" && restOfEntityDefinition.indexOf(v) !== -1)
     );
     if (Array.isArray(extImport) && extImport.length > 0) {
-        extImport.forEach(imp => {
-            if(!isInArray(distinctImports, imp)) {
+        extImport.forEach((imp) => {
+            if (!isInArray(distinctImports, imp)) {
                 distinctImports.push(imp);
             }
         });
