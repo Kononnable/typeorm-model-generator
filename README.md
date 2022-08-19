@@ -21,6 +21,22 @@ Supported db engines:
 
 
 ## Installation
+
+## 变更记录
+### 0.0.6
+* 发布到NPM的版本，增加复制readme.md
+### 0.0.5
+* 升极依赖库的版本, 主要是将typeorm升级到了0.3.7 部分数据库升级了小版本
+
+### 0.0.4
++ 生成的实体文件，增加where和record类型定义，便于使用。这个需要typeorm 0.3.x及以上版本，才有。0.2.x请不要使用。
+### 0.0.3
++ 工具导出的表名文件名支持snake命令方式 即表名为：sampleTable => sample_table.ts
++ 优化了perttier格式代的规则
+
+### 0.0.1
+* 将typeorm-model-generator改为tmg，在命令行输入tmg就可以了
+* 从typeorm-model-generator这个迁移过来，包名改为@zdhsoft/tmg
 ### Versions
 Typeorm-model-generator comes with preinstalled driver for each supported db(except for oracle). However if you want to use it as a dev-dependency you may want to install your db driver manually to reduce dependency footprint, reduce time spent in the CI. In such case you can use version without preinstalled db drivers - `npm i @zdhsoft@tmg@no-engines`.
 ### Global module
