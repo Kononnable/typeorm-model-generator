@@ -20,8 +20,6 @@ Supported db engines:
 * SQLite
 
 
-## Installation
-
 ## 变更记录
 ### 0.0.6
 * 发布到NPM的版本，增加复制readme.md
@@ -37,6 +35,9 @@ Supported db engines:
 ### 0.0.1
 * 将typeorm-model-generator改为tmg，在命令行输入tmg就可以了
 * 从typeorm-model-generator这个迁移过来，包名改为@zdhsoft/tmg
+
+## Installation
+
 ### Versions
 Typeorm-model-generator comes with preinstalled driver for each supported db(except for oracle). However if you want to use it as a dev-dependency you may want to install your db driver manually to reduce dependency footprint, reduce time spent in the CI. In such case you can use version without preinstalled db drivers - `npm i @zdhsoft@tmg@no-engines`.
 ### Global module
