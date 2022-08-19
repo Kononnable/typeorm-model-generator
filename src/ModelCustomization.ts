@@ -123,7 +123,9 @@ function removeIndicesGeneratedByTypeorm(dbModel: Entity[]): Entity[] {
         entity.relations
             .filter((v) => v.joinColumnOptions)
             .forEach((rel) => {
-                const columnNames = rel.joinColumnOptions!.map((v) => v.name);
+                const columnNames = rel.joinColumnOptions!.map(
+                    (v) => v.name || ""
+                );
                 const idxName = namingStrategy.relationConstraintName(
                     entity.tscName,
                     columnNames
@@ -204,8 +206,8 @@ function findFileImports(dbModel: Entity[]) {
                     (v) => v.entityName === relation.relatedTable
                 )
             ) {
-                let relatedTable = dbModel.find(
-                    (related) => related.tscName == relation.relatedTable
+                const relatedTable = dbModel.find(
+                    (related) => related.tscName === relation.relatedTable
                 )!;
                 entity.fileImports.push({
                     entityName: relatedTable.tscName,
