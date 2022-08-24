@@ -90,7 +90,12 @@ function generateModels(
             `${casedFileName}.ts`
         );
         const rendered = entityCompliedTemplate(element);
-        const extImport = ["DeepPartial", "FindOptionsWhere"];
+        const extImport = [
+            "DeepPartial",
+            "FindOptionsWhere",
+            "FindOptionsSelect",
+            "FindOptionsOrder",
+        ];
         const withImportStatements = removeUnusedImports(
             EOL !== eolConverter[generationOptions.convertEol]
                 ? rendered.replace(

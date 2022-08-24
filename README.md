@@ -21,6 +21,8 @@ Supported db engines:
 
 
 ## 变更记录
+### 0.0.8
++ 增加表名与(select字段或Order类型定义)
 ### 0.0.6
 * 发布到NPM的版本，增加复制readme.md
 ### 0.0.5
