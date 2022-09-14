@@ -21,6 +21,9 @@ Supported db engines:
 
 
 ## 变更记录
+
+### 0.0.9
+* 更新typeorm版本为0.3.9
 ### 0.0.8
 + 增加表名与(select字段或Order类型定义)
 ### 0.0.6
