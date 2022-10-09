@@ -5,6 +5,7 @@
 import {{localImport (toEntityName entityName)}} from './{{toFileName fileName}}'
 {{/inline}}
 {{#*inline "Column"}}
+{{#if options.comment}}/** {{options.comment}} */{{/if}}
 {{#generated}}@PrimaryGeneratedColumn({ type:"{{type}}", {{/generated}}{{^generated}}@Column("{{type}}",{ {{#primary}}primary:{{primary}},{{/primary}}{{/generated}}{{json options}}{{#default}},default: {{.}},{{/default}} })
 {{printPropertyVisibility}}{{toPropertyName tscName}}{{strictMode}}:{{tscType}}{{#if options.nullable}} | null{{/if}};
 
@@ -54,5 +55,5 @@ export declare type Where{{toEntityName tscName}} = FindOptionsWhere<{{toEntityN
 export declare type Rec{{toEntityName tscName}} = DeepPartial<{{toEntityName tscName}}>;
 /** 定义Select类型 便于使用 */
 export declare type Select{{toEntityName tscName}} = FindOptionsSelect<{{toEntityName tscName}}>;
-/** 定义Select类型 便于使用 */
+/** 定义Order类型 便于使用 */
 export declare type Order{{toEntityName tscName}} = FindOptionsOrder<{{toEntityName tscName}}>;

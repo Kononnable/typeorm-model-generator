@@ -10,7 +10,7 @@ import IGenerationOptions, { eolConverter } from "./IGenerationOptions";
 import { Entity } from "./models/Entity";
 import { Relation } from "./models/Relation";
 
-const log = getLogger(__filename);
+const log = getLogger('ModelGeneration.ts');
 
 const prettierOptions: Prettier.Options = {
     parser: "typescript",
