@@ -32,6 +32,7 @@ import {{localImport (toEntityName entityName)}} from './{{toFileName fileName}}
 }
 {{/inline}}
 {{#*inline "Entity"}}
+{{#if comment}}/** {{comment}} */{{/if}}
 {{#indices}}{{> Index}}{{/indices~}}
 @Entity("{{sqlName}}"{{#schema}} ,{schema:"{{.}}"{{#if ../database}}, database:"{{../database}}"{{/if}} } {{/schema}})
 export {{defaultExport}} class {{toEntityName tscName}}{{#activeRecord}} extends BaseEntity{{/activeRecord}} {
@@ -49,11 +50,11 @@ import {BaseEntity,Column,Entity,Index,JoinColumn,JoinTable,ManyToMany,ManyToOne
 
 {{> Entity}}
 
-/** 定义where类型 便于使用 */
+{{#if comment}}/** 定义where类型 for {{comment}} */{{/if}}
 export declare type Where{{toEntityName tscName}} = FindOptionsWhere<{{toEntityName tscName}}>;
-/** 定义Record类型 便于使用 */
+{{#if comment}}/** 定义Record类型 for {{comment}} */{{/if}}
 export declare type Rec{{toEntityName tscName}} = DeepPartial<{{toEntityName tscName}}>;
-/** 定义Select类型 便于使用 */
+{{#if comment}}/** 定义Select类型 for {{comment}} */{{/if}}
 export declare type Select{{toEntityName tscName}} = FindOptionsSelect<{{toEntityName tscName}}>;
-/** 定义Order类型 便于使用 */
+{{#if comment}}/** 定义Order类型 for {{comment}} */{{/if}}
 export declare type Order{{toEntityName tscName}} = FindOptionsOrder<{{toEntityName tscName}}>;

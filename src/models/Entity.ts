@@ -6,6 +6,7 @@ import { RelationId } from "./RelationId";
 export type Entity = {
     sqlName: string;
     tscName: string;
+    comment?: string;
 
     database?: string;
     schema?: string;

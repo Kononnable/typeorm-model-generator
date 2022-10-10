@@ -47,8 +47,9 @@ export default class MysqlDriver extends AbstractDriver {
             TABLE_SCHEMA: string;
             TABLE_NAME: string;
             DB_NAME: string;
+            TABLE_COMMENT: string;
         }[] = await this.ExecQuery(
-            `SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME
+            `SELECT TABLE_SCHEMA, TABLE_NAME, TABLE_SCHEMA as DB_NAME, TABLE_COMMENT
                         FROM information_schema.tables
                         WHERE table_type='BASE TABLE'
                         AND table_schema IN (${MysqlDriver.buildEscapedObjectList(
@@ -63,6 +64,7 @@ export default class MysqlDriver extends AbstractDriver {
                 indices: [],
                 relations: [],
                 relationIds: [],
+                comment: val.TABLE_COMMENT,
                 sqlName: val.TABLE_NAME,
                 tscName: val.TABLE_NAME,
                 fileName: val.TABLE_NAME,
